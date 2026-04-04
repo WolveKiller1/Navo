@@ -1,0 +1,11 @@
+.access-content {
+  max-width: 600px;
+}
+
+.access-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #e8e8e8;
+  opacity: 0.85;
+  margin: 0;
+}

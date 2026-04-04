@@ -1,0 +1,57 @@
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import LandingPage from './components/LandingPage'
+import CallScreen from './components/CallScreen'
+import PlaygroundScreen from './components/PlaygroundScreen'
+import WhatRylingoIsPage from './components/WhatRylingoIsPage'
+import SessionsPage from './components/SessionsPage'
+import AccountPage from './components/AccountPage'
+import AccessPage from './components/AccessPage'
+import AboutPage from './components/AboutPage'
+import PlaceholderPage from './components/PlaceholderPage'
+
+function ProtectedRoute({ children }) {
+  const hasAccess = sessionStorage.getItem('rylingo_access') === 'granted'
+  
+  if (!hasAccess) {
+    return <Navigate to="/" replace />
+  }
+  
+  return children
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/what-rylingo-is" element={<WhatRylingoIsPage />} />
+          <Route 
+            path="/room" 
+            element={
+              <ProtectedRoute>
+                <CallScreen />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/playground" 
+            element={
+              <ProtectedRoute>
+                <PlaygroundScreen />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/sessions" element={<SessionsPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/pricing" element={<AccessPage />} />
+          <Route path="/access" element={<AccessPage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  )
+}
+
+export default App

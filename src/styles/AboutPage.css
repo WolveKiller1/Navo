@@ -1,0 +1,15 @@
+.about-content {
+  max-width: 600px;
+}
+
+.about-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #e8e8e8;
+  opacity: 0.85;
+  margin: 0 0 1.5rem 0;
+}
+
+.about-text:last-child {
+  margin-bottom: 0;
+}
