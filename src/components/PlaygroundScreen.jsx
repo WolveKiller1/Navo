@@ -154,6 +154,7 @@ function PlaygroundScreen() {
   
   // UI state
   const [errorMessage, setErrorMessage] = useState('');
+  const [rejectionMessage, setRejectionMessage] = useState('');
   
   // Transformation indicator
   const [previousSentence, setPreviousSentence] = useState(null);
@@ -512,10 +513,16 @@ function PlaygroundScreen() {
     }
     
     // Chapter 4 Phase 2B: Integrity check (simple deterministic only)
-    const integrityPassed = checkEditIntegrity(currentSentence, stabilized);
+    const integrityResult = checkEditIntegrity(currentSentence, stabilized);
     
-    // If integrity check fails, silently keep previous sentence
-    const finalSentence = integrityPassed ? stabilized : currentSentence;
+    // If integrity check fails, show message and keep previous sentence
+    const finalSentence = integrityResult.allowed ? stabilized : currentSentence;
+    
+    // Show rejection message if not allowed
+    if (!integrityResult.allowed && integrityResult.message) {
+      setRejectionMessage(integrityResult.message);
+      setTimeout(() => setRejectionMessage(''), 3000);
+    }
     
     // Store previous sentence for transformation indicator
     if (finalSentence !== currentSentence) {
@@ -715,6 +722,13 @@ function PlaygroundScreen() {
               {currentPressure && (
                 <div className="pressure-indicator">
                   {currentPressure.label}
+                </div>
+              )}
+              
+              {/* Rejection Message */}
+              {rejectionMessage && (
+                <div className="rejection-message">
+                  {rejectionMessage}
                 </div>
               )}
             </div>

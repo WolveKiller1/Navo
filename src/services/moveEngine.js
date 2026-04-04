@@ -381,11 +381,18 @@ function getAnchor(userInput) {
 /**
  * Generate grounded fallback (grammatically correct with mirror-first)
  * PHASE 14 FIX: Disable word-isolation patterns entirely
+ * GUIDANCE EVOLUTION: More contextual and honest fallbacks
  */
 function generateFallback(userInput) {
-  // PHASE 14: Return conversational clarification instead of word-isolation
-  // Never use "[word]. Which one?" or similar minimalist patterns
-  return "Can you tell me more?";
+  const anchor = getAnchor(userInput);
+  
+  // If no anchor word, admit uncertainty directly
+  if (!anchor) {
+    return "I didn't quite catch that. Can you say it again?";
+  }
+  
+  // Acknowledge what was heard, ask for clarification
+  return `I heard "${anchor}" but I'm not sure about the rest. What about it?`;
 }
 
 /**

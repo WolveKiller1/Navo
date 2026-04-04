@@ -367,6 +367,29 @@
   margin-top: 0.75rem;
 }
 
+/* Rejection Message */
+.rejection-message {
+  font-size: 0.875rem;
+  color: #e8e8e8;
+  opacity: 0.65;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  animation: fadeInRejection 200ms ease;
+}
+
+@keyframes fadeInRejection {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 0.65;
+    transform: translateY(0);
+  }
+}
+
 /* Other Directions (with fade animation) */
 .other-directions {
   opacity: 1;

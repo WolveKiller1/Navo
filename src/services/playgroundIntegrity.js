@@ -67,20 +67,26 @@ export function hasExtremeChange(original, edited) {
  * Main integrity check - combines all checks
  * @param {string} originalSentence - Original sentence before edit
  * @param {string} stabilizedSentence - Sentence after stabilization
- * @returns {boolean} true if edit should be allowed
+ * @returns {object} { allowed: boolean, message?: string }
  */
 export function checkEditIntegrity(originalSentence, stabilizedSentence) {
   // Run simple deterministic checks
   if (isNonsense(stabilizedSentence)) {
     console.log('[Integrity] Blocked: Nonsense detected');
-    return false;
+    return { 
+      allowed: false, 
+      message: "Can't process this as a sentence" 
+    };
   }
   
   if (hasExtremeChange(originalSentence, stabilizedSentence)) {
     console.log('[Integrity] Blocked: Extreme change detected');
-    return false;
+    return { 
+      allowed: false, 
+      message: "Too different from the original" 
+    };
   }
   
   // Passed all checks
-  return true;
+  return { allowed: true };
 }
