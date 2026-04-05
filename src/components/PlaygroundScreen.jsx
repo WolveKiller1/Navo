@@ -136,9 +136,6 @@ function PlaygroundScreen() {
   const [mutationCount, setMutationCount] = useState(0);
   const [consecutiveMeaningCount, setConsecutiveMeaningCount] = useState(0);
   
-  // Continuation mechanic: track unsatisfied attempts for current pressure
-  const [pressureAttemptCount, setPressureAttemptCount] = useState(0);
-  
   // Phase 11: Comprehension Layer
   const [meaningBubble, setMeaningBubble] = useState(null);
   
@@ -318,23 +315,13 @@ function PlaygroundScreen() {
     console.log('[Reactor Loop] 2. Generating variations (avoiding:', currentPressure.move + ')');
     await generateVariationsWithAnimation(stabilized, currentPressure.move);
     
-    // Continuation mechanic: handle unsatisfied attempts
+    // Only advance pressure and mutation count if pressure was satisfied
     if (!pressureSatisfied) {
-      if (pressureAttemptCount === 0) {
-        // First unsatisfied attempt - allow one more adjustment
-        console.log('[Reactor Loop] Pressure not satisfied - continuation unlocked');
-        setPressureAttemptCount(1);
-        setMutationCount(newMutationCount - 1); // Don't count this mutation
-        return; // Keep pressure
-      } else {
-        // Second unsatisfied attempt - rotate to next pressure naturally
-        console.log('[Reactor Loop] Pressure not satisfied - rotating to next pressure');
-        setPressureAttemptCount(0); // Reset for next pressure
-        // Fall through to select next pressure
-      }
-    } else {
-      // Pressure satisfied - reset continuation state
-      setPressureAttemptCount(0);
+      console.log('[Reactor Loop] Pressure not satisfied - keeping current pressure');
+      // Sentence updated but pressure stays the same
+      // Don't increment mutation count
+      setMutationCount(newMutationCount - 1); // Revert the increment
+      return; // Stop here - no new pressure
     }
     
     // PHASE 13 REFINED: Check if mutation cap reached (4 max)
@@ -597,23 +584,13 @@ function PlaygroundScreen() {
     console.log('[Reactor Loop] Generating variations after word edit');
     await generateVariationsWithAnimation(finalSentence, currentPressure.move);
     
-    // Continuation mechanic: handle unsatisfied attempts
+    // Only advance pressure and mutation count if pressure was satisfied
     if (!pressureSatisfied) {
-      if (pressureAttemptCount === 0) {
-        // First unsatisfied attempt - allow one more adjustment
-        console.log('[Reactor Loop] Word edit - Pressure not satisfied - continuation unlocked');
-        setPressureAttemptCount(1);
-        setMutationCount(newMutationCount - 1); // Don't count this mutation
-        return; // Keep pressure
-      } else {
-        // Second unsatisfied attempt - rotate to next pressure naturally
-        console.log('[Reactor Loop] Word edit - Pressure not satisfied - rotating to next pressure');
-        setPressureAttemptCount(0); // Reset for next pressure
-        // Fall through to select next pressure
-      }
-    } else {
-      // Pressure satisfied - reset continuation state
-      setPressureAttemptCount(0);
+      console.log('[Reactor Loop] Pressure not satisfied - keeping current pressure');
+      // Sentence updated but pressure stays the same
+      // Don't increment mutation count
+      setMutationCount(newMutationCount - 1); // Revert the increment
+      return; // Stop here - no new pressure
     }
     
     // Check if mutation cap reached
@@ -651,7 +628,6 @@ function PlaygroundScreen() {
     setSeedSentence(null); // PHASE 13: Clear seed
     setMutationCount(0); // PHASE 13 REFINED: Reset counters
     setConsecutiveMeaningCount(0);
-    setPressureAttemptCount(0); // Reset continuation state
     setMeaningBubble(null); // Clear bubble
     setPreviousSentence(null); // Clear transformation indicator
   };
