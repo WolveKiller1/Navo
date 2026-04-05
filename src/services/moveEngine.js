@@ -358,6 +358,7 @@ function removeInventedContext(draft, userInput) {
 
 /**
  * Extract anchor word (last content word from input)
+ * Filters out weak anchors that don't provide meaningful grounding
  */
 function getAnchor(userInput) {
   const words = userInput.toLowerCase()
@@ -365,9 +366,18 @@ function getAnchor(userInput) {
     .split(/\s+/)
     .filter(w => w.length > 0);
   
-  // Filter out stopwords and find content words
+  // Weak anchors that don't provide meaningful context
+  const weakAnchors = new Set([
+    'really', 'very', 'just', 'maybe', 'probably', 'actually', 
+    'basically', 'literally', 'definitely', 'sure', 'okay',
+    'thing', 'stuff', 'something', 'anything', 'nothing'
+  ]);
+  
+  // Filter out stopwords, weak anchors, and find substantial content words
   const contentWords = words.filter(w => 
-    !STOPWORDS.has(w) && w.length > 2
+    !STOPWORDS.has(w) && 
+    !weakAnchors.has(w) &&
+    w.length > 3  // Require at least 4 characters for meaningful anchors
   );
   
   // Return last content word (capitalized), or null if none found
@@ -382,17 +392,18 @@ function getAnchor(userInput) {
  * Generate grounded fallback (grammatically correct with mirror-first)
  * PHASE 14 FIX: Disable word-isolation patterns entirely
  * GUIDANCE EVOLUTION: More contextual and honest fallbacks
+ * CLEANUP: Less interpretive, better anchor selection, natural clarification
  */
 function generateFallback(userInput) {
   const anchor = getAnchor(userInput);
   
-  // If no anchor word, admit uncertainty directly
+  // If no meaningful anchor, be direct about not understanding
   if (!anchor) {
-    return "I didn't quite catch that. Can you say it again?";
+    return "I'm not sure I caught that. Can you say more?";
   }
   
-  // Acknowledge what was heard, ask for clarification
-  return `I heard "${anchor}" but I'm not sure about the rest. What about it?`;
+  // Acknowledge anchor but ask for expansion (not interpretation)
+  return `I heard "${anchor.toLowerCase()}" - can you say more about that?`;
 }
 
 /**
