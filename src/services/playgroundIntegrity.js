@@ -158,6 +158,90 @@ export function hasStructuralIncoherence(text) {
 }
 
 /**
+ * Check for semantic derailment between original and stabilized sentences
+ * Detects when core meaning has been lost or chaotically changed
+ * @param {string} original - Original sentence before edit
+ * @param {string} stabilized - Stabilized sentence after edit
+ * @returns {boolean} true if semantically derailed
+ */
+export function hasSemanticDerailment(original, stabilized) {
+  if (!original || !stabilized) return false;
+  
+  // Stopwords to ignore when comparing
+  const stopwords = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 
+    'can', 'may', 'might', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from',
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'my', 'your', 'his', 'her', 'our', 'their']);
+  
+  // Extract content words
+  const getContentWords = (text) => {
+    return text.toLowerCase()
+      .replace(/[.,!?;:'"]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !stopwords.has(w));
+  };
+  
+  const origWords = new Set(getContentWords(original));
+  const stabWords = new Set(getContentWords(stabilized));
+  
+  // If very short sentences, be more lenient
+  if (origWords.size <= 2 || stabWords.size <= 2) {
+    return false;
+  }
+  
+  // Calculate overlap: how many original content words are preserved
+  let preservedCount = 0;
+  for (const word of origWords) {
+    if (stabWords.has(word)) {
+      preservedCount++;
+    }
+  }
+  
+  const preservationRatio = preservedCount / origWords.size;
+  
+  // If less than 40% of original content words preserved, likely derailed
+  // "I went to the nearby market yesterday" -> "I went bananas quickly yesterday"
+  // Original words: [went, nearby, market, yesterday]
+  // Stabilized words: [went, bananas, quickly, yesterday]
+  // Preserved: [went, yesterday] = 2/4 = 50% (would pass)
+  // But we need stricter check...
+  
+  // Additional check: look for suspicious word replacements
+  // If a key location/object word (market, store, park) is replaced with something unrelated
+  const locationWords = ['store', 'park', 'school', 'market', 'home', 'work', 'mall', 
+    'gym', 'office', 'hospital', 'library', 'restaurant', 'cafe', 'bank'];
+  
+  let hadLocation = false;
+  let hasLocation = false;
+  
+  for (const word of origWords) {
+    if (locationWords.includes(word)) {
+      hadLocation = true;
+      break;
+    }
+  }
+  
+  for (const word of stabWords) {
+    if (locationWords.includes(word)) {
+      hasLocation = true;
+      break;
+    }
+  }
+  
+  // If original had a location word but stabilized doesn't, check preservation ratio
+  if (hadLocation && !hasLocation && preservationRatio < 0.6) {
+    return true;
+  }
+  
+  // Check for complete semantic shift (very low preservation + different length)
+  if (preservationRatio < 0.3) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Main integrity check - combines all checks
  * @param {string} originalSentence - Original sentence before edit
  * @param {string} stabilizedSentence - Sentence after stabilization
@@ -194,6 +278,14 @@ export function checkEditIntegrity(originalSentence, stabilizedSentence) {
     return { 
       allowed: false, 
       message: "That doesn't quite work as a sentence" 
+    };
+  }
+  
+  if (hasSemanticDerailment(originalSentence, stabilizedSentence)) {
+    console.log('[Integrity] Blocked: Semantic derailment detected');
+    return { 
+      allowed: false, 
+      message: "That's too far from what you started with" 
     };
   }
   
