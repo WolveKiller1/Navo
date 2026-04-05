@@ -307,9 +307,22 @@ function PlaygroundScreen() {
     //   setHighlightedWords(null);
     // }, 1000);
     
+    // Check if the edit satisfies the current pressure
+    const pressureSatisfied = isSatisfied(stabilized, currentPressure);
+    console.log('[Reactor Loop] Pressure satisfied:', pressureSatisfied);
+    
     // PHASE 12: Generate variations with animation (GUARANTEED 2-3)
     console.log('[Reactor Loop] 2. Generating variations (avoiding:', currentPressure.move + ')');
     await generateVariationsWithAnimation(stabilized, currentPressure.move);
+    
+    // Only advance pressure and mutation count if pressure was satisfied
+    if (!pressureSatisfied) {
+      console.log('[Reactor Loop] Pressure not satisfied - keeping current pressure');
+      // Sentence updated but pressure stays the same
+      // Don't increment mutation count
+      setMutationCount(newMutationCount - 1); // Revert the increment
+      return; // Stop here - no new pressure
+    }
     
     // PHASE 13 REFINED: Check if mutation cap reached (4 max)
     if (newMutationCount >= 4) {
@@ -563,9 +576,22 @@ function PlaygroundScreen() {
       setModifiedWordIndex(null);
     }, 1500);
     
+    // Check if the edit satisfies the current pressure
+    const pressureSatisfied = isSatisfied(finalSentence, currentPressure);
+    console.log('[Reactor Loop] Word edit - Pressure satisfied:', pressureSatisfied);
+    
     // Generate variations
     console.log('[Reactor Loop] Generating variations after word edit');
-    await generateVariationsWithAnimation(stabilized, currentPressure.move);
+    await generateVariationsWithAnimation(finalSentence, currentPressure.move);
+    
+    // Only advance pressure and mutation count if pressure was satisfied
+    if (!pressureSatisfied) {
+      console.log('[Reactor Loop] Pressure not satisfied - keeping current pressure');
+      // Sentence updated but pressure stays the same
+      // Don't increment mutation count
+      setMutationCount(newMutationCount - 1); // Revert the increment
+      return; // Stop here - no new pressure
+    }
     
     // Check if mutation cap reached
     if (newMutationCount >= 4) {
@@ -584,7 +610,7 @@ function PlaygroundScreen() {
     setConsecutiveMeaningCount(newConsecutiveMeaningCount);
     
     // Select next pressure
-    const nextPressure = selectRandomPressure(lastPressure, stabilized, newConsecutiveMeaningCount);
+    const nextPressure = selectRandomPressure(lastPressure, finalSentence, newConsecutiveMeaningCount);
     console.log('[Reactor Loop] Next pressure selected:', nextPressure.label);
     setCurrentPressure(nextPressure);
     setLastPressure(nextPressure);
