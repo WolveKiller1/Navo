@@ -7,7 +7,7 @@ import { generateVariations } from '../services/variationEngine';
 import { stabilizeGrammar } from '../services/stabilizeGrammar';
 import { speak } from '../services/tts';
 import { getWordMeaning } from '../services/wordMeaning';
-import { LANGUAGE_UNITS } from '../data/units';
+import { CATALYTIC_SEEDS } from '../data/catalyticSeeds';
 import MeaningBubble from './MeaningBubble';
 import HomeArrow from './HomeArrow';
 import WordPickerPopup from './WordPickerPopup';
@@ -183,23 +183,23 @@ function PlaygroundScreen() {
 
   // Initialize with random suggestion on mount
   useEffect(() => {
-    if (!currentSentence && LANGUAGE_UNITS.length > 0) {
-      const randomIndex = Math.floor(Math.random() * LANGUAGE_UNITS.length);
-      setCurrentSuggestion(LANGUAGE_UNITS[randomIndex]);
+    if (!currentSentence && CATALYTIC_SEEDS.length > 0) {
+      const randomIndex = Math.floor(Math.random() * CATALYTIC_SEEDS.length);
+      setCurrentSuggestion(CATALYTIC_SEEDS[randomIndex]);
     }
   }, [currentSentence]);
 
   // Handle suggestion cycling (randomize)
   const handleCycleSuggestion = () => {
-    if (LANGUAGE_UNITS.length === 0) return;
+    if (CATALYTIC_SEEDS.length === 0) return;
     
     // Get random index different from current
     let randomIndex;
     do {
-      randomIndex = Math.floor(Math.random() * LANGUAGE_UNITS.length);
-    } while (LANGUAGE_UNITS.length > 1 && LANGUAGE_UNITS[randomIndex] === currentSuggestion);
+      randomIndex = Math.floor(Math.random() * CATALYTIC_SEEDS.length);
+    } while (CATALYTIC_SEEDS.length > 1 && CATALYTIC_SEEDS[randomIndex] === currentSuggestion);
     
-    setCurrentSuggestion(LANGUAGE_UNITS[randomIndex]);
+    setCurrentSuggestion(CATALYTIC_SEEDS[randomIndex]);
   };
 
   // Handle seed click
