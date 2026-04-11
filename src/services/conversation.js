@@ -137,9 +137,11 @@ export function setOpeningContext(context) {
 /**
  * Sends user message to Claude API and returns AI response
  * @param {string} userMessage - The user's transcribed speech
+ * @param {object} options - Optional configuration { mode: 'conversation' | 'imitation' }
  * @returns {Promise<string>} - Claude's text response
  */
-export async function sendMessage(userMessage) {
+export async function sendMessage(userMessage, options = {}) {
+  const mode = options.mode || 'conversation';
   try {
     // Add user message to history
     conversationHistory.push({

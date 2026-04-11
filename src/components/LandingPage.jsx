@@ -35,6 +35,10 @@ function LandingPage() {
     }
   }, [])
 
+  const handleLoopEntry = () => {
+    navigate('/loop')
+  }
+
   const handleRoomEntry = () => {
     sessionStorage.setItem('rylingo_access', 'granted')
     navigate('/room')
@@ -64,14 +68,14 @@ function LandingPage() {
           <p className="hero-subtitle">Navo responds and keeps the conversation moving.</p>
           
           <div className="hero-actions">
-            <button onClick={handlePlaygroundEntry} className="playground-button">
-              <span className="playground-label">Pattern Playground</span>
-              <span className="playground-hint">Explore and learn</span>
+            <button onClick={handleLoopEntry} className="playground-button">
+              <span className="playground-label">Practice Loop</span>
+              <span className="playground-hint">Start here</span>
             </button>
 
             <button onClick={handleRoomEntry} className="room-button">
               <span className="room-label">The Room</span>
-              <span className="room-hint">When you're ready</span>
+              <span className="room-hint">Conversation</span>
             </button>
           </div>
         </div>

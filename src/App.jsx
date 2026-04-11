@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
 import CallScreen from './components/CallScreen'
 import PlaygroundScreen from './components/PlaygroundScreen'
+import ImitationLoop from './components/ImitationLoop'
 import WhatRylingoIsPage from './components/WhatRylingoIsPage'
 import SessionsPage from './components/SessionsPage'
 import AccountPage from './components/AccountPage'
@@ -27,8 +28,9 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/what-rylingo-is" element={<WhatRylingoIsPage />} />
+          <Route path="/loop" element={<ImitationLoop />} />
           <Route 
-            path="/room" 
+            path="/room"
             element={
               <ProtectedRoute>
                 <CallScreen />

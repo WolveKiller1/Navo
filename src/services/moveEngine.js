@@ -425,11 +425,45 @@ function isValid(text, repairRequired) {
  * @param {string} userInput - Current user utterance
  * @param {string} learnerLast - Previous user utterance
  * @param {boolean} isOpeningExchange - True if this is the first exchange after opening context
+ * @param {string} mode - 'conversation' or 'imitation'
  * @returns {{finalMessage: string, metadata: object}}
  */
-export function applyMoveEngine(modelDraft, userInput, learnerLast, isOpeningExchange = false) {
+export function applyMoveEngine(modelDraft, userInput, learnerLast, isOpeningExchange = false, mode = 'conversation') {
   counters.totalProcessed++;
   
+  // IMITATION MODE: Apply tighter constraints for practice loop
+  if (mode === 'imitation') {
+    let result = modelDraft;
+    
+    // 1. Limit to first sentence only
+    const sentences = result.match(/[^.!?]+[.!?]+/g) || [result];
+    result = sentences[0] || result;
+    
+    // 2. Remove all questions
+    result = result.replace(/\?/g, '.');
+    
+    // 3. Strip teaching/evaluation language (reuse existing patterns)
+    if (TUTORING_PATTERNS.test(result) || EVALUATION_PATTERNS.test(result)) {
+      result = stripForbiddenPhrases(result);
+    }
+    
+    // 4. If result is empty or too short after stripping, use simple recast
+    if (!result.trim() || result.trim().length < 3) {
+      result = userInput + '.';
+    }
+    
+    return {
+      finalMessage: result.trim(),
+      metadata: {
+        mode: 'imitation',
+        wasModified: true,
+        violations: [],
+        modifications: ['imitation_constraints']
+      }
+    };
+  }
+  
+  // CONVERSATION MODE: Original behavior
   // Detect if user input is an acknowledgment
   const isAcknowledgmentInput = isAcknowledgment(userInput);
   

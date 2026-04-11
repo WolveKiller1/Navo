@@ -8,6 +8,7 @@ import { applyMoveEngine } from '../services/moveEngine';
 import { getWordMeaning } from '../services/wordMeaning';
 import { isReusableSentence } from '../services/sentenceUtils';
 import { generatePlaygroundSentence } from '../services/conversationSummary';
+import { LANGUAGE_UNITS } from '../data/units';
 import { 
   initStorage, 
   createSession, 
@@ -49,6 +50,9 @@ function CallScreen() {
   // Phase 11: Comprehension Layer
   const [meaningBubble, setMeaningBubble] = useState(null);
   
+  // Unit entry state
+  const [entryUnit, setEntryUnit] = useState(null);
+  
   // Phase 5: Timing and session tracking (in-memory only)
   const turnGapsRef = useRef([]); // Capped at 30, never persisted
   const lastUserEndRef = useRef(null); // Timestamp of last mic release
@@ -79,6 +83,12 @@ function CallScreen() {
     
     // Initialize TTS
     initializeTTS();
+    
+    // Select random entry unit
+    if (LANGUAGE_UNITS.length > 0) {
+      const randomIndex = Math.floor(Math.random() * LANGUAGE_UNITS.length);
+      setEntryUnit(LANGUAGE_UNITS[randomIndex]);
+    }
     
     // Initialize storage and get last language
     const init = async () => {
@@ -646,19 +656,18 @@ function CallScreen() {
               <FaUser />
             </button>
           </div>
-          <h1 className="welcome-title">The Room</h1>
-          <p className="welcome-subtitle">
-            Speak. Continue the conversation.
-          </p>
+          
+          {/* Entry Unit Display */}
+          {entryUnit && (
+            <div className="unit-entry">
+              <p className="unit-moment">{entryUnit.moment}</p>
+              <p className="unit-sentence">{entryUnit.sentence}</p>
+            </div>
+          )}
+          
           <button className="start-conversation-btn" onClick={handleStartConversation}>
             Start Conversation
           </button>
-          <p className="welcome-requirements">
-            Chrome or Edge recommended • Uses your microphone
-          </p>
-          <p className="trust-transparency">
-            Your conversations stay on your device.
-          </p>
         </div>
       </div>
     );
