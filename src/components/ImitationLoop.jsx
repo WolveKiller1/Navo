@@ -187,6 +187,13 @@ function ImitationLoop() {
           </button>
         </div>
 
+        {/* Heard Utterance (shown after user speaks, before response) */}
+        {userTranscript && (
+          <div className="heard-utterance">
+            {userTranscript}
+          </div>
+        )}
+
         {/* System Response */}
         {systemResponse && (
           <div className="response-display">

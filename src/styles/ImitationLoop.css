@@ -91,6 +91,20 @@
   z-index: 1;
 }
 
+/* Heard Utterance - Very subtle, faint */
+.heard-utterance {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
+  color: #888;
+  opacity: 0.5;
+  max-width: 500px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  animation: fadeIn 0.3s ease-in;
+}
+
 /* Response Display - Subtle */
 .response-display {
   font-size: 1.1rem;

@@ -158,7 +158,34 @@ export async function sendMessage(userMessage, options = {}) {
       profile = getDefaultProfile();
       await saveImmersionProfile(profile);
     }
-    const dynamicSystemPrompt = buildPromptWithProfile(SYSTEM_PROMPT, profile);
+    
+    // IMITATION MODE: Use strict stabilization prompt instead of conversation prompt
+    let activePrompt;
+    if (mode === 'imitation') {
+      activePrompt = `You are a language stabilization system. Your only job is to rewrite the learner's utterance into a natural, grammatically correct version.
+
+RULES:
+- Rewrite their exact attempt into correct grammar
+- Preserve their intended meaning as closely as possible
+- Keep their vocabulary choices when possible
+- Return ONLY one short sentence (max 12 words)
+- Do NOT ask questions
+- Do NOT continue the conversation
+- Do NOT add context, backstory, or interpretation
+- Do NOT explain anything
+- Do NOT use teaching language
+
+Example:
+Learner says: "I go store yesterday"
+You return: "I went to the store yesterday."
+
+Learner says: "The dog run very quick"
+You return: "The dog ran very quickly."
+
+Now stabilize this utterance:`;
+    } else {
+      activePrompt = buildPromptWithProfile(SYSTEM_PROMPT, profile);
+    }
 
     // Make API request to Claude (For later)
     //const response = await axios.post(
@@ -187,7 +214,7 @@ export async function sendMessage(userMessage, options = {}) {
       },
       body: JSON.stringify({
         model: 'llama3.1',
-        prompt: `${dynamicSystemPrompt}\n\n${openingSegment}Conversation so far:\n${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}\n\nUser: ${userMessage}\nAssistant:`,
+        prompt: `${activePrompt}\n\n${openingSegment}Conversation so far:\n${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}\n\nUser: ${userMessage}\nAssistant:`,
         stream: false
       })
     });
