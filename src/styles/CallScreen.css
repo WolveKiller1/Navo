@@ -734,3 +734,127 @@
     width: 100%;
   }
 }
+
+/* Light Theme Support */
+body.light-theme .call-screen {
+  background: linear-gradient(180deg, #f5f3f0 0%, #ede9e4 100%);
+  color: #1a1a1a;
+}
+
+body.light-theme .header h1 {
+  color: #1a1a1a;
+}
+
+body.light-theme .icon-group {
+  background: transparent;
+}
+
+body.light-theme .icon-button {
+  color: #555;
+  background: #fff;
+  border-color: #ddd;
+}
+
+body.light-theme .icon-button:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+  color: #1a1a1a;
+}
+
+body.light-theme .message {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .message-user {
+  background: #f0ede8;
+  border-color: #ddd;
+}
+
+body.light-theme .message-rylingo {
+  background: #fff;
+  border-color: #ddd;
+}
+
+body.light-theme .heard-speech-subtitle {
+  color: #888;
+}
+
+body.light-theme .input-group {
+  background: transparent;
+}
+
+body.light-theme .voice-input {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .voice-input:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .listen-button {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .listen-button:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .welcome-section {
+  background: transparent;
+}
+
+body.light-theme .welcome-title {
+  color: #1a1a1a;
+}
+
+body.light-theme .welcome-subtitle {
+  color: #666;
+}
+
+body.light-theme .start-conversation-btn {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .start-conversation-btn:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .session-ended {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .session-ended h1 {
+  color: #1a1a1a;
+}
+
+body.light-theme .session-ended p {
+  color: #666;
+}
+
+body.light-theme .new-call-btn,
+body.light-theme .continue-playground-btn,
+body.light-theme .back-home-btn {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .new-call-btn:hover,
+body.light-theme .continue-playground-btn:hover,
+body.light-theme .back-home-btn:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}

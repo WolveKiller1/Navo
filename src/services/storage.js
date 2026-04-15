@@ -225,6 +225,57 @@ export async function saveLastLanguage(language) {
 }
 
 /**
+ * Get user preferences
+ * Returns stored preferences or defaults
+ */
+export async function getUserPreferences() {
+  const defaults = {
+    activeLanguage: 'en',
+    theme: 'dark',
+    showHeardSpeech: true
+  };
+
+  try {
+    if (useLocalStorage) {
+      const stored = localStorage.getItem('rylingo_userPreferences');
+      return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
+    } else if (db) {
+      return new Promise((resolve) => {
+        const transaction = db.transaction([SETTINGS_STORE], 'readonly');
+        const store = transaction.objectStore(SETTINGS_STORE);
+        const request = store.get('userPreferences');
+        
+        request.onsuccess = () => {
+          const stored = request.result?.value;
+          resolve(stored ? { ...defaults, ...stored } : defaults);
+        };
+        
+        request.onerror = () => resolve(defaults);
+      });
+    }
+  } catch (error) {
+    return defaults;
+  }
+}
+
+/**
+ * Save user preferences
+ */
+export async function saveUserPreferences(preferences) {
+  try {
+    if (useLocalStorage) {
+      localStorage.setItem('rylingo_userPreferences', JSON.stringify(preferences));
+    } else if (db) {
+      const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
+      const store = transaction.objectStore(SETTINGS_STORE);
+      store.put({ key: 'userPreferences', value: preferences });
+    }
+  } catch (error) {
+    // Silent failure
+  }
+}
+
+/**
  * Get all sessions (developer only - for console inspection)
  */
 export async function getAllSessions() {

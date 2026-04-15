@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { getUserPreferences } from './services/storage'
 import LandingPage from './components/LandingPage'
 import CallScreen from './components/CallScreen'
 import PlaygroundScreen from './components/PlaygroundScreen'
@@ -22,6 +23,21 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+    const applyTheme = async () => {
+      const preferences = await getUserPreferences();
+      const theme = preferences.theme || 'dark';
+      if (theme === 'light') {
+        document.body.classList.add('light-theme');
+        document.body.classList.remove('dark-theme');
+      } else {
+        document.body.classList.add('dark-theme');
+        document.body.classList.remove('light-theme');
+      }
+    };
+    applyTheme();
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="App">

@@ -582,3 +582,116 @@
     padding: 1.5rem 1.25rem;
   }
 }
+
+/* Light Theme Support */
+body.light-theme .playground-screen {
+  background: linear-gradient(180deg, #f5f3f0 0%, #ede9e4 100%);
+  color: #1a1a1a;
+}
+
+body.light-theme .history-icon,
+body.light-theme .account-icon {
+  color: #555;
+}
+
+body.light-theme .history-icon:hover,
+body.light-theme .account-icon:hover {
+  color: #1a1a1a;
+}
+
+body.light-theme .playground-title {
+  color: #1a1a1a;
+}
+
+body.light-theme .language-select {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .language-select:hover {
+  border-color: #bbb;
+  background: #fafaf8;
+}
+
+body.light-theme .suggestion-card {
+  background: #fff;
+  border-color: #ddd;
+}
+
+body.light-theme .suggestion-text {
+  color: #1a1a1a;
+}
+
+body.light-theme .suggestion-hint {
+  color: #888;
+}
+
+body.light-theme .input-card {
+  background: #fff;
+  border-color: #ddd;
+}
+
+body.light-theme .entry-input {
+  background: #f9f9f9;
+  border-color: #ddd;
+  color: #1a1a1a;
+  caret-color: #1a1a1a;
+}
+
+body.light-theme .entry-input::placeholder {
+  color: #999;
+}
+
+body.light-theme .entry-input:focus {
+  border-color: #888;
+  background: #fff;
+}
+
+body.light-theme .sentence-core {
+  background: #f9f9f9;
+  border-color: #ddd;
+}
+
+body.light-theme .sentence-text {
+  color: #1a1a1a;
+}
+
+body.light-theme .variations-header {
+  color: #1a1a1a;
+}
+
+body.light-theme .variation-item {
+  background: #f9f9f9;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .variation-item:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .voice-button {
+  background: #fff;
+  border-color: #ddd;
+  color: #555;
+}
+
+body.light-theme .voice-button:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+  color: #1a1a1a;
+}
+
+body.light-theme .send-button {
+  background: #fff;
+  border-color: #ddd;
+  color: #555;
+}
+
+body.light-theme .send-button:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+  color: #1a1a1a;
+}

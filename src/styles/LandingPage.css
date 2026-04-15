@@ -559,3 +559,121 @@
     padding: 2rem 2rem;
   }
 }
+
+/* Light Theme Support */
+body.light-theme .landing-page {
+  background: linear-gradient(180deg, #f5f3f0 0%, #ede9e4 100%);
+  color: #1a1a1a;
+}
+
+body.light-theme .site-header {
+  background: #f0ede8;
+  border-bottom-color: #ddd8d0;
+}
+
+body.light-theme .brand,
+body.light-theme .nav-link {
+  color: #1a1a1a;
+}
+
+body.light-theme .nav-link:hover {
+  opacity: 1;
+  background: linear-gradient(90deg, #16a34a, #6d28d9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body.light-theme .hero-title {
+  color: #1a1a1a;
+}
+
+body.light-theme .hero-subtitle {
+  color: #555;
+}
+
+body.light-theme .playground-button,
+body.light-theme .room-button {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .playground-button:hover,
+body.light-theme .room-button:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .playground-label,
+body.light-theme .playground-hint,
+body.light-theme .room-label,
+body.light-theme .room-hint {
+  color: #1a1a1a;
+}
+
+body.light-theme .how-section {
+  background: transparent;
+}
+
+body.light-theme .how-step {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .step-number {
+  background: #f0ede8;
+  color: #1a1a1a;
+  border-color: #ddd;
+}
+
+body.light-theme .how-arrow {
+  color: #888;
+}
+
+body.light-theme .section-title {
+  color: #1a1a1a;
+}
+
+body.light-theme .map-grid {
+  gap: 1.5rem;
+}
+
+body.light-theme .map-card {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .map-card:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .map-card-title {
+  color: #1a1a1a;
+}
+
+body.light-theme .map-card-descriptor {
+  color: #666;
+}
+
+body.light-theme .info-panel {
+  background: #fff;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+body.light-theme .info-panel:hover {
+  background: #fafaf8;
+  border-color: #bbb;
+}
+
+body.light-theme .info-label {
+  color: #1a1a1a;
+}
+
+body.light-theme .info-hint {
+  color: #666;
+}

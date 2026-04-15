@@ -1,20 +1,27 @@
 import React from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-function ConfirmationDialog({ onConfirm, onCancel }) {
+function ConfirmationDialog({ 
+  onConfirm, 
+  onCancel,
+  title = 'Delete all data?',
+  body = 'This will permanently delete all conversations and settings stored on this device. This can\'t be undone.',
+  confirmText = 'Delete',
+  isDangerous = true
+}) {
   return (
     <div className="confirmation-overlay">
       <div className="confirmation-dialog">
         <button className="dialog-close" onClick={onCancel}>
           <FaTimes />
         </button>
-        <h2 className="dialog-title">Delete all data?</h2>
+        <h2 className="dialog-title">{title}</h2>
         <p className="dialog-body">
-          This will permanently delete all conversations and settings stored on this device. This can't be undone.
+          {body}
         </p>
         <div className="dialog-actions">
-          <button className="dialog-btn dialog-delete" onClick={onConfirm}>
-            Delete
+          <button className={`dialog-btn ${isDangerous ? 'dialog-delete' : 'dialog-confirm'}`} onClick={onConfirm}>
+            {confirmText}
           </button>
           <button className="dialog-btn dialog-cancel" onClick={onCancel}>
             Cancel
@@ -102,6 +109,15 @@ function ConfirmationDialog({ onConfirm, onCancel }) {
           background: #c23030;
         }
         
+        .dialog-confirm {
+          background: #4a6fa5;
+          color: white;
+        }
+        
+        .dialog-confirm:hover {
+          background: #3d5a8a;
+        }
+        
         .dialog-cancel {
           background: #404040;
           color: #e0e0e0;
@@ -109,6 +125,44 @@ function ConfirmationDialog({ onConfirm, onCancel }) {
         
         .dialog-cancel:hover {
           background: #4a4a4a;
+        }
+
+        /* Light Theme Support */
+        body.light-theme .confirmation-dialog {
+          background: #fff;
+          border: 1px solid #ddd;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        body.light-theme .dialog-close {
+          color: #999;
+        }
+
+        body.light-theme .dialog-close:hover {
+          color: #1a1a1a;
+        }
+
+        body.light-theme .dialog-title {
+          color: #1a1a1a;
+        }
+
+        body.light-theme .dialog-body {
+          color: #666;
+        }
+
+        body.light-theme .dialog-delete,
+        body.light-theme .dialog-confirm {
+          color: white;
+        }
+
+        body.light-theme .dialog-cancel {
+          background: #f0f0f0;
+          color: #1a1a1a;
+          border: 1px solid #ddd;
+        }
+
+        body.light-theme .dialog-cancel:hover {
+          background: #e8e8e8;
         }
       `}</style>
     </div>

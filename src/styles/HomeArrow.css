@@ -22,3 +22,12 @@
   outline: 2px solid #4CAF50;
   outline-offset: 2px;
 }
+
+/* Light Theme Support */
+body.light-theme .home-arrow {
+  color: #999;
+}
+
+body.light-theme .home-arrow:hover {
+  color: #1a1a1a;
+}

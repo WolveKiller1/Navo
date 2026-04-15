@@ -10,8 +10,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+  background: linear-gradient(135deg, #0f1115 0%, #140f20 100%);
   min-height: 100vh;
+  color: #e8e8e8;
+}
+
+body.light-theme {
+  background: linear-gradient(135deg, #f5f3f0 0%, #ede9e4 100%);
+  color: #1a1a1a;
 }
 
 .App {

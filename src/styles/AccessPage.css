@@ -9,3 +9,8 @@
   opacity: 0.85;
   margin: 0;
 }
+
+/* Light Theme Support */
+body.light-theme .access-text {
+  color: #333;
+}
