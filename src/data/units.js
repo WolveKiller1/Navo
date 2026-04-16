@@ -57,8 +57,8 @@ export const LANGUAGE_UNITS = [
   }
 ];
 
-// Imitation Loop Units - Simple sentences for speech practice
-export const IMITATION_UNITS = [
+// Imitation Loop Units - English
+export const IMITATION_UNITS_EN = [
   { id: 1, text: "I missed the bus this morning." },
   { id: 2, text: "She left her phone at home." },
   { id: 3, text: "It started raining out of nowhere." },
@@ -75,3 +75,25 @@ export const IMITATION_UNITS = [
   { id: 14, text: "I heard a strange noise outside." },
   { id: 15, text: "He dropped his bag on the floor." }
 ];
+
+// Imitation Loop Units - Portuguese
+export const IMITATION_UNITS_PT = [
+  { id: 1, text: "Eu perdi o ônibus esta manhã." },
+  { id: 2, text: "Ela deixou o telefone em casa." },
+  { id: 3, text: "Começou a chover do nada." },
+  { id: 4, text: "O professor me fez uma pergunta." },
+  { id: 5, text: "Um cachorro correu pela rua." },
+  { id: 6, text: "Meu amigo chegou atrasado." },
+  { id: 7, text: "Eu esqueci minhas chaves no trabalho." },
+  { id: 8, text: "A porta abriu de repente." },
+  { id: 9, text: "Meu telefone tocou durante o filme." },
+  { id: 10, text: "Eu derramei café na minha camisa." },
+  { id: 11, text: "O ônibus partiu sem mim." },
+  { id: 12, text: "Ela encontrou uma carteira na rua." },
+  { id: 13, text: "A loja fechou cedo hoje." },
+  { id: 14, text: "Eu ouvi um barulho estranho lá fora." },
+  { id: 15, text: "Ele derrubou a bolsa no chão." }
+];
+
+// Default export for backward compatibility
+export const IMITATION_UNITS = IMITATION_UNITS_EN;

@@ -5,7 +5,8 @@ import { FaMicrophone } from 'react-icons/fa';
 import { sendMessage, resetConversation } from '../services/conversation';
 import { applyMoveEngine } from '../services/moveEngine';
 import { initializeTTS } from '../services/tts';
-import { IMITATION_UNITS } from '../data/units';
+import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
+import { getUserPreferences } from '../services/storage';
 import HomeArrow from './HomeArrow';
 import SystemNotice from './SystemNotice';
 import '../styles/ImitationLoop.css';
@@ -20,6 +21,8 @@ function ImitationLoop() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [browserSupported, setBrowserSupported] = useState(true);
   const [systemNotice, setSystemNotice] = useState(null);
+  const [activeUnits, setActiveUnits] = useState(IMITATION_UNITS_EN);
+  const [activeLanguage, setActiveLanguage] = useState('en');
 
   const {
     transcript,
@@ -27,7 +30,18 @@ function ImitationLoop() {
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
 
-  const currentUnit = IMITATION_UNITS[currentIndex];
+  const currentUnit = activeUnits[currentIndex];
+
+  // Load preferences and set active units
+  useEffect(() => {
+    const loadLanguagePreference = async () => {
+      const prefs = await getUserPreferences();
+      const lang = prefs.activeLanguage || 'en';
+      setActiveLanguage(lang);
+      setActiveUnits(lang === 'pt' ? IMITATION_UNITS_PT : IMITATION_UNITS_EN);
+    };
+    loadLanguagePreference();
+  }, []);
 
   // Check browser compatibility on mount
   useEffect(() => {
@@ -110,8 +124,11 @@ function ImitationLoop() {
       setIsProcessing(true);
       
       try {
-        // Call conversation service with imitation mode
-        const modelDraft = await sendMessage(transcript, { mode: 'imitation' });
+        // Call conversation service with imitation mode and language
+        const modelDraft = await sendMessage(transcript, { 
+          mode: 'imitation',
+          language: activeLanguage
+        });
         
         // Apply move engine with imitation mode
         const { finalMessage } = applyMoveEngine(
@@ -150,7 +167,7 @@ function ImitationLoop() {
     resetTranscript();
     
     // Move to next unit (wrap at end)
-    setCurrentIndex((prev) => (prev + 1) % IMITATION_UNITS.length);
+    setCurrentIndex((prev) => (prev + 1) % activeUnits.length);
   };
 
   return (

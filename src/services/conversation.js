@@ -142,6 +142,7 @@ export function setOpeningContext(context) {
  */
 export async function sendMessage(userMessage, options = {}) {
   const mode = options.mode || 'conversation';
+  const language = options.language || 'en';
   try {
     // Add user message to history
     conversationHistory.push({
@@ -162,7 +163,27 @@ export async function sendMessage(userMessage, options = {}) {
     // IMITATION MODE: Use strict stabilization prompt instead of conversation prompt
     let activePrompt;
     if (mode === 'imitation') {
+      const languageInstruction = language === 'pt' 
+        ? 'IMPORTANT: Stabilize in PORTUGUESE. Do NOT translate to English.'
+        : 'IMPORTANT: Stabilize in ENGLISH.';
+      
+      const examples = language === 'pt'
+        ? `Example:
+Learner says: "Eu ir loja ontem"
+You return: "Eu fui à loja ontem."
+
+Learner says: "O cachorro correr muito rápido"
+You return: "O cachorro correu muito rápido."`
+        : `Example:
+Learner says: "I go store yesterday"
+You return: "I went to the store yesterday."
+
+Learner says: "The dog run very quick"
+You return: "The dog ran very quickly."`;
+
       activePrompt = `You are a language stabilization system. Your only job is to rewrite the learner's utterance into a natural, grammatically correct version.
+
+${languageInstruction}
 
 RULES:
 - Rewrite their exact attempt into correct grammar
@@ -174,13 +195,9 @@ RULES:
 - Do NOT add context, backstory, or interpretation
 - Do NOT explain anything
 - Do NOT use teaching language
+- Do NOT translate between languages
 
-Example:
-Learner says: "I go store yesterday"
-You return: "I went to the store yesterday."
-
-Learner says: "The dog run very quick"
-You return: "The dog ran very quickly."
+${examples}
 
 Now stabilize this utterance:`;
     } else {
