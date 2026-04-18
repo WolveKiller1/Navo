@@ -23,6 +23,11 @@ function ImitationLoop() {
   const [systemNotice, setSystemNotice] = useState(null);
   const [activeUnits, setActiveUnits] = useState(IMITATION_UNITS_EN);
   const [activeLanguage, setActiveLanguage] = useState('en');
+  
+  // Beginner support state
+  const [showSentenceMeaning, setShowSentenceMeaning] = useState(false);
+  const [pronunciationBubble, setPronunciationBubble] = useState(null);
+  const [hasUsedMeaning, setHasUsedMeaning] = useState(false);
 
   const {
     transcript,
@@ -31,6 +36,7 @@ function ImitationLoop() {
   } = useSpeechRecognition();
 
   const currentUnit = activeUnits[currentIndex];
+  const hasSupportContent = currentUnit.words && currentUnit.meaning;
 
   // Load preferences and set active units
   useEffect(() => {
@@ -165,9 +171,51 @@ function ImitationLoop() {
     setUserTranscript('');
     setSystemResponse('');
     resetTranscript();
+    setShowSentenceMeaning(false);
+    setPronunciationBubble(null);
     
     // Move to next unit (wrap at end)
     setCurrentIndex((prev) => (prev + 1) % activeUnits.length);
+  };
+
+  // Toggle sentence meaning
+  const toggleSentenceMeaning = () => {
+    if (!hasSupportContent) return;
+    setShowSentenceMeaning(prev => !prev);
+    if (!hasUsedMeaning) setHasUsedMeaning(true);
+  };
+
+  // Handle word click for pronunciation
+  const handleWordClick = (word, event) => {
+    if (!hasSupportContent || !currentUnit.words) return;
+    
+    event.stopPropagation(); // Prevent sentence meaning toggle
+    
+    // Find word data
+    const wordData = currentUnit.words.find(w => w.text === word);
+    if (!wordData) return;
+    
+    // Get click position
+    const rect = event.target.getBoundingClientRect();
+    const position = {
+      x: rect.left + rect.width / 2,
+      y: rect.bottom + 8
+    };
+    
+    setPronunciationBubble({
+      word: wordData.text,
+      pronunciation: wordData.pronunciation,
+      meaning: wordData.meaning,
+      position
+    });
+  };
+
+  // Get language display
+  const getLanguageDisplay = () => {
+    if (activeLanguage === 'pt') {
+      return 'Portuguese → English';
+    }
+    return 'English';
   };
 
   return (
@@ -184,10 +232,42 @@ function ImitationLoop() {
       )}
       
       <div className="loop-container">
-        {/* Current Sentence */}
-        <div className="sentence-display">
-          {currentUnit.text}
+        {/* Language context */}
+        <div className="language-context">
+          {getLanguageDisplay()}
         </div>
+
+        {/* Target Sentence (clickable for meaning, words clickable for pronunciation) */}
+        <div 
+          className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}
+          onClick={toggleSentenceMeaning}
+        >
+          {hasSupportContent && currentUnit.words ? (
+            currentUnit.words.map((wordData, index) => (
+              <span 
+                key={index}
+                className="word-clickable"
+                onClick={(e) => handleWordClick(wordData.text, e)}
+              >
+                {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
+              </span>
+            ))
+          ) : (
+            currentUnit.text
+          )}
+        </div>
+
+        {/* Sentence Meaning (revealed on click) */}
+        {showSentenceMeaning && hasSupportContent && (
+          <div className="sentence-meaning">
+            {currentUnit.meaning}
+          </div>
+        )}
+
+        {/* Tap hint (subtle, fades after first use) */}
+        {hasSupportContent && !hasUsedMeaning && !userTranscript && (
+          <div className="meaning-hint">tap for meaning</div>
+        )}
 
         {/* Microphone Button */}
         <div className="mic-container">
@@ -204,10 +284,11 @@ function ImitationLoop() {
           </button>
         </div>
 
-        {/* Heard Utterance (shown after user speaks, before response) */}
+        {/* Heard Utterance (with label) */}
         {userTranscript && (
-          <div className="heard-utterance">
-            {userTranscript}
+          <div className="heard-section">
+            <span className="heard-label">heard</span>
+            <div className="heard-text">{userTranscript}</div>
           </div>
         )}
 
@@ -225,6 +306,32 @@ function ImitationLoop() {
           </button>
         )}
       </div>
+
+      {/* Pronunciation Bubble */}
+      {pronunciationBubble && (
+        <div 
+          className="pronunciation-bubble"
+          style={{
+            position: 'fixed',
+            left: `${pronunciationBubble.position.x}px`,
+            top: `${pronunciationBubble.position.y}px`,
+            transform: 'translateX(-50%)'
+          }}
+          onClick={() => setPronunciationBubble(null)}
+        >
+          <div className="bubble-word">{pronunciationBubble.word}</div>
+          <div className="bubble-pronunciation">{pronunciationBubble.pronunciation}</div>
+          <div className="bubble-meaning">({pronunciationBubble.meaning})</div>
+        </div>
+      )}
+
+      {/* Bubble backdrop (dismisses bubble) */}
+      {pronunciationBubble && (
+        <div 
+          className="bubble-backdrop"
+          onClick={() => setPronunciationBubble(null)}
+        />
+      )}
     </div>
   );
 }
