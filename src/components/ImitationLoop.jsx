@@ -125,6 +125,36 @@ function ImitationLoop() {
     }
   };
 
+  // Simple alignment detection
+  const checkAlignment = (target, attempt) => {
+    // Normalize both strings
+    const normalize = (str) => str
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .trim();
+    
+    const normalizedTarget = normalize(target);
+    const normalizedAttempt = normalize(attempt);
+    
+    // Split into words
+    const targetWords = normalizedTarget.split(/\s+/).filter(w => w.length > 0);
+    const attemptWords = normalizedAttempt.split(/\s+/).filter(w => w.length > 0);
+    
+    // Count overlap (how many target words appear in attempt)
+    let overlap = 0;
+    targetWords.forEach(word => {
+      if (attemptWords.includes(word)) {
+        overlap++;
+      }
+    });
+    
+    // Calculate similarity
+    const similarity = targetWords.length > 0 ? overlap / targetWords.length : 0;
+    
+    // Threshold: 70% word overlap
+    return similarity >= 0.7;
+  };
+
   // Handle microphone button release
   const handleMicRelease = async () => {
     if (!isListening) return;
@@ -137,23 +167,34 @@ function ImitationLoop() {
       setIsProcessing(true);
       
       try {
-        // Call conversation service with imitation mode, language, and target sentence
-        const modelDraft = await sendMessage(transcript, { 
-          mode: 'imitation',
-          language: activeLanguage,
-          targetSentence: currentUnit.text
-        });
+        // Check alignment with target sentence
+        const isAligned = checkAlignment(currentUnit.text, transcript);
         
-        // Apply move engine with imitation mode
-        const { finalMessage } = applyMoveEngine(
-          modelDraft,
-          transcript,
-          '', // No learnerLast in imitation loop
-          false, // Not opening exchange
-          'imitation' // Mode parameter
-        );
-        
-        setSystemResponse(finalMessage);
+        if (isAligned) {
+          // Close enough - skip response, allow progression
+          setSystemResponse(''); // Set empty to trigger next button
+          setIsProcessing(false);
+        } else {
+          // Not aligned - show stabilized sentence
+          // Call conversation service with imitation mode, language, and target sentence
+          const modelDraft = await sendMessage(transcript, { 
+            mode: 'imitation',
+            language: activeLanguage,
+            targetSentence: currentUnit.text
+          });
+          
+          // Apply move engine with imitation mode
+          const { finalMessage } = applyMoveEngine(
+            modelDraft,
+            transcript,
+            '', // No learnerLast in imitation loop
+            false, // Not opening exchange
+            'imitation' // Mode parameter
+          );
+          
+          setSystemResponse(finalMessage);
+          setIsProcessing(false);
+        }
       } catch (error) {
         console.error('Error processing:', error);
         setSystemNotice({
@@ -163,7 +204,6 @@ function ImitationLoop() {
             handleMicRelease();
           }
         });
-      } finally {
         setIsProcessing(false);
       }
     } else {
@@ -300,15 +340,15 @@ function ImitationLoop() {
           </div>
         )}
 
-        {/* System Response */}
-        {systemResponse && (
+        {/* System Response (only when not aligned) */}
+        {systemResponse && systemResponse.trim() && (
           <div className="response-display">
             {systemResponse}
           </div>
         )}
 
-        {/* Next Button */}
-        {systemResponse && (
+        {/* Next Button (shows after attempt, regardless of alignment) */}
+        {userTranscript && (
           <button className="next-button" onClick={handleNext}>
             next →
           </button>
