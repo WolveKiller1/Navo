@@ -143,6 +143,7 @@ export function setOpeningContext(context) {
 export async function sendMessage(userMessage, options = {}) {
   const mode = options.mode || 'conversation';
   const language = options.language || 'en';
+  const targetSentence = options.targetSentence || null;
   try {
     // Add user message to history
     conversationHistory.push({
@@ -167,39 +168,52 @@ export async function sendMessage(userMessage, options = {}) {
         ? 'IMPORTANT: Stabilize in PORTUGUESE. Do NOT translate to English.'
         : 'IMPORTANT: Stabilize in ENGLISH.';
       
+      // Include target sentence context if provided
+      const targetContext = targetSentence 
+        ? `TARGET SENTENCE ON SCREEN: "${targetSentence}"\n\n`
+        : '';
+      
       const examples = language === 'pt'
         ? `Example:
-Learner says: "Eu ir loja ontem"
-You return: "Eu fui à loja ontem."
+Target: "Eu perdi o ônibus esta manhã."
+Learner says: "eu perdi onibus esta manha"
+You return: "Eu perdi o ônibus esta manhã."
 
-Learner says: "O cachorro correr muito rápido"
-You return: "O cachorro correu muito rápido."`
+Target: "O cachorro correu pela rua."
+Learner says: "cachorro correu rua"
+You return: "O cachorro correu pela rua."`
         : `Example:
-Learner says: "I go store yesterday"
-You return: "I went to the store yesterday."
+Target: "I missed the bus this morning."
+Learner says: "I miss bus this morning"
+You return: "I missed the bus this morning."
 
-Learner says: "The dog run very quick"
-You return: "The dog ran very quickly."`;
+Target: "The dog ran across the street."
+Learner says: "dog run across street"
+You return: "The dog ran across the street."`;
 
-      activePrompt = `You are a language stabilization system. Your only job is to rewrite the learner's utterance into a natural, grammatically correct version.
+      activePrompt = `You are a language stabilization system. Your job is to return the closest stable version of the learner's attempt.
 
-${languageInstruction}
+${targetContext}${languageInstruction}
+
+CORE PRINCIPLE:
+The learner is attempting the target sentence shown above. Return the closest grammatically correct version of their attempt, strongly biased toward the target.
 
 RULES:
-- Rewrite their exact attempt into correct grammar
-- Preserve their intended meaning as closely as possible
-- Keep their vocabulary choices when possible
-- Return ONLY one short sentence (max 12 words)
+- If learner attempt is clearly trying to reproduce the target, return something very close to the target
+- If learner attempt is broken but aligned with target, stabilize it toward the target
+- If learner attempt is completely unrelated to target, return a minimal stable version of what was actually said
+- Preserve their word choices when possible, but fix grammar/articles/tense
+- Return ONLY one short sentence (max 15 words)
 - Do NOT ask questions
-- Do NOT continue the conversation
-- Do NOT add context, backstory, or interpretation
-- Do NOT explain anything
-- Do NOT use teaching language
+- Do NOT converse or paraphrase creatively
+- Do NOT add context or interpretation
+- Do NOT explain or teach
 - Do NOT translate between languages
+- Stay very near the target sentence when the learner is clearly attempting it
 
 ${examples}
 
-Now stabilize this utterance:`;
+Now stabilize this learner attempt:`;
     } else {
       activePrompt = buildPromptWithProfile(SYSTEM_PROMPT, profile);
     }

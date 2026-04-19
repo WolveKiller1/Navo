@@ -100,7 +100,14 @@ function ImitationLoop() {
       setUserTranscript('');
       setSystemResponse('');
       resetTranscript();
-      SpeechRecognition.startListening({ continuous: true, interimResults: true });
+      
+      // Set speech recognition language based on active language
+      const language = activeLanguage === 'pt' ? 'pt-BR' : 'en-US';
+      SpeechRecognition.startListening({ 
+        continuous: true, 
+        interimResults: true,
+        language: language
+      });
     } catch (error) {
       if (error.name === 'NotAllowedError') {
         setSystemNotice({
@@ -130,10 +137,11 @@ function ImitationLoop() {
       setIsProcessing(true);
       
       try {
-        // Call conversation service with imitation mode and language
+        // Call conversation service with imitation mode, language, and target sentence
         const modelDraft = await sendMessage(transcript, { 
           mode: 'imitation',
-          language: activeLanguage
+          language: activeLanguage,
+          targetSentence: currentUnit.text
         });
         
         // Apply move engine with imitation mode
@@ -213,7 +221,7 @@ function ImitationLoop() {
   // Get language display
   const getLanguageDisplay = () => {
     if (activeLanguage === 'pt') {
-      return 'Portuguese → English';
+      return 'Portuguese';
     }
     return 'English';
   };
