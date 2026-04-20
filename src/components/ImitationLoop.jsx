@@ -28,6 +28,9 @@ function ImitationLoop() {
   const [showSentenceMeaning, setShowSentenceMeaning] = useState(false);
   const [pronunciationBubble, setPronunciationBubble] = useState(null);
   const [hasUsedMeaning, setHasUsedMeaning] = useState(false);
+  
+  // Alignment animation state
+  const [justAligned, setJustAligned] = useState(false);
 
   const {
     transcript,
@@ -125,7 +128,7 @@ function ImitationLoop() {
     }
   };
 
-  // Simple alignment detection
+  // Band-based alignment detection
   const checkAlignment = (target, attempt) => {
     // Normalize both strings
     const normalize = (str) => str
@@ -151,8 +154,10 @@ function ImitationLoop() {
     // Calculate similarity
     const similarity = targetWords.length > 0 ? overlap / targetWords.length : 0;
     
-    // Threshold: 70% word overlap
-    return similarity >= 0.7;
+    // Return band based on similarity
+    if (similarity >= 0.85) return 'aligned';
+    if (similarity >= 0.55) return 'near';
+    return 'off';
   };
 
   // Handle microphone button release
@@ -167,15 +172,21 @@ function ImitationLoop() {
       setIsProcessing(true);
       
       try {
-        // Check alignment with target sentence
-        const isAligned = checkAlignment(currentUnit.text, transcript);
+        // Check alignment band with target sentence
+        const band = checkAlignment(currentUnit.text, transcript);
         
-        if (isAligned) {
-          // Close enough - skip response, allow progression
-          setSystemResponse(''); // Set empty to trigger next button
+        if (band === 'aligned') {
+          // Aligned - trigger settle animation, no response
+          setSystemResponse('');
+          setJustAligned(true);
+          setTimeout(() => setJustAligned(false), 180);
+          setIsProcessing(false);
+        } else if (band === 'near') {
+          // Near - no response, no animation, transcript only
+          setSystemResponse('');
           setIsProcessing(false);
         } else {
-          // Not aligned - show stabilized sentence
+          // Off - show stabilized redirection sentence
           // Call conversation service with imitation mode, language, and target sentence
           const modelDraft = await sendMessage(transcript, { 
             mode: 'imitation',
@@ -332,11 +343,11 @@ function ImitationLoop() {
           </button>
         </div>
 
-        {/* Heard Utterance (with label) */}
+        {/* Heard Utterance (with label and optional settle animation) */}
         {userTranscript && (
           <div className="heard-section">
             <span className="heard-label">heard</span>
-            <div className="heard-text">{userTranscript}</div>
+            <div className={`heard-text ${justAligned ? 'settled' : ''}`}>{userTranscript}</div>
           </div>
         )}
 
