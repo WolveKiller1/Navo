@@ -6,7 +6,7 @@ import { sendMessage, resetConversation } from '../services/conversation';
 import { applyMoveEngine } from '../services/moveEngine';
 import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
-import { getUserPreferences } from '../services/storage';
+import { getUserPreferences, initStorage } from '../services/storage';
 import HomeArrow from './HomeArrow';
 import SystemNotice from './SystemNotice';
 import '../styles/ImitationLoop.css';
@@ -32,11 +32,13 @@ function ImitationLoop() {
   // Alignment animation state
   const [justAligned, setJustAligned] = useState(false);
 
+  const speechOptions = { language: activeLanguage === 'en' ? 'en-US' : 'pt-BR' };
+
   const {
     transcript,
     resetTranscript,
     browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
+  } = useSpeechRecognition(speechOptions);
 
   const currentUnit = activeUnits[currentIndex];
   const hasSupportContent = currentUnit.words && currentUnit.meaning;
@@ -44,6 +46,7 @@ function ImitationLoop() {
   // Load preferences and set active units
   useEffect(() => {
     const loadLanguagePreference = async () => {
+      await initStorage();
       const prefs = await getUserPreferences();
       const lang = prefs.activeLanguage || 'en';
       setActiveLanguage(lang);
@@ -355,16 +358,14 @@ function ImitationLoop() {
         </div>
 
         {/* Live/Heard Transcript (shows while speaking OR after attempt) */}
-        {(isListening && transcript.trim()) || userTranscript ? (
-          <div className="heard-section">
-            <span className="heard-label">
-              {isListening ? 'speaking' : 'heard'}
-            </span>
-            <div className={`heard-text ${isListening ? 'live' : ''} ${justAligned ? 'settled' : ''}`}>
-              {isListening ? transcript : userTranscript}
-            </div>
+        <div className={`heard-section ${(isListening && transcript.trim()) || userTranscript ? '' : 'hidden'}`}>
+          <span className="heard-label">
+            {isListening ? 'speaking' : 'heard'}
+          </span>
+          <div className={`heard-text ${isListening ? 'live' : ''} ${justAligned ? 'settled' : ''}`}>
+            {(isListening && transcript.trim()) || userTranscript || ''}
           </div>
-        ) : null}
+        </div>
 
         {/* System Response (only when not aligned) */}
         {systemResponse && systemResponse.trim() && (

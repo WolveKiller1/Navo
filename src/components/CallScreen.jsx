@@ -59,11 +59,13 @@ function CallScreen() {
   const hiddenTimerRef = useRef(null); // Visibility change delayed timer
   const openingSentenceProcessedRef = useRef(false); // Prevent double opening send
 
+  const speechOptions = { language: currentLanguage === 'en' ? 'en-US' : 'pt-BR' };
+
   const {
     transcript,
     resetTranscript,
     browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
+  } = useSpeechRecognition(speechOptions);
 
   // Check browser compatibility on mount
   useEffect(() => {
@@ -83,8 +85,8 @@ function CallScreen() {
     // Initialize storage and get last language
     const init = async () => {
       await initStorage();
-      const lastLang = await getLastLanguage();
-      setCurrentLanguage(lastLang);
+      const prefs = await getUserPreferences();
+      setCurrentLanguage(prefs.activeLanguage);
       
       // PHASE 14 FIX: Auto-start session if opening sentence exists
       if (location.state?.openingSentence) {

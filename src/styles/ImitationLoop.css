@@ -217,6 +217,10 @@
   animation: fadeIn 0.3s ease-in;
 }
 
+.heard-section.hidden {
+  visibility: hidden;
+}
+
 .heard-label {
   font-size: 0.7rem;
   font-weight: 400;

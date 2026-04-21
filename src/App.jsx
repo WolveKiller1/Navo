@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { getUserPreferences } from './services/storage'
+import { getUserPreferences, initStorage } from './services/storage'
 import LandingPage from './components/LandingPage'
 import CallScreen from './components/CallScreen'
 import PlaygroundScreen from './components/PlaygroundScreen'
@@ -24,7 +24,8 @@ function ProtectedRoute({ children }) {
 
 function App() {
   useEffect(() => {
-    const applyTheme = async () => {
+    const initializeApp = async () => {
+      await initStorage();
       const preferences = await getUserPreferences();
       const theme = preferences.theme || 'dark';
       if (theme === 'light') {
@@ -35,7 +36,7 @@ function App() {
         document.body.classList.remove('light-theme');
       }
     };
-    applyTheme();
+    initializeApp();
   }, []);
 
   return (
