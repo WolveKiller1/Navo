@@ -32,6 +32,15 @@
   text-align: center;
 }
 
+/* Target Container - groups sentence + audio button */
+.target-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+
 /* Sentence Display - Dominant, with support */
 .sentence-display {
   font-size: 2rem;
@@ -40,6 +49,34 @@
   line-height: 1.4;
   color: #e8e8e8;
   letter-spacing: 0.01em;
+  flex: 1;
+}
+
+/* Play Target Button - Minimal audio playback */
+.play-target-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(42, 42, 42, 0.5);
+  border: 1px solid rgba(58, 58, 58, 0.5);
+  color: #aaa;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+  flex-shrink: 0;
+}
+
+.play-target-button:hover {
+  background: rgba(42, 42, 42, 0.8);
+  border-color: rgba(58, 58, 58, 0.8);
+  color: #e8e8e8;
+}
+
+.play-target-button:active {
+  transform: scale(0.95);
 }
 
 .sentence-display.has-support {
@@ -192,26 +229,22 @@
   line-height: 1.5;
   text-align: center;
   color: #aaa;
-  opacity: 0.7;
+  opacity: 0.55;
   padding: 0.75rem 1rem;
-  transition: opacity 180ms ease, transform 180ms ease;
+  font-style: italic;
+  transition: opacity 250ms ease, font-style 250ms ease;
 }
 
-/* Settled animation - subtle alignment signal */
+/* Live transcript state - slightly more visible while speaking */
+.heard-text.live {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+/* Settled state - locks in with normal styling and higher opacity */
 .heard-text.settled {
-  animation: settle 180ms ease-out;
-}
-
-@keyframes settle {
-  0% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 0.95;
-  }
-  100% {
-    opacity: 0.7;
-  }
+  opacity: 0.9;
+  font-style: normal;
 }
 
 /* Response Display - Subtle */

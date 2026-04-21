@@ -4,7 +4,7 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { FaMicrophone } from 'react-icons/fa';
 import { sendMessage, resetConversation } from '../services/conversation';
 import { applyMoveEngine } from '../services/moveEngine';
-import { initializeTTS } from '../services/tts';
+import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
 import { getUserPreferences } from '../services/storage';
 import HomeArrow from './HomeArrow';
@@ -269,6 +269,11 @@ function ImitationLoop() {
     });
   };
 
+  // Handle target sentence audio playback
+  const handlePlayTarget = () => {
+    speak(currentUnit.text);
+  };
+
   // Get language display
   const getLanguageDisplay = () => {
     if (activeLanguage === 'pt') {
@@ -296,24 +301,29 @@ function ImitationLoop() {
           {getLanguageDisplay()}
         </div>
 
-        {/* Target Sentence (clickable for meaning, words clickable for pronunciation) */}
-        <div 
-          className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}
-          onClick={toggleSentenceMeaning}
-        >
-          {hasSupportContent && currentUnit.words ? (
-            currentUnit.words.map((wordData, index) => (
-              <span 
-                key={index}
-                className="word-clickable"
-                onClick={(e) => handleWordClick(wordData.text, e)}
-              >
-                {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
-              </span>
-            ))
-          ) : (
-            currentUnit.text
-          )}
+        {/* Target Sentence with audio playback */}
+        <div className="target-container">
+          <div 
+            className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}
+            onClick={toggleSentenceMeaning}
+          >
+            {hasSupportContent && currentUnit.words ? (
+              currentUnit.words.map((wordData, index) => (
+                <span 
+                  key={index}
+                  className="word-clickable"
+                  onClick={(e) => handleWordClick(wordData.text, e)}
+                >
+                  {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
+                </span>
+              ))
+            ) : (
+              currentUnit.text
+            )}
+          </div>
+          <button className="play-target-button" onClick={handlePlayTarget} title="Play target">
+            ▶
+          </button>
         </div>
 
         {/* Sentence Meaning (revealed on click) */}
@@ -343,13 +353,17 @@ function ImitationLoop() {
           </button>
         </div>
 
-        {/* Heard Utterance (with label and optional settle animation) */}
-        {userTranscript && (
+        {/* Live/Heard Transcript (shows while speaking OR after attempt) */}
+        {(isListening && transcript.trim()) || userTranscript ? (
           <div className="heard-section">
-            <span className="heard-label">heard</span>
-            <div className={`heard-text ${justAligned ? 'settled' : ''}`}>{userTranscript}</div>
+            <span className="heard-label">
+              {isListening ? 'speaking' : 'heard'}
+            </span>
+            <div className={`heard-text ${isListening ? 'live' : ''} ${justAligned ? 'settled' : ''}`}>
+              {isListening ? transcript : userTranscript}
+            </div>
           </div>
-        )}
+        ) : null}
 
         {/* System Response (only when not aligned) */}
         {systemResponse && systemResponse.trim() && (
