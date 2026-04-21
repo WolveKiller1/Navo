@@ -271,7 +271,8 @@ function ImitationLoop() {
 
   // Handle target sentence audio playback
   const handlePlayTarget = () => {
-    speak(currentUnit.text);
+    const ttsLang = activeLanguage === 'pt' ? 'pt-BR' : 'en-US';
+    speak(currentUnit.text, ttsLang);
   };
 
   // Get language display

@@ -5,9 +5,10 @@
 /**
  * Speaks the provided text using browser's speech synthesis
  * @param {string} text - The text to speak
+ * @param {string} lang - Optional language code (e.g., 'pt-BR', 'en-US')
  * @returns {Promise<void>} - Resolves when speech is complete
  */
-export function speak(text) {
+export function speak(text, lang = null) {
   return new Promise((resolve, reject) => {
     // Check if speech synthesis is supported
     if (!window.speechSynthesis) {
@@ -27,11 +28,26 @@ export function speak(text) {
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
     
-    // Try to use a natural-sounding voice (prefer English voices)
+    // Set language if provided
+    if (lang) {
+      utterance.lang = lang;
+    }
+    
+    // Try to select appropriate voice based on language
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => 
-      voice.lang.startsWith('en') && voice.name.includes('Natural')
-    ) || voices.find(voice => voice.lang.startsWith('en'));
+    let preferredVoice = null;
+    
+    if (lang) {
+      // Match voice to specified language
+      const langPrefix = lang.split('-')[0]; // 'pt' from 'pt-BR', 'en' from 'en-US'
+      preferredVoice = voices.find(voice => voice.lang.startsWith(lang)) ||
+                      voices.find(voice => voice.lang.startsWith(langPrefix));
+    } else {
+      // Default to English
+      preferredVoice = voices.find(voice => 
+        voice.lang.startsWith('en') && voice.name.includes('Natural')
+      ) || voices.find(voice => voice.lang.startsWith('en'));
+    }
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
