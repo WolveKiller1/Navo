@@ -174,52 +174,18 @@ function ImitationLoop() {
       setUserTranscript(transcript);
       setIsProcessing(true);
       
-      try {
-        // Check alignment band with target sentence
-        const band = checkAlignment(currentUnit.text, transcript);
-        
-        if (band === 'aligned') {
-          // Aligned - trigger settle animation, no response
-          setSystemResponse('');
-          setJustAligned(true);
-          setTimeout(() => setJustAligned(false), 180);
-          setIsProcessing(false);
-        } else if (band === 'near') {
-          // Near - no response, no animation, transcript only
-          setSystemResponse('');
-          setIsProcessing(false);
-        } else {
-          // Off - show stabilized redirection sentence
-          // Call conversation service with imitation mode, language, and target sentence
-          const modelDraft = await sendMessage(transcript, { 
-            mode: 'imitation',
-            language: activeLanguage,
-            targetSentence: currentUnit.text
-          });
-          
-          // Apply move engine with imitation mode
-          const { finalMessage } = applyMoveEngine(
-            modelDraft,
-            transcript,
-            '', // No learnerLast in imitation loop
-            false, // Not opening exchange
-            'imitation' // Mode parameter
-          );
-          
-          setSystemResponse(finalMessage);
-          setIsProcessing(false);
-        }
-      } catch (error) {
-        console.error('Error processing:', error);
-        setSystemNotice({
-          message: 'Response unavailable.',
-          onRetry: () => {
-            setSystemNotice(null);
-            handleMicRelease();
-          }
-        });
-        setIsProcessing(false);
+      // Check alignment band with target sentence
+      const band = checkAlignment(currentUnit.text, transcript);
+      
+      if (band === 'aligned') {
+        // Aligned - trigger settle animation
+        setJustAligned(true);
+        setTimeout(() => setJustAligned(false), 180);
       }
+      // For near and off bands, no special behavior
+      // Just show transcript for comparison with target
+      
+      setIsProcessing(false);
     } else {
       setSystemNotice({
         message: 'No speech detected.'
@@ -247,6 +213,20 @@ function ImitationLoop() {
     if (!hasUsedMeaning) setHasUsedMeaning(true);
   };
 
+  // Portuguese function words (articles, prepositions, common connectors)
+  const FUNCTION_WORDS = new Set([
+    'o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas',
+    'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na', 'nos', 'nas',
+    'para', 'com', 'sem', 'por', 'pelo', 'pela', 'pelos', 'pelas',
+    'ao', 'aos', 'à', 'às', 'num', 'numa', 'nuns', 'numas',
+    'e', 'ou', 'mas', 'que', 'se', 'quando', 'onde'
+  ]);
+
+  // Check if word is a function word
+  const isFunctionWord = (word) => {
+    return FUNCTION_WORDS.has(word.toLowerCase().replace(/[.,!?;:'"]/g, ''));
+  };
+
   // Handle word click for pronunciation
   const handleWordClick = (word, event) => {
     if (!hasSupportContent || !currentUnit.words) return;
@@ -264,10 +244,12 @@ function ImitationLoop() {
       y: rect.bottom + 8
     };
     
+    // For function words: show word + pronunciation only (no English meaning)
+    // For content words: show word + pronunciation + meaning
     setPronunciationBubble({
       word: wordData.text,
       pronunciation: wordData.pronunciation,
-      meaning: wordData.meaning,
+      meaning: isFunctionWord(wordData.text) ? null : wordData.meaning,
       position
     });
   };
