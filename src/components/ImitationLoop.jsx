@@ -244,12 +244,12 @@ function ImitationLoop() {
       y: rect.bottom + 8
     };
     
-    // For function words: show word + pronunciation only (no English meaning)
-    // For content words: show word + pronunciation + meaning
+    // For function words: show word + pronunciation + meaning
+    // For content words: show word + pronunciation only (no English meaning)
     setPronunciationBubble({
       word: wordData.text,
       pronunciation: wordData.pronunciation,
-      meaning: isFunctionWord(wordData.text) ? null : wordData.meaning,
+      meaning: isFunctionWord(wordData.text) ? wordData.meaning : null,
       position
     });
   };
