@@ -115,6 +115,8 @@ function PlaygroundScreen() {
   const [guidedSentence, setGuidedSentence] = useState(null);
   const [guidedMeaning, setGuidedMeaning] = useState(null);
   const [guidedChunk, setGuidedChunk] = useState(null);
+  const [guidedOptionSelected, setGuidedOptionSelected] = useState(false);
+  const [guidedUpdatedSentence, setGuidedUpdatedSentence] = useState(null);
   
   // Core state
   const [currentSentence, setCurrentSentence] = useState(null); // null = show seed selector
@@ -193,6 +195,8 @@ function PlaygroundScreen() {
     if (location.state?.guidedMode && location.state?.seedSentence && location.state?.movableChunk) {
       setGuidedMode(true);
       setGuidedSentence(location.state.seedSentence);
+      setGuidedUpdatedSentence(location.state.seedSentence);
+      setGuidedOptionSelected(false);
       setGuidedMeaning(location.state.seedMeaning);
       setGuidedChunk(location.state.movableChunk);
       
@@ -211,17 +215,25 @@ function PlaygroundScreen() {
 
   // Handle guided option selection
   const handleGuidedOption = (option) => {
-    const words = guidedSentence.split(/\s+/);
+    const baseSentence = guidedOptionSelected && guidedUpdatedSentence ? guidedUpdatedSentence : guidedSentence;
+    const words = baseSentence.split(/\s+/);
     words[guidedChunk.wordIndex] = option;
     const newSentence = words.join(' ');
     
-    // Set as current sentence and exit guided mode
-    setCurrentSentence(newSentence);
-    setSeedSentence(newSentence);
+    setGuidedUpdatedSentence(newSentence);
+    setGuidedOptionSelected(true);
+  };
+
+  const handleGuidedContinue = () => {
+    if (!guidedUpdatedSentence) return;
+
+    setCurrentSentence(guidedUpdatedSentence);
+    setSeedSentence(guidedUpdatedSentence);
     setGuidedMode(false);
+    setGuidedOptionSelected(false);
+    setGuidedUpdatedSentence(null);
     
-    // Select a pressure for continuation
-    const randomPressure = selectRandomPressure(null, newSentence, 0);
+    const randomPressure = selectRandomPressure(null, guidedUpdatedSentence, 0);
     setCurrentPressure(randomPressure);
     setLastPressure(randomPressure);
     setHasMutation(true);
@@ -668,6 +680,9 @@ function PlaygroundScreen() {
     setConsecutiveMeaningCount(0);
     setMeaningBubble(null); // Clear bubble
     setPreviousSentence(null); // Clear transformation indicator
+    setGuidedOptionSelected(false);
+    setGuidedUpdatedSentence(null);
+    setGuidedMode(false);
   };
 
   // Handle take to call room
@@ -702,12 +717,12 @@ function PlaygroundScreen() {
         {guidedMode && guidedSentence && guidedChunk && (
           <div className="guided-entry">
             <div className="guided-sentence">
-              {guidedSentence.split(/\s+/).map((word, i) => (
+              {(guidedOptionSelected && guidedUpdatedSentence ? guidedUpdatedSentence : guidedSentence).split(/\s+/).map((word, i) => (
                 <span 
                   key={i}
                   className={i === guidedChunk.wordIndex ? 'guided-highlight' : ''}
                 >
-                  {word}{i < guidedSentence.split(/\s+/).length - 1 ? ' ' : ''}
+                  {word}{i < (guidedOptionSelected && guidedUpdatedSentence ? guidedUpdatedSentence : guidedSentence).split(/\s+/).length - 1 ? ' ' : ''}
                 </span>
               ))}
             </div>
@@ -726,6 +741,24 @@ function PlaygroundScreen() {
                   {option}
                 </button>
               ))}
+            </div>
+
+            <div className="guided-continue-row">
+              <button
+                className="guided-back-button"
+                onClick={() => navigate('/loop')}
+              >
+                Back to Practice Loop
+              </button>
+
+              {guidedOptionSelected && guidedUpdatedSentence && (
+                <button
+                  className="guided-continue-button"
+                  onClick={handleGuidedContinue}
+                >
+                  Continue
+                </button>
+              )}
             </div>
           </div>
         )}
