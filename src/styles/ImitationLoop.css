@@ -352,6 +352,27 @@
   opacity: 1;
 }
 
+/* Bridge Button - Subtle secondary action */
+.bridge-button {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #aaa;
+  font-size: 0.85rem;
+  font-weight: 300;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 180ms ease, border-color 180ms ease, color 180ms ease;
+  padding: 0.6rem 1.2rem;
+  margin-top: 1.5rem;
+  border-radius: 4px;
+}
+
+.bridge-button:hover {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #e8e8e8;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sentence-display {

@@ -14,6 +14,70 @@
   color: #e8e8e8;
 }
 
+/* Guided Entry from Practice Loop */
+.guided-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem 0;
+  animation: fadeIn 0.4s ease-in;
+}
+
+.guided-sentence {
+  font-size: 2rem;
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.4;
+  color: #e8e8e8;
+}
+
+.guided-sentence .guided-highlight {
+  background: rgba(22, 163, 74, 0.15);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  border-bottom: 2px solid rgba(22, 163, 74, 0.4);
+}
+
+.guided-meaning {
+  font-size: 1.1rem;
+  font-weight: 300;
+  text-align: center;
+  color: #aaa;
+  opacity: 0.7;
+  max-width: 500px;
+}
+
+.guided-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.guided-option-button {
+  background: rgba(42, 42, 42, 0.6);
+  border: 1px solid rgba(58, 58, 58, 0.6);
+  color: #e8e8e8;
+  font-size: 1.1rem;
+  font-weight: 400;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.guided-option-button:hover {
+  background: rgba(22, 163, 74, 0.2);
+  border-color: rgba(22, 163, 74, 0.5);
+  transform: translateY(-2px);
+}
+
+.guided-option-button:active {
+  transform: translateY(0);
+}
+
 .playground-container {
   max-width: 700px;
   width: 100%;

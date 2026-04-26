@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHistory, FaUser } from 'react-icons/fa';
 import { initStorage, getImmersionProfile } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
@@ -104,10 +104,17 @@ function createHighlightedSentence(original, stabilized) {
 function PlaygroundScreen() {
   console.log('PlaygroundScreen rendering');
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Profile (read-only)
   const [profile, setProfile] = useState(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  
+  // Guided mode from Practice Loop
+  const [guidedMode, setGuidedMode] = useState(false);
+  const [guidedSentence, setGuidedSentence] = useState(null);
+  const [guidedMeaning, setGuidedMeaning] = useState(null);
+  const [guidedChunk, setGuidedChunk] = useState(null);
   
   // Core state
   const [currentSentence, setCurrentSentence] = useState(null); // null = show seed selector
@@ -181,13 +188,44 @@ function PlaygroundScreen() {
     loadProfile();
   }, []);
 
+  // Check for guided mode from Practice Loop
+  useEffect(() => {
+    if (location.state?.guidedMode && location.state?.seedSentence && location.state?.movableChunk) {
+      setGuidedMode(true);
+      setGuidedSentence(location.state.seedSentence);
+      setGuidedMeaning(location.state.seedMeaning);
+      setGuidedChunk(location.state.movableChunk);
+      
+      // Clear location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+
   // Initialize with random suggestion on mount
   useEffect(() => {
-    if (!currentSentence && CATALYTIC_SEEDS.length > 0) {
+    if (!currentSentence && !guidedMode && CATALYTIC_SEEDS.length > 0) {
       const randomIndex = Math.floor(Math.random() * CATALYTIC_SEEDS.length);
       setCurrentSuggestion(CATALYTIC_SEEDS[randomIndex]);
     }
-  }, [currentSentence]);
+  }, [currentSentence, guidedMode]);
+
+  // Handle guided option selection
+  const handleGuidedOption = (option) => {
+    const words = guidedSentence.split(/\s+/);
+    words[guidedChunk.wordIndex] = option;
+    const newSentence = words.join(' ');
+    
+    // Set as current sentence and exit guided mode
+    setCurrentSentence(newSentence);
+    setSeedSentence(newSentence);
+    setGuidedMode(false);
+    
+    // Select a pressure for continuation
+    const randomPressure = selectRandomPressure(null, newSentence, 0);
+    setCurrentPressure(randomPressure);
+    setLastPressure(randomPressure);
+    setHasMutation(true);
+  };
 
   // Handle suggestion cycling (randomize)
   const handleCycleSuggestion = () => {
@@ -660,8 +698,40 @@ function PlaygroundScreen() {
           <p className="playground-subtitle">User-driven structural evolution</p>
         </div>
 
+        {/* Guided Entry from Practice Loop */}
+        {guidedMode && guidedSentence && guidedChunk && (
+          <div className="guided-entry">
+            <div className="guided-sentence">
+              {guidedSentence.split(/\s+/).map((word, i) => (
+                <span 
+                  key={i}
+                  className={i === guidedChunk.wordIndex ? 'guided-highlight' : ''}
+                >
+                  {word}{i < guidedSentence.split(/\s+/).length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </div>
+            
+            {guidedMeaning && (
+              <div className="guided-meaning">{guidedMeaning}</div>
+            )}
+            
+            <div className="guided-options">
+              {guidedChunk.options.map((option, index) => (
+                <button
+                  key={index}
+                  className="guided-option-button"
+                  onClick={() => handleGuidedOption(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Entry Phase (shown when currentSentence === null) */}
-        {!currentSentence && profileLoaded && currentSuggestion && (
+        {!currentSentence && !guidedMode && profileLoaded && currentSuggestion && (
           <div className="entry-phase">
             {/* Single Suggestion Card */}
             <div 

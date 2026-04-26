@@ -31,6 +31,9 @@ function ImitationLoop() {
   
   // Alignment animation state
   const [justAligned, setJustAligned] = useState(false);
+  
+  // Engagement tracking for bridge to Playground
+  const [hasEngaged, setHasEngaged] = useState(false);
 
   const speechOptions = { language: activeLanguage === 'en' ? 'en-US' : 'pt-BR' };
 
@@ -174,6 +177,9 @@ function ImitationLoop() {
       setUserTranscript(transcript);
       setIsProcessing(true);
       
+      // Mark as engaged (mic used)
+      if (!hasEngaged) setHasEngaged(true);
+      
       // Check alignment band with target sentence
       const band = checkAlignment(currentUnit.text, transcript);
       
@@ -211,6 +217,21 @@ function ImitationLoop() {
     if (!hasSupportContent) return;
     setShowSentenceMeaning(prev => !prev);
     if (!hasUsedMeaning) setHasUsedMeaning(true);
+    
+    // Mark as engaged (meaning revealed)
+    if (!hasEngaged) setHasEngaged(true);
+  };
+
+  // Handle bridge to Playground
+  const handleChangeOnePiece = () => {
+    navigate('/playground', {
+      state: {
+        guidedMode: true,
+        seedSentence: currentUnit.text,
+        seedMeaning: currentUnit.meaning,
+        movableChunk: currentUnit.movableChunk
+      }
+    });
   };
 
   // Portuguese function words (articles, prepositions, common connectors)
@@ -258,6 +279,9 @@ function ImitationLoop() {
   const handlePlayTarget = () => {
     const ttsLang = activeLanguage === 'pt' ? 'pt-BR' : 'en-US';
     speak(currentUnit.text, ttsLang);
+    
+    // Mark as engaged (audio played)
+    if (!hasEngaged) setHasEngaged(true);
   };
 
   // Get language display
@@ -360,6 +384,13 @@ function ImitationLoop() {
         {userTranscript && (
           <button className="next-button" onClick={handleNext}>
             next →
+          </button>
+        )}
+
+        {/* Bridge to Playground (shows after engagement) */}
+        {hasEngaged && currentUnit.movableChunk && (
+          <button className="bridge-button" onClick={handleChangeOnePiece}>
+            Change one piece
           </button>
         )}
       </div>
