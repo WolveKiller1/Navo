@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { FaMicrophone } from 'react-icons/fa';
@@ -34,6 +34,11 @@ function ImitationLoop() {
   
   // Engagement tracking for bridge to Playground
   const [hasEngaged, setHasEngaged] = useState(false);
+  
+  // Audio-first: control text visibility
+  const [showSentenceText, setShowSentenceText] = useState(false);
+  const transcriptRef = useRef('');
+  const speechFinalizeTimeout = useRef(null);
 
   const speechOptions = { language: activeLanguage === 'en' ? 'en-US' : 'pt-BR' };
 
@@ -42,6 +47,18 @@ function ImitationLoop() {
     resetTranscript,
     browserSupportsSpeechRecognition
   } = useSpeechRecognition(speechOptions);
+
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
+
+  useEffect(() => {
+    return () => {
+      if (speechFinalizeTimeout.current) {
+        clearTimeout(speechFinalizeTimeout.current);
+      }
+    };
+  }, []);
 
   const currentUnit = activeUnits[currentIndex];
   const hasSupportContent = currentUnit.words && currentUnit.meaning;
@@ -167,36 +184,43 @@ function ImitationLoop() {
   };
 
   // Handle microphone button release
-  const handleMicRelease = async () => {
+  const handleMicRelease = () => {
     if (!isListening) return;
     
     setIsListening(false);
     SpeechRecognition.stopListening();
-    
-    if (transcript.trim()) {
-      setUserTranscript(transcript);
-      setIsProcessing(true);
-      
-      // Mark as engaged (mic used)
-      if (!hasEngaged) setHasEngaged(true);
-      
-      // Check alignment band with target sentence
-      const band = checkAlignment(currentUnit.text, transcript);
-      
-      if (band === 'aligned') {
-        // Aligned - trigger settle animation
-        setJustAligned(true);
-        setTimeout(() => setJustAligned(false), 180);
-      }
-      // For near and off bands, no special behavior
-      // Just show transcript for comparison with target
-      
-      setIsProcessing(false);
-    } else {
-      setSystemNotice({
-        message: 'No speech detected.'
-      });
+    setIsProcessing(true);
+
+    if (speechFinalizeTimeout.current) {
+      clearTimeout(speechFinalizeTimeout.current);
     }
+
+    speechFinalizeTimeout.current = setTimeout(() => {
+      speechFinalizeTimeout.current = null;
+      const finalTranscript = transcriptRef.current.trim();
+
+      if (finalTranscript) {
+        setUserTranscript(finalTranscript);
+
+        // Mark as engaged (mic used)
+        if (!hasEngaged) setHasEngaged(true);
+
+        // Check alignment band with target sentence
+        const band = checkAlignment(currentUnit.text, finalTranscript);
+
+        if (band === 'aligned') {
+          // Aligned - trigger settle animation
+          setJustAligned(true);
+          setTimeout(() => setJustAligned(false), 180);
+        }
+      } else {
+        setSystemNotice({
+          message: 'No speech detected.'
+        });
+      }
+
+      setIsProcessing(false);
+    }, 300);
   };
 
   // Handle next button
@@ -207,6 +231,7 @@ function ImitationLoop() {
     resetTranscript();
     setShowSentenceMeaning(false);
     setPronunciationBubble(null);
+    setShowSentenceText(false); // Hide text again for audio-first
     
     // Move to next unit (wrap at end)
     setCurrentIndex((prev) => (prev + 1) % activeUnits.length);
@@ -311,30 +336,44 @@ function ImitationLoop() {
           {getLanguageDisplay()}
         </div>
 
-        {/* Target Sentence with audio playback */}
-        <div className="target-container">
-          <div 
-            className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}
-            onClick={toggleSentenceMeaning}
-          >
-            {hasSupportContent && currentUnit.words ? (
-              currentUnit.words.map((wordData, index) => (
-                <span 
-                  key={index}
-                  className="word-clickable"
-                  onClick={(e) => handleWordClick(wordData.text, e)}
-                >
-                  {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
-                </span>
-              ))
-            ) : (
-              currentUnit.text
-            )}
-          </div>
-          <button className="play-target-button" onClick={handlePlayTarget} title="Play target">
-            ▶
+        {/* Audio-first: Listen instruction + Prominent play button */}
+        <div className="audio-first-section">
+          <p className="listen-instruction">Listen. Then imitate.</p>
+          <button className="play-target-button-prominent" onClick={handlePlayTarget} title="Play target sentence">
+            <span className="play-icon">▶</span>
           </button>
         </div>
+
+        {/* Target Sentence - Revealed on demand */}
+        {showSentenceText && (
+          <div className="text-reveal-section">
+            <div 
+              className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}
+              onClick={toggleSentenceMeaning}
+            >
+              {hasSupportContent && currentUnit.words ? (
+                currentUnit.words.map((wordData, index) => (
+                  <span 
+                    key={index}
+                    className="word-clickable"
+                    onClick={(e) => handleWordClick(wordData.text, e)}
+                  >
+                    {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
+                  </span>
+                ))
+              ) : (
+                currentUnit.text
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Show text button - Subtle, secondary */}
+        {!showSentenceText && userTranscript && (
+          <button className="show-text-button" onClick={() => setShowSentenceText(true)}>
+            Show text
+          </button>
+        )}
 
         {/* Sentence Meaning (revealed on click) */}
         {showSentenceMeaning && hasSupportContent && (
@@ -363,13 +402,11 @@ function ImitationLoop() {
           </button>
         </div>
 
-        {/* Live/Heard Transcript (shows while speaking OR after attempt) */}
-        <div className={`heard-section ${(isListening && transcript.trim()) || userTranscript ? '' : 'hidden'}`}>
-          <span className="heard-label">
-            {isListening ? 'speaking' : 'heard'}
-          </span>
-          <div className={`heard-text ${isListening ? 'live' : ''} ${justAligned ? 'settled' : ''}`}>
-            {(isListening && transcript.trim()) || userTranscript || ''}
+        {/* Heard Transcript (appears after speaking) */}
+        <div className={`heard-section ${userTranscript ? '' : 'hidden'}`}>
+          <span className="heard-label">heard</span>
+          <div className={`heard-text ${justAligned ? 'settled' : ''}`}>
+            {userTranscript}
           </div>
         </div>
 

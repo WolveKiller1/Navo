@@ -748,7 +748,7 @@ function PlaygroundScreen() {
                 className="guided-back-button"
                 onClick={() => navigate('/loop')}
               >
-                Back to Practice Loop
+                Back to loop
               </button>
 
               {guidedOptionSelected && guidedUpdatedSentence && (
@@ -756,7 +756,7 @@ function PlaygroundScreen() {
                   className="guided-continue-button"
                   onClick={handleGuidedContinue}
                 >
-                  Continue
+                  Keep shaping
                 </button>
               )}
             </div>
