@@ -248,13 +248,12 @@ function ImitationLoop() {
   };
 
   // Handle bridge to Playground
-  const handleChangeOnePiece = () => {
+  const handleTryAnotherShape = () => {
     navigate('/playground', {
       state: {
         guidedMode: true,
         seedSentence: currentUnit.text,
-        seedMeaning: currentUnit.meaning,
-        movableChunk: currentUnit.movableChunk
+        seedMeaning: currentUnit.meaning
       }
     });
   };
@@ -425,9 +424,9 @@ function ImitationLoop() {
         )}
 
         {/* Bridge to Playground (shows after engagement) */}
-        {hasEngaged && currentUnit.movableChunk && (
-          <button className="bridge-button" onClick={handleChangeOnePiece}>
-            Change one piece
+        {hasEngaged && hasSupportContent && (
+          <button className="bridge-button" onClick={handleTryAnotherShape}>
+            Try another shape
           </button>
         )}
       </div>

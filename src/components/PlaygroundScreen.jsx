@@ -83,6 +83,20 @@ function selectRandomPressure(
   return available[Math.floor(Math.random() * available.length)];
 }
 
+// Demo variation helper - local data for initial implementation
+function getDemoVariations(sentence) {
+  // Demo variations for Portuguese sentence
+  const demoMap = {
+    "Eu perdi o ônibus esta manhã.": [
+      "Eu perdi o trem esta manhã.",
+      "Eu quase perdi o ônibus esta manhã.",
+      "Eu perdi o ônibus ontem."
+    ]
+  };
+  
+  return demoMap[sentence] || [];
+}
+
 // Fixed diff highlighting - only highlights actual changes
 function createHighlightedSentence(original, stabilized) {
   // If sentences are the same, no highlighting
@@ -114,9 +128,8 @@ function PlaygroundScreen() {
   const [guidedMode, setGuidedMode] = useState(false);
   const [guidedSentence, setGuidedSentence] = useState(null);
   const [guidedMeaning, setGuidedMeaning] = useState(null);
-  const [guidedChunk, setGuidedChunk] = useState(null);
-  const [guidedOptionSelected, setGuidedOptionSelected] = useState(false);
-  const [guidedUpdatedSentence, setGuidedUpdatedSentence] = useState(null);
+  const [guidedVariations, setGuidedVariations] = useState([]);
+  const [selectedVariation, setSelectedVariation] = useState(null);
   
   // Core state
   const [currentSentence, setCurrentSentence] = useState(null); // null = show seed selector
@@ -192,13 +205,14 @@ function PlaygroundScreen() {
 
   // Check for guided mode from Practice Loop
   useEffect(() => {
-    if (location.state?.guidedMode && location.state?.seedSentence && location.state?.movableChunk) {
+    if (location.state?.guidedMode && location.state?.seedSentence) {
       setGuidedMode(true);
       setGuidedSentence(location.state.seedSentence);
-      setGuidedUpdatedSentence(location.state.seedSentence);
-      setGuidedOptionSelected(false);
       setGuidedMeaning(location.state.seedMeaning);
-      setGuidedChunk(location.state.movableChunk);
+      
+      // Load demo variations
+      const demoVars = getDemoVariations(location.state.seedSentence);
+      setGuidedVariations(demoVars);
       
       // Clear location state
       window.history.replaceState({}, document.title);
@@ -713,52 +727,86 @@ function PlaygroundScreen() {
           <p className="playground-subtitle">User-driven structural evolution</p>
         </div>
 
-        {/* Guided Entry from Practice Loop */}
-        {guidedMode && guidedSentence && guidedChunk && (
+        {/* Guided Entry from Practice Loop - Phrase Variation Space */}
+        {guidedMode && guidedSentence && (
           <div className="guided-entry">
-            <div className="guided-sentence">
-              {(guidedOptionSelected && guidedUpdatedSentence ? guidedUpdatedSentence : guidedSentence).split(/\s+/).map((word, i) => (
-                <span 
-                  key={i}
-                  className={i === guidedChunk.wordIndex ? 'guided-highlight' : ''}
+            {/* Original Phrase */}
+            <div className="guided-original-section">
+              <label className="guided-label">Original</label>
+              <div className="guided-phrase-row">
+                <button 
+                  className="guided-audio-button"
+                  onClick={() => speak(guidedSentence)}
+                  title="Play original"
                 >
-                  {word}{i < (guidedOptionSelected && guidedUpdatedSentence ? guidedUpdatedSentence : guidedSentence).split(/\s+/).length - 1 ? ' ' : ''}
-                </span>
-              ))}
-            </div>
-            
-            {guidedMeaning && (
-              <div className="guided-meaning">{guidedMeaning}</div>
-            )}
-            
-            <div className="guided-options">
-              {guidedChunk.options.map((option, index) => (
-                <button
-                  key={index}
-                  className="guided-option-button"
-                  onClick={() => handleGuidedOption(option)}
-                >
-                  {option}
+                  ▶
                 </button>
-              ))}
+                <div className="guided-phrase-text">{guidedSentence}</div>
+              </div>
+              {guidedMeaning && (
+                <div className="guided-meaning">{guidedMeaning}</div>
+              )}
             </div>
 
-            <div className="guided-continue-row">
+            {/* Nearby Variations */}
+            {guidedVariations.length > 0 && (
+              <div className="guided-variations-section">
+                <label className="guided-label">Nearby shapes</label>
+                {guidedVariations.map((variation, index) => (
+                  <div 
+                    key={index} 
+                    className={`guided-variation-row ${selectedVariation === variation ? 'selected' : ''}`}
+                    onClick={() => setSelectedVariation(variation)}
+                  >
+                    <button 
+                      className="guided-audio-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        speak(variation);
+                      }}
+                      title="Play variation"
+                    >
+                      ▶
+                    </button>
+                    <div className="guided-phrase-text">{variation}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="guided-actions">
               <button
-                className="guided-back-button"
+                className="guided-action-button secondary"
                 onClick={() => navigate('/loop')}
               >
                 Back to loop
               </button>
-
-              {guidedOptionSelected && guidedUpdatedSentence && (
-                <button
-                  className="guided-continue-button"
-                  onClick={handleGuidedContinue}
-                >
-                  Keep shaping
-                </button>
-              )}
+              <button
+                className="guided-action-button secondary"
+                onClick={() => {
+                  const phraseToUse = selectedVariation || guidedSentence;
+                  navigate('/room', { state: { openingSentence: phraseToUse } });
+                }}
+              >
+                Enter the Room
+              </button>
+              <button
+                className="guided-action-button primary"
+                onClick={() => {
+                  const phraseToUse = selectedVariation || guidedSentence;
+                  setCurrentSentence(phraseToUse);
+                  setSeedSentence(phraseToUse);
+                  setGuidedMode(false);
+                  
+                  const randomPressure = selectRandomPressure(null, phraseToUse, 0);
+                  setCurrentPressure(randomPressure);
+                  setLastPressure(randomPressure);
+                  setHasMutation(true);
+                }}
+              >
+                Keep shaping
+              </button>
             </div>
           </div>
         )}
