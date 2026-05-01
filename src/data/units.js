@@ -82,6 +82,8 @@ export const IMITATION_UNITS_PT = [
     id: 1,
     text: "Eu perdi o ônibus esta manhã.",
     meaning: "Someone is saying they missed the bus this morning.",
+    icon: "🚌",
+    scene: "missed bus, morning",
     words: [
       { text: "Eu", pronunciation: "EH-oo", meaning: "I" },
       { text: "perdi", pronunciation: "pehr-JEE", meaning: "missed" },
@@ -89,6 +91,11 @@ export const IMITATION_UNITS_PT = [
       { text: "ônibus", pronunciation: "OH-nee-boos", meaning: "bus" },
       { text: "esta", pronunciation: "ES-tah", meaning: "this" },
       { text: "manhã.", pronunciation: "mah-NYAH", meaning: "morning" }
+    ],
+    contextVariations: [
+      { text: "Eu perdi o trem esta manhã.", icon: "🚆", scene: "missed train, morning" },
+      { text: "Eu quase perdi o ônibus esta manhã.", icon: "🏃🚌", scene: "almost missed bus" },
+      { text: "Eu perdi o ônibus ontem.", icon: "🚌🌙", scene: "missed bus, yesterday" }
     ],
     movableChunk: {
       wordIndex: 3,  // "ônibus"

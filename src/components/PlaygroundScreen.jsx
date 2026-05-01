@@ -83,18 +83,52 @@ function selectRandomPressure(
   return available[Math.floor(Math.random() * available.length)];
 }
 
-// Demo variation helper - local data for initial implementation
-function getDemoVariations(sentence) {
-  // Demo variations for Portuguese sentence
-  const demoMap = {
-    "Eu perdi o ônibus esta manhã.": [
-      "Eu perdi o trem esta manhã.",
-      "Eu quase perdi o ônibus esta manhã.",
-      "Eu perdi o ônibus ontem."
-    ]
-  };
+// Context variation helper with visual/scene data
+function getContextVariations(phraseData) {
+  // phraseData can be string or object {text, icon, scene, contextVariations}
   
-  return demoMap[sentence] || [];
+  // Handle string input (fallback)
+  if (typeof phraseData === 'string') {
+    // Try to find in hardcoded map
+    const contextMap = {
+      "Eu perdi o ônibus esta manhã.": [
+        { text: "Eu perdi o trem esta manhã.", icon: "🚆", scene: "missed train, morning" },
+        { text: "Eu quase perdi o ônibus esta manhã.", icon: "🏃🚌", scene: "almost missed bus" },
+        { text: "Eu perdi o ônibus ontem.", icon: "🚌🌙", scene: "missed bus, yesterday" }
+      ],
+      "Eu perdi o trem esta manhã.": [
+        { text: "Eu perdi o metrô esta manhã.", icon: "🚇", scene: "missed metro, morning" },
+        { text: "Eu quase perdi o trem esta manhã.", icon: "🏃🚆", scene: "almost missed train" }
+      ],
+      "Eu quase perdi o ônibus esta manhã.": [
+        { text: "Eu quase perdi o trem esta manhã.", icon: "🏃🚆", scene: "almost missed train" },
+        { text: "Eu perdi o ônibus esta manhã.", icon: "🚌", scene: "missed bus, morning" }
+      ],
+      "Eu perdi o ônibus ontem.": [
+        { text: "Eu perdi o ônibus esta manhã.", icon: "🚌", scene: "missed bus, morning" },
+        { text: "Eu perdi o trem ontem.", icon: "🚆🌙", scene: "missed train, yesterday" }
+      ]
+    };
+    
+    return contextMap[phraseData] || [];
+  }
+  
+  // Handle object input (with contextVariations field)
+  return phraseData.contextVariations || [];
+}
+
+// Fallback icon generator
+function getFallbackIcon(text) {
+  if (text.includes('ônibus')) return '🚌';
+  if (text.includes('trem')) return '🚆';
+  if (text.includes('metrô')) return '🚇';
+  if (text.includes('telefone')) return '📱';
+  if (text.includes('casa')) return '🏠';
+  if (text.includes('chover') || text.includes('chuva')) return '🌧️';
+  if (text.includes('cachorro')) return '🐕';
+  if (text.includes('porta')) return '🚪';
+  if (text.includes('café')) return '☕';
+  return '💭';
 }
 
 // Fixed diff highlighting - only highlights actual changes
@@ -127,6 +161,8 @@ function PlaygroundScreen() {
   // Guided mode from Practice Loop
   const [guidedMode, setGuidedMode] = useState(false);
   const [guidedSentence, setGuidedSentence] = useState(null);
+  const [guidedIcon, setGuidedIcon] = useState(null);
+  const [guidedScene, setGuidedScene] = useState(null);
   const [guidedMeaning, setGuidedMeaning] = useState(null);
   const [guidedVariations, setGuidedVariations] = useState([]);
   const [selectedVariation, setSelectedVariation] = useState(null);
@@ -210,9 +246,17 @@ function PlaygroundScreen() {
       setGuidedSentence(location.state.seedSentence);
       setGuidedMeaning(location.state.seedMeaning);
       
-      // Load demo variations
-      const demoVars = getDemoVariations(location.state.seedSentence);
-      setGuidedVariations(demoVars);
+      // Extract or generate icon
+      const icon = location.state?.icon || getFallbackIcon(location.state.seedSentence);
+      setGuidedIcon(icon);
+      
+      // Extract scene descriptor (not English meaning)
+      const scene = location.state?.scene || null;
+      setGuidedScene(scene);
+      
+      // Load context variations
+      const contextVars = getContextVariations(location.state.seedSentence);
+      setGuidedVariations(contextVars);
       
       // Clear location state
       window.history.replaceState({}, document.title);
@@ -727,50 +771,70 @@ function PlaygroundScreen() {
           <p className="playground-subtitle">User-driven structural evolution</p>
         </div>
 
-        {/* Guided Entry from Practice Loop - Phrase Variation Space */}
+        {/* Guided Entry - Visual/Context Phrase Shaping Space */}
         {guidedMode && guidedSentence && (
           <div className="guided-entry">
-            {/* Original Phrase */}
-            <div className="guided-original-section">
-              <label className="guided-label">Original</label>
+            {/* Current Phrase with Large Visual Marker */}
+            <div className="guided-current-card">
+              {guidedIcon && (
+                <div className="guided-visual-marker">{guidedIcon}</div>
+              )}
+              
               <div className="guided-phrase-row">
                 <button 
                   className="guided-audio-button"
                   onClick={() => speak(guidedSentence)}
-                  title="Play original"
+                  title="Play phrase"
                 >
                   ▶
                 </button>
                 <div className="guided-phrase-text">{guidedSentence}</div>
               </div>
-              {guidedMeaning && (
-                <div className="guided-meaning">{guidedMeaning}</div>
+              
+              {guidedScene && (
+                <div className="guided-scene">{guidedScene}</div>
               )}
             </div>
 
-            {/* Nearby Variations */}
+            {/* Nearby Context Variations */}
             {guidedVariations.length > 0 && (
               <div className="guided-variations-section">
-                <label className="guided-label">Nearby shapes</label>
-                {guidedVariations.map((variation, index) => (
-                  <div 
-                    key={index} 
-                    className={`guided-variation-row ${selectedVariation === variation ? 'selected' : ''}`}
-                    onClick={() => setSelectedVariation(variation)}
-                  >
-                    <button 
-                      className="guided-audio-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        speak(variation);
-                      }}
-                      title="Play variation"
+                <label className="guided-label">nearby contexts</label>
+                {guidedVariations.map((variation, index) => {
+                  const varText = typeof variation === 'string' ? variation : variation.text;
+                  const varIcon = typeof variation === 'string' ? getFallbackIcon(variation) : (variation.icon || getFallbackIcon(variation.text));
+                  const varScene = typeof variation === 'string' ? null : variation.scene;
+                  const isSelected = selectedVariation && (
+                    (typeof selectedVariation === 'string' && selectedVariation === varText) ||
+                    (typeof selectedVariation === 'object' && selectedVariation.text === varText)
+                  );
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`guided-variation-row ${isSelected ? 'selected' : ''}`}
+                      onClick={() => setSelectedVariation(variation)}
                     >
-                      ▶
-                    </button>
-                    <div className="guided-phrase-text">{variation}</div>
-                  </div>
-                ))}
+                      <div className="guided-variation-icon">{varIcon}</div>
+                      <button 
+                        className="guided-audio-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          speak(varText);
+                        }}
+                        title="Play variation"
+                      >
+                        ▶
+                      </button>
+                      <div className="guided-variation-content">
+                        <div className="guided-phrase-text">{varText}</div>
+                        {varScene && (
+                          <div className="guided-scene-small">{varScene}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -785,28 +849,42 @@ function PlaygroundScreen() {
               <button
                 className="guided-action-button secondary"
                 onClick={() => {
-                  const phraseToUse = selectedVariation || guidedSentence;
+                  const phraseToUse = selectedVariation 
+                    ? (typeof selectedVariation === 'string' ? selectedVariation : selectedVariation.text)
+                    : guidedSentence;
                   navigate('/room', { state: { openingSentence: phraseToUse } });
                 }}
               >
                 Enter the Room
               </button>
-              <button
-                className="guided-action-button primary"
-                onClick={() => {
-                  const phraseToUse = selectedVariation || guidedSentence;
-                  setCurrentSentence(phraseToUse);
-                  setSeedSentence(phraseToUse);
-                  setGuidedMode(false);
-                  
-                  const randomPressure = selectRandomPressure(null, phraseToUse, 0);
-                  setCurrentPressure(randomPressure);
-                  setLastPressure(randomPressure);
-                  setHasMutation(true);
-                }}
-              >
-                Keep shaping
-              </button>
+              {guidedVariations.length > 0 && (
+                <button
+                  className="guided-action-button primary"
+                  onClick={() => {
+                    // Keep shaping: stay in guided mode with selected variation as new anchor
+                    if (selectedVariation) {
+                      const newPhrase = typeof selectedVariation === 'string' ? selectedVariation : selectedVariation.text;
+                      const newIcon = typeof selectedVariation === 'string' ? getFallbackIcon(selectedVariation) : (selectedVariation.icon || getFallbackIcon(selectedVariation.text));
+                      const newScene = typeof selectedVariation === 'string' ? null : selectedVariation.scene;
+                      
+                      // Update current phrase
+                      setGuidedSentence(newPhrase);
+                      setGuidedIcon(newIcon);
+                      setGuidedScene(newScene);
+                      
+                      // Load next-level variations
+                      const nextVars = getContextVariations(newPhrase);
+                      setGuidedVariations(nextVars);
+                      
+                      // Clear selection
+                      setSelectedVariation(null);
+                    }
+                  }}
+                  disabled={!selectedVariation}
+                >
+                  Keep shaping
+                </button>
+              )}
             </div>
           </div>
         )}

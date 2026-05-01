@@ -14,7 +14,7 @@
   color: #e8e8e8;
 }
 
-/* Guided Entry - Phrase Variation Space */
+/* Guided Entry - Visual/Context Phrase Shaping Space */
 .guided-entry {
   display: flex;
   flex-direction: column;
@@ -26,20 +26,32 @@
   margin: 0 auto;
 }
 
+/* Current Phrase Card with Large Visual Marker */
+.guided-current-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  background: rgba(42, 42, 42, 0.4);
+  border: 1px solid rgba(58, 58, 58, 0.4);
+  border-radius: 12px;
+}
+
+.guided-visual-marker {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
 .guided-label {
   font-size: 0.875rem;
   font-weight: 400;
   color: #888;
-  opacity: 0.7;
+  opacity: 0.6;
   margin-bottom: 0.75rem;
   display: block;
   text-transform: lowercase;
-}
-
-.guided-original-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }
 
 .guided-phrase-row {
@@ -93,6 +105,16 @@
   flex: 1;
 }
 
+.guided-scene {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: #888;
+  opacity: 0.5;
+  text-align: center;
+  line-height: 1.4;
+  margin-top: 0.5rem;
+}
+
 .guided-meaning {
   font-size: 1rem;
   font-weight: 300;
@@ -105,13 +127,13 @@
 .guided-variations-section {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .guided-variation-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 1rem 1.25rem;
   background: rgba(42, 42, 42, 0.3);
   border: 1px solid rgba(58, 58, 58, 0.3);
@@ -133,6 +155,32 @@
 .guided-variation-row.selected:hover {
   background: rgba(22, 163, 74, 0.15);
   border-color: rgba(22, 163, 74, 0.5);
+}
+
+.guided-variation-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.guided-variation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.guided-scene-small {
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: #888;
+  opacity: 0.5;
+  line-height: 1.3;
+}
+
+.guided-action-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .guided-actions {
