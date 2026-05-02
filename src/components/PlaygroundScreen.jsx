@@ -117,6 +117,19 @@ function getContextVariations(phraseData) {
   return phraseData.contextVariations || [];
 }
 
+// Helper functions for variation data
+function getVariationText(variation) {
+  return typeof variation === 'string' ? variation : variation.text;
+}
+
+function getVariationIcon(variation) {
+  return typeof variation === 'string' ? getFallbackIcon(variation) : (variation.icon || getFallbackIcon(variation.text));
+}
+
+function getVariationScene(variation) {
+  return typeof variation === 'string' ? null : variation.scene;
+}
+
 // Fallback icon generator
 function getFallbackIcon(text) {
   if (text.includes('ônibus')) return '🚌';
@@ -270,32 +283,6 @@ function PlaygroundScreen() {
       setCurrentSuggestion(CATALYTIC_SEEDS[randomIndex]);
     }
   }, [currentSentence, guidedMode]);
-
-  // Handle guided option selection
-  const handleGuidedOption = (option) => {
-    const baseSentence = guidedOptionSelected && guidedUpdatedSentence ? guidedUpdatedSentence : guidedSentence;
-    const words = baseSentence.split(/\s+/);
-    words[guidedChunk.wordIndex] = option;
-    const newSentence = words.join(' ');
-    
-    setGuidedUpdatedSentence(newSentence);
-    setGuidedOptionSelected(true);
-  };
-
-  const handleGuidedContinue = () => {
-    if (!guidedUpdatedSentence) return;
-
-    setCurrentSentence(guidedUpdatedSentence);
-    setSeedSentence(guidedUpdatedSentence);
-    setGuidedMode(false);
-    setGuidedOptionSelected(false);
-    setGuidedUpdatedSentence(null);
-    
-    const randomPressure = selectRandomPressure(null, guidedUpdatedSentence, 0);
-    setCurrentPressure(randomPressure);
-    setLastPressure(randomPressure);
-    setHasMutation(true);
-  };
 
   // Handle suggestion cycling (randomize)
   const handleCycleSuggestion = () => {
@@ -738,8 +725,6 @@ function PlaygroundScreen() {
     setConsecutiveMeaningCount(0);
     setMeaningBubble(null); // Clear bubble
     setPreviousSentence(null); // Clear transformation indicator
-    setGuidedOptionSelected(false);
-    setGuidedUpdatedSentence(null);
     setGuidedMode(false);
   };
 
@@ -797,13 +782,13 @@ function PlaygroundScreen() {
             </div>
 
             {/* Nearby Context Variations */}
-            {guidedVariations.length > 0 && (
+            {guidedVariations.length > 0 ? (
               <div className="guided-variations-section">
                 <label className="guided-label">nearby contexts</label>
                 {guidedVariations.map((variation, index) => {
-                  const varText = typeof variation === 'string' ? variation : variation.text;
-                  const varIcon = typeof variation === 'string' ? getFallbackIcon(variation) : (variation.icon || getFallbackIcon(variation.text));
-                  const varScene = typeof variation === 'string' ? null : variation.scene;
+                  const varText = getVariationText(variation);
+                  const varIcon = getVariationIcon(variation);
+                  const varScene = getVariationScene(variation);
                   const isSelected = selectedVariation && (
                     (typeof selectedVariation === 'string' && selectedVariation === varText) ||
                     (typeof selectedVariation === 'object' && selectedVariation.text === varText)
@@ -836,6 +821,10 @@ function PlaygroundScreen() {
                   );
                 })}
               </div>
+            ) : (
+              <div className="guided-variations-section">
+                <div className="guided-no-variations">No nearby contexts yet</div>
+              </div>
             )}
 
             {/* Actions */}
@@ -850,41 +839,39 @@ function PlaygroundScreen() {
                 className="guided-action-button secondary"
                 onClick={() => {
                   const phraseToUse = selectedVariation 
-                    ? (typeof selectedVariation === 'string' ? selectedVariation : selectedVariation.text)
+                    ? getVariationText(selectedVariation)
                     : guidedSentence;
                   navigate('/room', { state: { openingSentence: phraseToUse } });
                 }}
               >
                 Enter the Room
               </button>
-              {guidedVariations.length > 0 && (
-                <button
-                  className="guided-action-button primary"
-                  onClick={() => {
-                    // Keep shaping: stay in guided mode with selected variation as new anchor
-                    if (selectedVariation) {
-                      const newPhrase = typeof selectedVariation === 'string' ? selectedVariation : selectedVariation.text;
-                      const newIcon = typeof selectedVariation === 'string' ? getFallbackIcon(selectedVariation) : (selectedVariation.icon || getFallbackIcon(selectedVariation.text));
-                      const newScene = typeof selectedVariation === 'string' ? null : selectedVariation.scene;
-                      
-                      // Update current phrase
-                      setGuidedSentence(newPhrase);
-                      setGuidedIcon(newIcon);
-                      setGuidedScene(newScene);
-                      
-                      // Load next-level variations
-                      const nextVars = getContextVariations(newPhrase);
-                      setGuidedVariations(nextVars);
-                      
-                      // Clear selection
-                      setSelectedVariation(null);
-                    }
-                  }}
-                  disabled={!selectedVariation}
-                >
-                  Keep shaping
-                </button>
-              )}
+              <button
+                className="guided-action-button primary"
+                onClick={() => {
+                  // Keep shaping: stay in guided mode with selected variation as new anchor
+                  if (selectedVariation) {
+                    const newPhrase = getVariationText(selectedVariation);
+                    const newIcon = getVariationIcon(selectedVariation);
+                    const newScene = getVariationScene(selectedVariation);
+                    
+                    // Update current phrase
+                    setGuidedSentence(newPhrase);
+                    setGuidedIcon(newIcon);
+                    setGuidedScene(newScene);
+                    
+                    // Load next-level variations
+                    const nextVars = getContextVariations(newPhrase);
+                    setGuidedVariations(nextVars);
+                    
+                    // Clear selection
+                    setSelectedVariation(null);
+                  }
+                }}
+                disabled={!selectedVariation}
+              >
+                Keep shaping
+              </button>
             </div>
           </div>
         )}
