@@ -46,7 +46,15 @@ function LandingPage() {
 
   const handlePlaygroundEntry = () => {
     sessionStorage.setItem('rylingo_access', 'granted')
-    navigate('/playground')
+    // Navigate to the new guided pattern flow playground with default seed
+    navigate('/playground', {
+      state: {
+        guidedMode: true,
+        seedSentence: 'Eu perdi o ônibus esta manhã.',
+        icon: '🚌',
+        scene: 'missed bus, morning'
+      }
+    })
   }
 
   return (

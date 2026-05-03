@@ -3,85 +3,23 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHistory, FaUser } from 'react-icons/fa';
 import { initStorage, getImmersionProfile } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
-import { generateVariations } from '../services/variationEngine';
-import { stabilizeGrammar } from '../services/stabilizeGrammar';
 import { speak } from '../services/tts';
-import { getWordMeaning } from '../services/wordMeaning';
-import { CATALYTIC_SEEDS } from '../data/catalyticSeeds';
-import MeaningBubble from './MeaningBubble';
-import HomeArrow from './HomeArrow';
-import WordPickerPopup from './WordPickerPopup';
-import { getWordOptions } from '../services/wordTransformations';
-import { checkEditIntegrity } from '../services/playgroundIntegrity';
 import '../styles/PlaygroundScreen.css';
 
-// PHASE 13: Structural pressures (60% selection weight)
-const STRUCTURAL_PRESSURE_POOL = [
-  { label: "Give a reason", type: "structural", move: "cause", keywords: ["because", "so", "since"] },
-  { label: "Say what might happen", type: "structural", move: "conditional", keywords: ["might", "could", "may"] },
-  { label: "Say the opposite", type: "structural", move: "contrast", keywords: ["but", "although", "however", "though"] },
-  { label: "Say it in the past", type: "structural", move: "past", keywords: ["was", "were", "did", "had", "went", "ed"] },
-  { label: "Say it in the future", type: "structural", move: "future", keywords: ["will", "going to", "gonna"] },
-  { label: "Say what would happen if", type: "structural", move: "conditional", keywords: ["if", "would"] },
-  { label: "Add one detail", type: "structural", move: "none", keywords: [] }
-];
-
-// PHASE 13: Meaning pressures (40% selection weight)
-const MEANING_PRESSURE_POOL = [
-  { label: "Say how you felt", type: "meaning", move: "expansion" },
-];
-
-// PHASE 12 REFINED: Check if sentence already satisfies a pressure
-function isSatisfied(sentence, pressure) {
-  if (!pressure.keywords || pressure.keywords.length === 0) return false;
-  
-  const lowerSentence = sentence.toLowerCase();
-  return pressure.keywords.some(keyword => lowerSentence.includes(keyword));
-}
-
-// PHASE 13 REFINED: Select random pressure with limits
-function selectRandomPressure(
-  lastPressure,
-  currentSentence = null,
-  consecutiveMeaningCount = 0,
-  recentMoves = []
-) {
-  // Prefer structural after a meaning pressure, but do not force it
-  let useStructural = consecutiveMeaningCount >= 1 ? true : Math.random() < 0.6;
-  let pool = useStructural ? STRUCTURAL_PRESSURE_POOL : MEANING_PRESSURE_POOL;
-
-  // Filter: avoid immediate repeat
-  let available = pool.filter(p => p.label !== lastPressure?.label);
-
-  // Avoid recently repeated moves
-  available = available.filter(p => !recentMoves.includes(p.move));
-
-  // For structural only: also avoid satisfied pressures
-  if (useStructural && currentSentence) {
-    available = available.filter(p => !isSatisfied(currentSentence, p));
-  }
-
-  // If preferred structural pool becomes empty or weak, allow meaning instead
-  if (available.length === 0 && useStructural) {
-    pool = MEANING_PRESSURE_POOL;
-    available = pool.filter(
-      p =>
-        p.label !== lastPressure?.label &&
-        !recentMoves.includes(p.move)
-    );
-  }
-
-  // Final fallback
-  if (available.length === 0) {
-    available = pool.filter(p => p.label !== lastPressure?.label);
-  }
-
-  if (available.length === 0) {
-    available = pool;
-  }
-
-  return available[Math.floor(Math.random() * available.length)];
-}
+/**
+ * PlaygroundScreen
+ * 
+ * NEW USER-FACING PLAYGROUND
+ * 
+ * This is the guided pattern flow mode only.
+ * It displays a flowing sequence of phrase variations with Previous/Next navigation.
+ * 
+ * Entry point: Landing page "Playground" button (with default seed)
+ * OR: Practice Loop "Try another shape" button (with Practice Loop seed)
+ * 
+ * This component no longer shows the legacy reactor mode.
+ * The old pressure-based editing playground is now at /playground-lab (dev only).
+ */
 
 // Context variation helper with visual/scene data
 function getContextVariations(phraseData) {
@@ -231,68 +169,17 @@ function getChangedWordIndexes(previousText, currentText) {
 }
 
 function PlaygroundScreen() {
-  console.log('PlaygroundScreen rendering');
+  console.log('PlaygroundScreen rendering (Guided Mode Only)');
   const navigate = useNavigate();
   const location = useLocation();
   
   // Profile (read-only)
-  const [profile, setProfile] = useState(null);
-  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [profile, setProfileLoaded] = useState(null);
   
-  // Guided mode from Practice Loop - Flowing pattern sequence
-  const [guidedMode, setGuidedMode] = useState(false);
-  const [guidedSequence, setGuidedSequence] = useState([]); // Array of phrase objects
-  const [guidedIndex, setGuidedIndex] = useState(0);        // Current position in sequence
-  
-  // Core state
-  const [currentSentence, setCurrentSentence] = useState(null); // null = show seed selector
-  const [currentPressure, setCurrentPressure] = useState(null);
-  const [variations, setVariations] = useState([]);
-  const [userInput, setUserInput] = useState('');
-  
-  // Entry phase: Single suggestion cycling
-  const [currentSuggestion, setCurrentSuggestion] = useState(null);
-  
-  // Processing state
-  const [isStabilizing, setIsStabilizing] = useState(false);
-  const [isGeneratingVariations, setIsGeneratingVariations] = useState(false);
-  const [variationsFading, setVariationsFading] = useState(false);
-  const [sentenceChanging, setSentenceChanging] = useState(false);
-  const [highlightedWords, setHighlightedWords] = useState(null);
-  
-  // Session state (in-memory, resets on mount/clear)
-  const [lastPressure, setLastPressure] = useState(null);
-  const [hasMutation, setHasMutation] = useState(false);
-  
-  // Phase 13: Track original seed sentence for context
-  const [seedSentence, setSeedSentence] = useState(null);
-  
-  // Phase 13 REFINED: Track mutation limits
-  const [mutationCount, setMutationCount] = useState(0);
-  const [consecutiveMeaningCount, setConsecutiveMeaningCount] = useState(0);
-  
-  // Phase 11: Comprehension Layer
-  const [meaningBubble, setMeaningBubble] = useState(null);
-  
-  // Chapter 4 Phase 1: Word edit mode
-  const [showWordPicker, setShowWordPicker] = useState(false);
-  const [selectedWordIndex, setSelectedWordIndex] = useState(null);
-  const [selectedWord, setSelectedWord] = useState('');
-  const [wordOptions, setWordOptions] = useState([]);
-  const [modifiedWordIndex, setModifiedWordIndex] = useState(null);
-  const [currentWordIndex, setCurrentWordIndex] = useState(null); // Track index for meaning bubble
-  
-  // Chapter 4 Phase 2: Chunk selection (contiguous word selection)
-  const [chunkSelection, setChunkSelection] = useState(null); // { startIndex, endIndex }
-  const [isChunkSelectionMode, setIsChunkSelectionMode] = useState(false);
-  const [chunkWords, setChunkWords] = useState([]);
-  
-  // UI state
-  const [errorMessage, setErrorMessage] = useState('');
-  const [rejectionMessage, setRejectionMessage] = useState('');
-  
-  // Transformation indicator
-  const [previousSentence, setPreviousSentence] = useState(null);
+  // Guided mode - Flowing pattern sequence
+  const [guidedSequence, setGuidedSequence] = useState([]);
+  const [guidedIndex, setGuidedIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load immersion profile (read-only) on mount
   useEffect(() => {
@@ -304,23 +191,21 @@ function PlaygroundScreen() {
           loadedProfile = getDefaultProfile();
         }
         
-        setProfile(loadedProfile);
-        setProfileLoaded(true);
+        setProfileLoaded(loadedProfile);
       } catch (error) {
         console.error('Failed to load profile:', error);
-        setProfileLoaded(true); // Allow rendering even on error
-        setErrorMessage('Failed to load profile. Please refresh.');
+      } finally {
+        setIsLoading(false);
       }
     };
     
     loadProfile();
   }, []);
 
-  // Check for guided mode from Practice Loop - Build flowing sequence
+  // Initialize guided mode on mount
   useEffect(() => {
+    // Guided mode is required - either from Practice Loop or Landing Page
     if (location.state?.guidedMode && location.state?.seedSentence) {
-      setGuidedMode(true);
-      
       // Build starting phrase object
       const startingPhrase = {
         text: location.state.seedSentence,
@@ -335,23 +220,18 @@ function PlaygroundScreen() {
       const sequence = [startingPhrase, ...variations];
       
       setGuidedSequence(sequence);
-      setGuidedIndex(0); // Start at beginning
+      setGuidedIndex(0);
       
       console.log('[Guided Mode] Built sequence:', sequence.length, 'phrases');
       
       // Clear location state
       window.history.replaceState({}, document.title);
+    } else if (!guidedSequence.length) {
+      // No guided mode data provided - redirect to home
+      console.warn('[Playground] No guided mode data. Redirecting to home.');
+      navigate('/');
     }
-  }, [location]);
-
-
-  // Initialize with random suggestion on mount
-  useEffect(() => {
-    if (!currentSentence && !guidedMode && CATALYTIC_SEEDS.length > 0) {
-      const randomIndex = Math.floor(Math.random() * CATALYTIC_SEEDS.length);
-      setCurrentSuggestion(CATALYTIC_SEEDS[randomIndex]);
-    }
-  }, [currentSentence, guidedMode]);
+  }, [location, navigate]);
 
   // Handle suggestion cycling (randomize)
   const handleCycleSuggestion = () => {
@@ -808,27 +688,24 @@ function PlaygroundScreen() {
 
   return (
     <div className="playground-screen">
-      {/* Phase 15: Home Arrow */}
-      <HomeArrow />
-      
       <div className="playground-container">
-        <div className="playground-header">
+        {/* Header */}
+        <header className="playground-header">
+          <h1 className="playground-title">Playground</h1>
+          <p className="playground-subtitle">Guided pattern flow</p>
           <div className="icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions')}>
+            <button className="history-icon" onClick={() => navigate('/sessions')} aria-label="Sessions">
               <FaHistory />
             </button>
-            <button className="account-icon" onClick={() => navigate('/account')}>
+            <button className="account-icon" onClick={() => navigate('/account')} aria-label="Account">
               <FaUser />
             </button>
           </div>
-          <h1 className="playground-title">Sentence Playground</h1>
-          <p className="playground-subtitle">User-driven structural evolution</p>
-        </div>
+        </header>
 
-        {/* Guided Flow - Single Active Phrase Movement */}
-        {guidedMode && guidedSequence.length > 0 && (
+        {/* Guided Flow */}
+        {guidedSequence.length > 0 && (
           <div className="guided-flow">
-            {/* Current Active Phrase */}
             <div className="guided-phrase-card">
               {guidedSequence[guidedIndex].icon && (
                 <div className="guided-visual-marker">
@@ -921,176 +798,11 @@ function PlaygroundScreen() {
           </div>
         )}
 
-        {/* Entry Phase (shown when currentSentence === null) */}
-        {!currentSentence && !guidedMode && profileLoaded && currentSuggestion && (
-          <div className="entry-phase">
-            {/* Single Suggestion Card */}
-            <div 
-              className="suggestion-card"
-              onClick={() => handleSeedClick(currentSuggestion)}
-            >
-              <div className="suggestion-text">
-                {currentSuggestion.sentence}
-              </div>
-            </div>
-            
-            {/* Cycle Link */}
-            <button 
-              className="cycle-link"
-              onClick={handleCycleSuggestion}
-            >
-              another example
-            </button>
-            
-            {/* Separator */}
-            <div className="entry-separator">— or —</div>
-            
-            {/* Input Card */}
-            <div className="input-card">
-              <textarea
-                className="entry-input"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                placeholder="Type your own sentence..."
-                rows={3}
-              />
-              <button
-                className="submit-button"
-                onClick={handleUserSubmit}
-                disabled={!userInput.trim()}
-              >
-                Submit →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Reactor (shown when currentSentence !== null) */}
-        {currentSentence && (
-          <>
-            {/* Sentence Core */}
-            <div className={`sentence-core ${sentenceChanging ? 'changing' : ''}`}>
-              <button 
-                className="sentence-audio-button"
-                onClick={() => speak(currentSentence)}
-                aria-label="Play sentence"
-                title="Play sentence audio"
-              >
-                🔊
-              </button>
-              
-              {/* Transformation Indicator */}
-              {previousSentence && previousSentence !== currentSentence && (
-                <div className="transformation-indicator">
-                  <span className="previous-sentence">{previousSentence}</span>
-                  <span className="transformation-arrow">→</span>
-                  <span className="current-sentence-preview">{currentSentence}</span>
-                </div>
-              )}
-              
-              <div className="sentence-text">
-                {currentSentence.split(/\s+/).map((word, i) => {
-                  // Chapter 4 Phase 2: Check if word is in chunk selection
-                  const isInChunk = chunkSelection && 
-                    i >= chunkSelection.startIndex && 
-                    i <= chunkSelection.endIndex;
-                  
-                  return (
-                    <span 
-                      key={i}
-                      className={`tappable-word ${modifiedWordIndex === i ? 'word-modified' : ''} ${isInChunk ? 'word-in-chunk' : ''}`}
-                      onClick={(e) => handleWordClick(word, i, e)}
-                    >
-                      {word}{i < currentSentence.split(/\s+/).length - 1 ? ' ' : ''}
-                    </span>
-                  );
-                })}
-              </div>
-              {currentPressure && (
-                <div className="pressure-indicator">
-                  {currentPressure.label}
-                </div>
-              )}
-              
-              {/* Rejection Message */}
-              {rejectionMessage && (
-                <div className="rejection-message">
-                  {rejectionMessage}
-                </div>
-              )}
-            </div>
-
-            {/* Chapter 4 Phase 1: Hide full-sentence rewrite field - kept for backwards compatibility */}
-
-            {/* Other Directions */}
-            {variations.length > 0 && (
-              <div className={`other-directions ${variationsFading ? 'fading' : ''}`}>
-                <label className="section-label">Other directions</label>
-                <div className="variations-list">
-                  {variations.map((variation, index) => (
-                    <div key={index} className="variation-item">
-                      {variation}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Call Room Bridge (shown after first mutation) */}
-            {hasMutation && (
-              <div className="call-room-bridge">
-                <button className="bridge-button" onClick={handleTakeToCallRoom}>
-                  Take this sentence into the Call Room →
-                </button>
-              </div>
-            )}
-
-            {/* Clear Button */}
-            <div className="actions-section">
-              <button className="clear-button" onClick={handleClear}>
-                Clear
-              </button>
-            </div>
-          </>
-        )}
-
         {/* Footer Link */}
         <div className="playground-footer">
-          <Link to="/room" className="back-link">Back to Free Conversation</Link>
+          <Link to="/" className="back-link">Back to Home</Link>
         </div>
       </div>
-
-      {/* Phase 11: Meaning Bubble with "Change" button */}
-      {meaningBubble && (
-        <MeaningBubble 
-          word={meaningBubble.word}
-          meaning={meaningBubble.meaning}
-          position={meaningBubble.position}
-          wordIndex={meaningBubble.wordIndex}
-          onDismiss={() => setMeaningBubble(null)}
-          onChangeClick={handleChangeFromMeaning}
-        />
-      )}
-
-      {/* Chapter 4 Phase 1: Word Picker Popup */}
-      {showWordPicker && (
-        <WordPickerPopup
-          selectedWord={selectedWord}
-          quickOptions={wordOptions}
-          onSelect={handleWordReplace}
-          onClose={() => {
-            setShowWordPicker(false);
-            // Chapter 4 Phase 2: Clear chunk selection when closing
-            setChunkSelection(null);
-            setIsChunkSelectionMode(false);
-            setChunkWords([]);
-          }}
-          chunkSelection={chunkSelection}
-          onChunkExpand={handleChunkExpand}
-          totalWords={currentSentence ? currentSentence.split(/\s+/).length : 0}
-          chunkWords={chunkWords}
-        />
-      )}
     </div>
   );
 }

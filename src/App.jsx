@@ -4,6 +4,8 @@ import { getUserPreferences, initStorage } from './services/storage'
 import LandingPage from './components/LandingPage'
 import CallScreen from './components/CallScreen'
 import PlaygroundScreen from './components/PlaygroundScreen'
+import PlaygroundLabScreen from './components/PlaygroundLabScreen'
+import DevOnlyRoute from './components/DevOnlyRoute'
 import ImitationLoop from './components/ImitationLoop'
 import WhatRylingoIsPage from './components/WhatRylingoIsPage'
 import SessionsPage from './components/SessionsPage'
@@ -61,6 +63,16 @@ function App() {
                 <PlaygroundScreen />
               </ProtectedRoute>
             } 
+          />
+          <Route 
+            path="/playground-lab"
+            element={
+              <ProtectedRoute>
+                <DevOnlyRoute>
+                  <PlaygroundLabScreen />
+                </DevOnlyRoute>
+              </ProtectedRoute>
+            }
           />
           <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/account" element={<AccountPage />} />
