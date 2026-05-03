@@ -14,11 +14,11 @@
   color: #e8e8e8;
 }
 
-/* Guided Entry - Visual/Context Phrase Shaping Space */
-.guided-entry {
+/* Guided Flow - Single Active Phrase Movement */
+.guided-flow {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 2rem;
   padding: 2rem 0;
   animation: fadeIn 0.4s ease-in;
   width: 100%;
@@ -26,13 +26,13 @@
   margin: 0 auto;
 }
 
-/* Current Phrase Card with Large Visual Marker */
-.guided-current-card {
+/* Current Active Phrase Card */
+.guided-phrase-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 2rem 1.5rem;
+  gap: 1.25rem;
+  padding: 2.5rem 2rem;
   background: rgba(42, 42, 42, 0.4);
   border: 1px solid rgba(58, 58, 58, 0.4);
   border-radius: 12px;
@@ -42,16 +42,6 @@
   font-size: 4rem;
   line-height: 1;
   margin-bottom: 0.5rem;
-}
-
-.guided-label {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: #888;
-  opacity: 0.6;
-  margin-bottom: 0.75rem;
-  display: block;
-  text-transform: lowercase;
 }
 
 .guided-phrase-row {
@@ -183,12 +173,21 @@
   cursor: not-allowed;
 }
 
-.guided-actions {
+.guided-progress {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #888;
+  opacity: 0.6;
+  font-weight: 300;
+  margin-top: 0.5rem;
+}
+
+.guided-flow-actions {
   display: flex;
   gap: 0.75rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .guided-action-button {

@@ -237,6 +237,20 @@ function ImitationLoop() {
     setCurrentIndex((prev) => (prev + 1) % activeUnits.length);
   };
 
+  // Handle back button
+  const handleBack = () => {
+    // Clear state
+    setUserTranscript('');
+    setSystemResponse('');
+    resetTranscript();
+    setShowSentenceMeaning(false);
+    setPronunciationBubble(null);
+    setShowSentenceText(false); // Hide text again for audio-first
+    
+    // Move to previous unit (wrap to end)
+    setCurrentIndex((prev) => (prev - 1 + activeUnits.length) % activeUnits.length);
+  };
+
   // Toggle sentence meaning
   const toggleSentenceMeaning = () => {
     if (!hasSupportContent) return;
@@ -416,11 +430,16 @@ function ImitationLoop() {
           </div>
         )}
 
-        {/* Next Button (shows after attempt, regardless of alignment) */}
+        {/* Next / Back Buttons (show after attempt, regardless of alignment) */}
         {userTranscript && (
-          <button className="next-button" onClick={handleNext}>
-            next →
-          </button>
+          <div className="navigation-buttons">
+            <button className="back-button" onClick={handleBack}>
+              ← back
+            </button>
+            <button className="next-button" onClick={handleNext}>
+              next →
+            </button>
+          </div>
         )}
 
         {/* Bridge to Playground (shows after engagement) */}

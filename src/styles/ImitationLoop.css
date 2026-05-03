@@ -382,7 +382,15 @@
   color: #aaa;
 }
 
-/* Next Button - Small, subtle */
+/* Navigation Buttons - small subtle row */
+.navigation-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.back-button,
 .next-button {
   background: none;
   border: none;
@@ -393,9 +401,9 @@
   opacity: 0.5;
   transition: opacity 180ms ease;
   padding: 0.5rem 1rem;
-  margin-top: 1rem;
 }
 
+.back-button:hover,
 .next-button:hover {
   opacity: 1;
 }
