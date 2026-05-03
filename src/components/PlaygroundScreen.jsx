@@ -177,6 +177,59 @@ function createHighlightedSentence(original, stabilized) {
   });
 }
 
+// Helper to normalize text for word comparison
+function normalizeWord(word) {
+  return word
+    .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+    .toLowerCase();
+}
+
+// Helper to get changed word indexes between two texts using sequence diff
+function getChangedWordIndexes(previousText, currentText) {
+  if (!previousText || !currentText) {
+    return [];
+  }
+
+  const prevWords = previousText.trim().split(/\s+/).filter(Boolean);
+  const currWords = currentText.trim().split(/\s+/).filter(Boolean);
+  const prevNorm = prevWords.map(normalizeWord);
+  const currNorm = currWords.map(normalizeWord);
+
+  const n = prevNorm.length;
+  const m = currNorm.length;
+  const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < m; j++) {
+      if (prevNorm[i] && currNorm[j] && prevNorm[i] === currNorm[j]) {
+        dp[i + 1][j + 1] = dp[i][j] + 1;
+      } else {
+        dp[i + 1][j + 1] = Math.max(dp[i][j + 1], dp[i + 1][j]);
+      }
+    }
+  }
+
+  const matchedCurrent = new Set();
+  let i = n;
+  let j = m;
+
+  while (i > 0 && j > 0) {
+    if (prevNorm[i - 1] === currNorm[j - 1]) {
+      matchedCurrent.add(j - 1);
+      i -= 1;
+      j -= 1;
+    } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+      i -= 1;
+    } else {
+      j -= 1;
+    }
+  }
+
+  return currWords
+    .map((_, index) => (matchedCurrent.has(index) ? null : index))
+    .filter(index => index !== null);
+}
+
 function PlaygroundScreen() {
   console.log('PlaygroundScreen rendering');
   const navigate = useNavigate();
@@ -786,13 +839,23 @@ function PlaygroundScreen() {
               <div className="guided-phrase-row">
                 <button 
                   className="guided-audio-button"
-                  onClick={() => speak(guidedSequence[guidedIndex].text)}
+                  onClick={() => speak(guidedSequence[guidedIndex].text, 'pt-BR')}
                   title="Play phrase"
                 >
                   ▶
                 </button>
                 <div className="guided-phrase-text">
-                  {guidedSequence[guidedIndex].text}
+                  {(() => {
+                    const currentText = guidedSequence[guidedIndex].text;
+                    const previousText = guidedIndex > 0 ? guidedSequence[guidedIndex - 1].text : null;
+                    const changedIndexes = previousText ? getChangedWordIndexes(previousText, currentText) : [];
+                    const words = currentText.split(/\s+/);
+                    return words.map((word, i) => (
+                      <span key={i} className={changedIndexes.includes(i) ? 'guided-changed-word' : ''}>
+                        {word}{i < words.length - 1 ? ' ' : ''}
+                      </span>
+                    ));
+                  })()}
                 </div>
               </div>
               

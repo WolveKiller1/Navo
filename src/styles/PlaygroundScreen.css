@@ -95,6 +95,12 @@
   flex: 1;
 }
 
+.guided-changed-word {
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-decoration-thickness: 1px;
+}
+
 .guided-scene {
   font-size: 0.9rem;
   font-weight: 300;
