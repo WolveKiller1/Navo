@@ -104,8 +104,11 @@ export const IMITATION_UNITS_PT = [
   },
   {
     id: 2,
+    patternId: "deixou-telefone",
     text: "Ela deixou o telefone em casa.",
     meaning: "She left her phone at home.",
+    icon: "📱",
+    scene: "left phone at home",
     words: [
       { text: "Ela", pronunciation: "EH-lah", meaning: "she" },
       { text: "deixou", pronunciation: "day-SHOH", meaning: "left" },
@@ -113,18 +116,31 @@ export const IMITATION_UNITS_PT = [
       { text: "telefone", pronunciation: "teh-leh-FOH-nee", meaning: "phone" },
       { text: "em", pronunciation: "ayn", meaning: "at/in" },
       { text: "casa.", pronunciation: "KAH-zah", meaning: "home" }
+    ],
+    contextVariations: [
+      { text: "Ela deixou a carteira em casa.", icon: "👛", scene: "left wallet at home" },
+      { text: "Ela deixou o telefone no trabalho.", icon: "📱🏢", scene: "left phone at work" },
+      { text: "Ele deixou as chaves em casa.", icon: "🔑", scene: "he left keys at home" }
     ]
   },
   {
     id: 3,
+    patternId: "chover",
     text: "Começou a chover do nada.",
     meaning: "It started raining out of nowhere.",
+    icon: "🌧️",
+    scene: "started raining suddenly",
     words: [
       { text: "Começou", pronunciation: "koh-meh-SOH", meaning: "started" },
       { text: "a", pronunciation: "ah", meaning: "to" },
       { text: "chover", pronunciation: "shoh-VEHR", meaning: "rain" },
       { text: "do", pronunciation: "doo", meaning: "of the" },
       { text: "nada.", pronunciation: "NAH-dah", meaning: "nothing" }
+    ],
+    contextVariations: [
+      { text: "Começou a nevar do nada.", icon: "🌨️", scene: "started snowing suddenly" },
+      { text: "Parou de chover de repente.", icon: "🌤️", scene: "stopped raining suddenly" },
+      { text: "Começou a chover forte.", icon: "⛈️", scene: "started raining hard" }
     ]
   },
   {

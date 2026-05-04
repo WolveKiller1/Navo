@@ -14,7 +14,23 @@ import '../styles/ImitationLoop.css';
 function ImitationLoop() {
   const navigate = useNavigate();
   
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Random selection helper
+  const selectRandomUnit = (units, recentIds, maxRecent = 4) => {
+    // Filter out recently seen units
+    const available = units.filter(u => !recentIds.includes(u.id));
+    
+    // If all have been seen recently, reset
+    if (available.length === 0) {
+      return units[Math.floor(Math.random() * units.length)];
+    }
+    
+    // Pick random from available
+    const randomIndex = Math.floor(Math.random() * available.length);
+    return available[randomIndex];
+  };
+  
+  const [currentUnitId, setCurrentUnitId] = useState(null);
+  const [recentUnitIds, setRecentUnitIds] = useState([]);
   const [userTranscript, setUserTranscript] = useState('');
   const [systemResponse, setSystemResponse] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -60,8 +76,8 @@ function ImitationLoop() {
     };
   }, []);
 
-  const currentUnit = activeUnits[currentIndex];
-  const hasSupportContent = currentUnit.words && currentUnit.meaning;
+  const currentUnit = activeUnits.find(u => u.id === currentUnitId) || activeUnits[0];
+  const hasSupportContent = currentUnit && currentUnit.words && currentUnit.meaning;
 
   // Load preferences and set active units
   useEffect(() => {
@@ -74,6 +90,16 @@ function ImitationLoop() {
     };
     loadLanguagePreference();
   }, []);
+
+  // Initialize with random unit on mount
+  useEffect(() => {
+    if (activeUnits.length > 0 && currentUnitId === null) {
+      const firstUnit = selectRandomUnit(activeUnits, []);
+      setCurrentUnitId(firstUnit.id);
+      setRecentUnitIds([firstUnit.id]);
+      console.log('[Practice Loop] Random start:', firstUnit.id, firstUnit.text);
+    }
+  }, [activeUnits, currentUnitId]);
 
   // Check browser compatibility on mount
   useEffect(() => {
@@ -223,7 +249,7 @@ function ImitationLoop() {
     }, 300);
   };
 
-  // Handle next button
+  // Handle next button - randomized selection
   const handleNext = () => {
     // Clear state
     setUserTranscript('');
@@ -231,13 +257,23 @@ function ImitationLoop() {
     resetTranscript();
     setShowSentenceMeaning(false);
     setPronunciationBubble(null);
-    setShowSentenceText(false); // Hide text again for audio-first
+    setShowSentenceText(false);
+    setHasEngaged(false);
     
-    // Move to next unit (wrap at end)
-    setCurrentIndex((prev) => (prev + 1) % activeUnits.length);
+    // Select random next unit (avoiding recent)
+    const nextUnit = selectRandomUnit(activeUnits, recentUnitIds);
+    setCurrentUnitId(nextUnit.id);
+    
+    // Track recent (keep last 4)
+    setRecentUnitIds(prev => {
+      const updated = [...prev, nextUnit.id];
+      return updated.slice(-4);
+    });
+    
+    console.log('[Practice Loop] Next:', nextUnit.id, nextUnit.text);
   };
 
-  // Handle back button
+  // Handle back button - go to previous in recent history
   const handleBack = () => {
     // Clear state
     setUserTranscript('');
@@ -245,10 +281,22 @@ function ImitationLoop() {
     resetTranscript();
     setShowSentenceMeaning(false);
     setPronunciationBubble(null);
-    setShowSentenceText(false); // Hide text again for audio-first
+    setShowSentenceText(false);
+    setHasEngaged(false);
     
-    // Move to previous unit (wrap to end)
-    setCurrentIndex((prev) => (prev - 1 + activeUnits.length) % activeUnits.length);
+    // Go to previous in recent history if exists
+    if (recentUnitIds.length > 1) {
+      const prevId = recentUnitIds[recentUnitIds.length - 2];
+      setCurrentUnitId(prevId);
+      
+      // Remove last from recent
+      setRecentUnitIds(prev => prev.slice(0, -1));
+      
+      console.log('[Practice Loop] Back:', prevId);
+    } else {
+      // If no history, pick random
+      handleNext();
+    }
   };
 
   // Toggle sentence meaning
@@ -267,7 +315,11 @@ function ImitationLoop() {
       state: {
         guidedMode: true,
         seedSentence: currentUnit.text,
-        seedMeaning: currentUnit.meaning
+        seedMeaning: currentUnit.meaning,
+        icon: currentUnit.icon,
+        scene: currentUnit.scene,
+        patternId: currentUnit.patternId,
+        contextVariations: currentUnit.contextVariations
       }
     });
   };
