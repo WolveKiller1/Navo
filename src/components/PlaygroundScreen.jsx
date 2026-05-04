@@ -213,8 +213,10 @@ function PlaygroundScreen() {
         scene: location.state.scene || null
       };
       
-      // Get all context variations
-      const variations = getContextVariations(location.state.seedSentence);
+      // Use route-provided context variations first, otherwise fall back to local generator
+      const variations = Array.isArray(location.state.contextVariations) && location.state.contextVariations.length > 0
+        ? location.state.contextVariations
+        : getContextVariations(location.state.seedSentence) || [];
       
       // Build full sequence: [starting phrase, ...variations]
       const sequence = [startingPhrase, ...variations];

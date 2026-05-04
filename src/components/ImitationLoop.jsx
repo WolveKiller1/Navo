@@ -6,6 +6,8 @@ import { sendMessage, resetConversation } from '../services/conversation';
 import { applyMoveEngine } from '../services/moveEngine';
 import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
+import { PHRASE_PATTERNS_PT } from '../data/phrasePatterns';
+import { generateAllPhrases } from '../services/phraseGenerator';
 import { getUserPreferences, initStorage } from '../services/storage';
 import HomeArrow from './HomeArrow';
 import SystemNotice from './SystemNotice';
@@ -79,14 +81,26 @@ function ImitationLoop() {
   const currentUnit = activeUnits.find(u => u.id === currentUnitId) || activeUnits[0];
   const hasSupportContent = currentUnit && currentUnit.words && currentUnit.meaning;
 
-  // Load preferences and set active units
+  // Load preferences and set active units (combine fixed + generated)
   useEffect(() => {
     const loadLanguagePreference = async () => {
       await initStorage();
       const prefs = await getUserPreferences();
       const lang = prefs.activeLanguage || 'en';
       setActiveLanguage(lang);
-      setActiveUnits(lang === 'pt' ? IMITATION_UNITS_PT : IMITATION_UNITS_EN);
+      
+      if (lang === 'pt') {
+        // Combine fixed units with generated phrases
+        const fixedUnits = IMITATION_UNITS_PT;
+        const generatedPhrases = generateAllPhrases(PHRASE_PATTERNS_PT, 8); // 8 per pattern
+        const combinedUnits = [...fixedUnits, ...generatedPhrases];
+        
+        console.log(`[Practice Loop] Pool: ${fixedUnits.length} fixed + ${generatedPhrases.length} generated = ${combinedUnits.length} total`);
+        
+        setActiveUnits(combinedUnits);
+      } else {
+        setActiveUnits(IMITATION_UNITS_EN);
+      }
     };
     loadLanguagePreference();
   }, []);
@@ -482,6 +496,13 @@ function ImitationLoop() {
           </div>
         )}
 
+        {/* Bridge to Playground (shows after engagement) */}
+        {hasEngaged && hasSupportContent && (
+          <button className="bridge-button" onClick={handleTryAnotherShape}>
+            Try another shape
+          </button>
+        )}
+
         {/* Next / Back Buttons (show after attempt, regardless of alignment) */}
         {userTranscript && (
           <div className="navigation-buttons">
@@ -492,13 +513,6 @@ function ImitationLoop() {
               next →
             </button>
           </div>
-        )}
-
-        {/* Bridge to Playground (shows after engagement) */}
-        {hasEngaged && hasSupportContent && (
-          <button className="bridge-button" onClick={handleTryAnotherShape}>
-            Try another shape
-          </button>
         )}
       </div>
 
