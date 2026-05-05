@@ -109,6 +109,257 @@ function generateCombinations(pattern, count) {
 }
 
 /**
+ * Get indices of combo slots within pattern arrays
+ * @param {Object} pattern - The phrase pattern
+ * @param {Object} combo - The slot combination
+ * @returns {Object} Indices for each slot
+ */
+function getComboIndices(pattern, combo) {
+  const indices = {};
+  
+  if (combo.subjectVerb && pattern.subjectVerb) {
+    indices.subjectVerb = pattern.subjectVerb.findIndex(sv => 
+      sv.subject === combo.subjectVerb.subject && sv.verb === combo.subjectVerb.verb
+    );
+  }
+  
+  if (combo.verb && pattern.verbs) {
+    indices.verb = pattern.verbs.findIndex(v => v.verb === combo.verb.verb);
+  }
+  
+  if (combo.object && pattern.objects) {
+    indices.object = pattern.objects.findIndex(o => o.text === combo.object.text);
+  }
+  
+  if (combo.location && pattern.locations) {
+    indices.location = pattern.locations.findIndex(l => l.text === combo.location.text);
+  }
+  
+  if (combo.time && pattern.times) {
+    indices.time = pattern.times.findIndex(t => t.text === combo.time.text);
+  }
+  
+  if (combo.event && pattern.events) {
+    indices.event = pattern.events.findIndex(e => e.text === combo.event.text);
+  }
+  
+  if (combo.state && pattern.states) {
+    indices.state = pattern.states.findIndex(s => s.text === combo.state.text);
+  }
+  
+  if (combo.feeling && pattern.feelings) {
+    indices.feeling = pattern.feelings.findIndex(f => f.text === combo.feeling.text);
+  }
+  
+  return indices;
+}
+
+/**
+ * Get next item from array using offset (deterministic cycling)
+ * @param {Array} array - Slot array
+ * @param {number} currentIndex - Current index
+ * @param {number} offset - How many steps forward (default 1)
+ * @returns {*} Next item or null if not available
+ */
+function getNextSlotItem(array, currentIndex, offset = 1) {
+  if (!array || array.length === 0 || currentIndex === -1) return null;
+  const nextIndex = (currentIndex + offset) % array.length;
+  return nextIndex !== currentIndex ? array[nextIndex] : null;
+}
+
+/**
+ * Build a variation phrase from combo (for contextVariations)
+ * @param {Object} pattern - The phrase pattern
+ * @param {Object} combo - The slot combination
+ * @returns {Object} Variation phrase object
+ */
+function buildVariationFromCombo(pattern, combo) {
+  let text = pattern.template;
+  let scene = pattern.sceneTemplate || '';
+  
+  // Replace placeholders
+  if (combo.subjectVerb) {
+    text = text.replace('{subject}', combo.subjectVerb.subject);
+    text = text.replace('{verb}', combo.subjectVerb.verb);
+    scene = scene.replace('{verbMeaning}', combo.subjectVerb.verbMeaning || '');
+  }
+  
+  if (combo.verb) {
+    text = text.replace('{verb}', combo.verb.verb);
+    scene = scene.replace('{verbMeaning}', combo.verb.verbMeaning || '');
+  }
+  
+  if (combo.object) {
+    if (combo.object.article) {
+      text = text.replace('{article}', combo.object.article);
+    }
+    text = text.replace('{object}', combo.object.text);
+    scene = scene.replace('{objMeaning}', combo.object.meaning || '');
+  }
+  
+  if (combo.location) {
+    if (combo.location.prep) {
+      text = text.replace('{prep}', combo.location.prep);
+    }
+    text = text.replace('{location}', combo.location.text);
+    scene = scene.replace('{locMeaning}', combo.location.meaning || '');
+  }
+  
+  if (combo.time) {
+    text = text.replace('{time}', combo.time.text);
+    scene = scene.replace('{timeMeaning}', combo.time.meaning || '');
+  }
+  
+  if (combo.event) {
+    text = text.replace('{event}', combo.event.text);
+    scene = scene.replace('{eventMeaning}', combo.event.meaning || '');
+  }
+  
+  if (combo.state) {
+    text = text.replace('{state}', combo.state.text);
+    scene = scene.replace('{stateMeaning}', combo.state.meaning || '');
+  }
+  
+  if (combo.feeling) {
+    text = text.replace('{feeling}', combo.feeling.text);
+    scene = scene.replace('{feelMeaning}', combo.feeling.meaning || '');
+  }
+  
+  // Get icon (priority: object > event > state > feeling > location > pattern default)
+  const icon = combo.object?.icon || combo.event?.icon || combo.state?.icon || 
+               combo.feeling?.icon || combo.location?.icon || pattern.icon;
+  
+  return {
+    text,
+    icon,
+    scene: scene || null,
+    patternId: pattern.id,
+    generated: true
+  };
+}
+
+/**
+ * Build a stable pattern cluster (3-4 nearby variations)
+ * Uses deterministic next-index selection, no randomness
+ * @param {Object} pattern - The phrase pattern
+ * @param {Object} combo - The original slot combination
+ * @returns {Array} Array of variation phrases
+ */
+function buildPatternCluster(pattern, combo) {
+  const indices = getComboIndices(pattern, combo);
+  const cluster = [];
+  const used = new Set([JSON.stringify(combo)]);
+  
+  // Priority: object > location/time > state/feeling/event > subjectVerb
+  
+  // Variation 1: Next object
+  if (indices.object !== undefined && indices.object !== -1) {
+    const nextObject = getNextSlotItem(pattern.objects, indices.object, 1);
+    if (nextObject && cluster.length < 4) {
+      const newCombo = { ...combo, object: nextObject };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 2: Next location
+  if (indices.location !== undefined && indices.location !== -1 && cluster.length < 4) {
+    const nextLocation = getNextSlotItem(pattern.locations, indices.location, 1);
+    if (nextLocation) {
+      const newCombo = { ...combo, location: nextLocation };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 3: Next time
+  if (indices.time !== undefined && indices.time !== -1 && cluster.length < 4) {
+    const nextTime = getNextSlotItem(pattern.times, indices.time, 1);
+    if (nextTime) {
+      const newCombo = { ...combo, time: nextTime };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 4: Second object (offset +2)
+  if (indices.object !== undefined && indices.object !== -1 && cluster.length < 4) {
+    const nextObject = getNextSlotItem(pattern.objects, indices.object, 2);
+    if (nextObject) {
+      const newCombo = { ...combo, object: nextObject };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 5: Next state
+  if (indices.state !== undefined && indices.state !== -1 && cluster.length < 4) {
+    const nextState = getNextSlotItem(pattern.states, indices.state, 1);
+    if (nextState) {
+      const newCombo = { ...combo, state: nextState };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 6: Next feeling
+  if (indices.feeling !== undefined && indices.feeling !== -1 && cluster.length < 4) {
+    const nextFeeling = getNextSlotItem(pattern.feelings, indices.feeling, 1);
+    if (nextFeeling) {
+      const newCombo = { ...combo, feeling: nextFeeling };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 7: Next event
+  if (indices.event !== undefined && indices.event !== -1 && cluster.length < 4) {
+    const nextEvent = getNextSlotItem(pattern.events, indices.event, 1);
+    if (nextEvent) {
+      const newCombo = { ...combo, event: nextEvent };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  // Variation 8: Next subjectVerb (lowest priority, only if still under 4)
+  if (indices.subjectVerb !== undefined && indices.subjectVerb !== -1 && cluster.length < 4) {
+    const nextSv = getNextSlotItem(pattern.subjectVerb, indices.subjectVerb, 1);
+    if (nextSv) {
+      const newCombo = { ...combo, subjectVerb: nextSv };
+      const key = JSON.stringify(newCombo);
+      if (!used.has(key)) {
+        used.add(key);
+        cluster.push(buildVariationFromCombo(pattern, newCombo));
+      }
+    }
+  }
+  
+  return cluster.slice(0, 4);  // Max 4 variations
+}
+
+/**
  * Build a complete phrase from a combination
  * @param {Object} pattern - The phrase pattern
  * @param {Object} combo - The slot combination
@@ -224,6 +475,11 @@ function buildPhraseFromCombo(pattern, combo, index) {
   // Get icon (priority: object > event > state > feeling > pattern default)
   const icon = combo.object?.icon || combo.event?.icon || combo.state?.icon || combo.feeling?.icon || combo.location?.icon || pattern.icon;
   
+  // Build stable pattern cluster (3-4 nearby variations)
+  const contextVariations = buildPatternCluster(pattern, combo);
+  
+  console.log(`[Phrase Generator] Built cluster for "${text}": ${contextVariations.length} variations`);
+  
   return {
     id: `gen-${pattern.id}-${index}`,
     text,
@@ -232,7 +488,8 @@ function buildPhraseFromCombo(pattern, combo, index) {
     scene,
     patternId: pattern.id,
     generated: true,
-    words: words.length > 0 ? words : undefined // Only include if we built words
+    words: words.length > 0 ? words : undefined, // Only include if we built words
+    contextVariations: contextVariations.length > 0 ? contextVariations : undefined  // Stable cluster
   };
 }
 
