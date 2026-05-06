@@ -122,6 +122,62 @@ function normalizeWord(word) {
     .toLowerCase();
 }
 
+// Helper to compress meaning into short, readable form
+function compressMeaning(meaning) {
+  if (!meaning || typeof meaning !== 'string') {
+    return null;
+  }
+
+  let compressed = meaning.trim();
+  
+  // Remove trailing punctuation
+  compressed = compressed.replace(/[.!?]+$/, '');
+  
+  // Convert to lowercase
+  compressed = compressed.toLowerCase();
+  
+  // Remove trailing 'out of nowhere' type phrases and replace with tag
+  if (compressed.includes('out of nowhere')) {
+    compressed = compressed.replace(/out of nowhere/, 'suddenly').trim();
+  }
+  
+  // Remove common English filler/function words (articles, possessives, prepositions)
+  // Match these words with word boundaries to avoid removing parts of actual content
+  compressed = compressed.replace(/\b(i|you|he|she|it|we|they|the|a|an|my|your|his|her|their|at|in|of)\b/gi, '');
+  
+  // Clean up double spaces and trim
+  compressed = compressed.replace(/\s+/g, ' ').trim();
+  
+  // If result is empty or too short, return null
+  if (!compressed || compressed.length < 2) {
+    return null;
+  }
+  
+  return compressed;
+}
+
+// Helper to get compressed meaning for a phrase
+function getCompressedMeaning(phrase) {
+  if (!phrase) {
+    return null;
+  }
+  
+  // Priority 1: Use meaning if available
+  if (phrase.meaning) {
+    const compressed = compressMeaning(phrase.meaning);
+    if (compressed) {
+      return compressed;
+    }
+  }
+  
+  // Priority 2: Fall back to scene
+  if (phrase.scene) {
+    return phrase.scene;
+  }
+  
+  return null;
+}
+
 // Helper to get changed word indexes between two texts using sequence diff
 function getChangedWordIndexes(previousText, currentText) {
   if (!previousText || !currentText) {
@@ -210,7 +266,8 @@ function PlaygroundScreen() {
       const startingPhrase = {
         text: location.state.seedSentence,
         icon: location.state.icon || getFallbackIcon(location.state.seedSentence),
-        scene: location.state.scene || null
+        scene: location.state.scene || null,
+        meaning: location.state.seedMeaning || location.state.meaning || null
       };
       
       // Use route-provided context variations first, otherwise fall back to local generator
@@ -738,11 +795,14 @@ function PlaygroundScreen() {
                 </div>
               </div>
               
-              {guidedSequence[guidedIndex].scene && (
-                <div className="guided-scene">
-                  {guidedSequence[guidedIndex].scene}
-                </div>
-              )}
+              {(() => {
+                const compressedMeaning = getCompressedMeaning(guidedSequence[guidedIndex]);
+                return compressedMeaning && (
+                  <div className="guided-compressed-meaning">
+                    {compressedMeaning}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Progress Indicator */}
