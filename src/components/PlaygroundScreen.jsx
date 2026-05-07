@@ -4,6 +4,7 @@ import { FaHistory, FaUser } from 'react-icons/fa';
 import { initStorage, getImmersionProfile } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { speak } from '../services/tts';
+import { buildPlaygroundSequence } from '../services/playgroundSequenceBuilder';
 import '../styles/PlaygroundScreen.css';
 
 /**
@@ -262,26 +263,13 @@ function PlaygroundScreen() {
   useEffect(() => {
     // Guided mode is required - either from Practice Loop or Landing Page
     if (location.state?.guidedMode && location.state?.seedSentence) {
-      // Build starting phrase object
-      const startingPhrase = {
-        text: location.state.seedSentence,
-        icon: location.state.icon || getFallbackIcon(location.state.seedSentence),
-        scene: location.state.scene || null,
-        meaning: location.state.seedMeaning || location.state.meaning || null
-      };
-      
-      // Use route-provided context variations first, otherwise fall back to local generator
-      const variations = Array.isArray(location.state.contextVariations) && location.state.contextVariations.length > 0
-        ? location.state.contextVariations
-        : getContextVariations(location.state.seedSentence) || [];
-      
-      // Build full sequence: [starting phrase, ...variations]
-      const sequence = [startingPhrase, ...variations];
+      // Use new sequence builder service
+      const sequence = buildPlaygroundSequence(location.state);
       
       setGuidedSequence(sequence);
       setGuidedIndex(0);
       
-      console.log('[Guided Mode] Built sequence:', sequence.length, 'phrases');
+      console.log('[Playground] Built sequence:', sequence.length, 'phrases');
       
       // Clear location state
       window.history.replaceState({}, document.title);

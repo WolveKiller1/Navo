@@ -111,14 +111,24 @@
   margin-top: 0.5rem;
 }
 
+.guided-meaning {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.6rem;
+  text-align: center;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 .guided-compressed-meaning {
   font-size: 0.85rem;
   font-weight: 300;
-  color: #999;
-  opacity: 0.55;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.6rem;
   text-align: center;
+  font-style: italic;
   line-height: 1.4;
-  margin-top: 0.5rem;
 }
 
 .guided-meaning {
