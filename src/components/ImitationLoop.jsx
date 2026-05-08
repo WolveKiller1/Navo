@@ -39,7 +39,7 @@ function ImitationLoop() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [browserSupported, setBrowserSupported] = useState(true);
   const [systemNotice, setSystemNotice] = useState(null);
-  const [activeUnits, setActiveUnits] = useState(IMITATION_UNITS_EN);
+  const [activeUnits, setActiveUnits] = useState([]);
   const [activeLanguage, setActiveLanguage] = useState('en');
   
   // Beginner support state
@@ -78,7 +78,7 @@ function ImitationLoop() {
     };
   }, []);
 
-  const currentUnit = activeUnits.find(u => u.id === currentUnitId) || activeUnits[0];
+  const currentUnit = activeUnits.find(u => u.id === currentUnitId) || activeUnits[0] || {};
   const hasSupportContent = currentUnit && currentUnit.words && currentUnit.meaning;
 
   // Load preferences and set active units (combine fixed + generated)
