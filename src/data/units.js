@@ -104,7 +104,7 @@ export const IMITATION_UNITS_PT = [
   },
   {
     id: 2,
-    patternId: "deixou-telefone",
+    patternId: "deixar-object-location",
     text: "Ela deixou o telefone em casa.",
     meaning: "She left her phone at home.",
     icon: "📱",
@@ -125,7 +125,7 @@ export const IMITATION_UNITS_PT = [
   },
   {
     id: 3,
-    patternId: "chover",
+    patternId: "comecar-weather",
     text: "Começou a chover do nada.",
     meaning: "It started raining out of nowhere.",
     icon: "🌧️",

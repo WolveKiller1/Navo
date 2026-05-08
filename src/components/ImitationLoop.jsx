@@ -91,11 +91,15 @@ function ImitationLoop() {
       
       if (lang === 'pt') {
         // Combine fixed units with generated phrases
-        const fixedUnits = IMITATION_UNITS_PT;
+        // Only include fixed units that are pattern-backed (have valid patternId or contextVariations)
+        const validPatternIds = PHRASE_PATTERNS_PT.map(p => p.id);
+        const backedFixedUnits = IMITATION_UNITS_PT.filter(unit => 
+          unit.contextVariations || (unit.patternId && validPatternIds.includes(unit.patternId))
+        );
         const generatedPhrases = generateAllPhrases(PHRASE_PATTERNS_PT, 8); // 8 per pattern
-        const combinedUnits = [...fixedUnits, ...generatedPhrases];
+        const combinedUnits = [...backedFixedUnits, ...generatedPhrases];
         
-        console.log(`[Practice Loop] Pool: ${fixedUnits.length} fixed + ${generatedPhrases.length} generated = ${combinedUnits.length} total`);
+        console.log(`[Practice Loop] Pool: ${backedFixedUnits.length} backed fixed + ${generatedPhrases.length} generated = ${combinedUnits.length} total`);
         
         setActiveUnits(combinedUnits);
       } else {

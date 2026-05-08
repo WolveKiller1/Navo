@@ -5,9 +5,9 @@
  * Generates nearby phrase variations using controlled pattern movement.
  * 
  * Priority order:
- * 1. patternId-based generation (PRIMARY - canonical path)
- * 2. route-provided contextVariations (SECONDARY - legacy support)
- * 3. single phrase fallback (TERTIARY)
+ * 1. Try patternId-based generation (if succeeds, use it)
+ * 2. Fall back to route-provided contextVariations (if patternId failed or not available)
+ * 3. Single phrase fallback (if no variations possible)
  * 
  * NO AI - local, deterministic generation only.
  */
@@ -23,33 +23,42 @@ export function buildPlaygroundSequence(routeState) {
   console.log('[Playground Sequence Builder] Building sequence from:', {
     seedSentence: routeState.seedSentence,
     patternId: routeState.patternId,
-    hasContextVariations: !!routeState.contextVariations
+    contextVariations: routeState.contextVariations ? routeState.contextVariations.length : 'none'
   });
 
-  // PRIORITY 1: patternId-based generation (CANONICAL PATH)
+  // PRIORITY 1: Try patternId-based generation first
   if (routeState.patternId) {
     const pattern = findPatternById(routeState.patternId);
     if (pattern) {
-      console.log('[Playground Sequence Builder] Using patternId:', routeState.patternId);
+      console.log('[Playground Sequence Builder] Pattern found for:', routeState.patternId);
       const sequence = buildSequenceFromPattern(routeState, pattern);
-      if (sequence && sequence.length > 0) {
-        console.log('[Playground Sequence Builder] Built', sequence.length, 'phrases from pattern');
+      console.log('[Playground Sequence Builder] Pattern sequence built, length:', sequence.length);
+      if (sequence && sequence.length > 1) {
+        console.log('[Playground Sequence Builder] Returning patternId sequence');
         return sequence;
+      } else {
+        console.log('[Playground Sequence Builder] PatternId generation failed, length:', sequence.length);
+        // Fall back to contextVariations if available
+        if (Array.isArray(routeState.contextVariations) && routeState.contextVariations.length > 0) {
+          console.log('[Playground Sequence Builder] Returning pattern failed then context fallback, length:', routeState.contextVariations.length + 1);
+          const seedPhrase = buildSeedPhrase(routeState);
+          return [seedPhrase, ...routeState.contextVariations];
+        }
       }
     } else {
-      console.warn('[Playground Sequence Builder] Pattern not found:', routeState.patternId);
+      console.log('[Playground Sequence Builder] Pattern not found for:', routeState.patternId);
     }
   }
 
-  // PRIORITY 2: route-provided contextVariations (LEGACY SUPPORT)
+  // PRIORITY 2: route-provided contextVariations (if not already used as fallback)
   if (Array.isArray(routeState.contextVariations) && routeState.contextVariations.length > 0) {
-    console.log('[Playground Sequence Builder] Using provided contextVariations:', routeState.contextVariations.length);
+    console.log('[Playground Sequence Builder] Returning contextVariations, length:', routeState.contextVariations.length + 1);
     const seedPhrase = buildSeedPhrase(routeState);
     return [seedPhrase, ...routeState.contextVariations];
   }
 
   // PRIORITY 3: single phrase fallback
-  console.log('[Playground Sequence Builder] Fallback: single phrase');
+  console.log('[Playground Sequence Builder] Returning single fallback');
   const seedPhrase = buildSeedPhrase(routeState);
   return [seedPhrase];
 }
@@ -91,17 +100,24 @@ function buildSequenceFromPattern(routeState, pattern) {
   
   // Try to parse seed sentence into slots
   const parsedSlots = parseSeedIntoSlots(routeState.seedSentence, pattern);
+  console.log('[Playground Sequence Builder] parseSeedIntoSlots:', parsedSlots ? 'succeeded' : 'failed');
   
   if (parsedSlots) {
     // Successfully parsed - generate nearby variations
-    console.log('[Playground Sequence Builder] Parsed slots:', Object.keys(parsedSlots));
+    console.log('[Playground Sequence Builder] parsed slots:', Object.keys(parsedSlots));
     const variations = generateVariationsFromParsedSlots(pattern, parsedSlots);
-    return [seedPhrase, ...variations];
+    console.log('[Playground Sequence Builder] generated variations:', variations.length);
+    const sequence = [seedPhrase, ...variations];
+    console.log('[Playground Sequence Builder] final sequence length:', sequence.length);
+    return sequence;
   } else {
     // Parsing failed - use safe default from pattern
     console.log('[Playground Sequence Builder] Parsing failed, using safe default');
     const safeSequence = generateSafeDefaultSequence(pattern);
-    return [seedPhrase, ...safeSequence];
+    console.log('[Playground Sequence Builder] safe default variations:', safeSequence.length);
+    const sequence = [seedPhrase, ...safeSequence];
+    console.log('[Playground Sequence Builder] final sequence length:', sequence.length);
+    return sequence;
   }
 }
 

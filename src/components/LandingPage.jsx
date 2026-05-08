@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { PHRASE_PATTERNS_PT } from '../data/phrasePatterns'
+import { generateAllPhrases } from '../services/phraseGenerator'
 import '../styles/LandingPage.css'
 
 function LandingPage() {
@@ -46,13 +48,23 @@ function LandingPage() {
 
   const handlePlaygroundEntry = () => {
     sessionStorage.setItem('rylingo_access', 'granted')
-    // Navigate to the new guided pattern flow playground with default seed
+    
+    // Use a generated pattern-backed phrase for Playground entry
+    // Generate one phrase from the perder-transport pattern
+    const perderTransportPattern = PHRASE_PATTERNS_PT.find(p => p.id === 'perder-transport')
+    const allPhrases = generateAllPhrases([perderTransportPattern], 1)
+    const defaultPhrase = allPhrases[0]
+    
+    // Navigate to the new guided pattern flow playground with pattern-backed seed
     navigate('/playground', {
       state: {
         guidedMode: true,
-        seedSentence: 'Eu perdi o ônibus esta manhã.',
-        icon: '🚌',
-        scene: 'missed bus, morning'
+        seedSentence: defaultPhrase.text,
+        seedMeaning: defaultPhrase.meaning,
+        icon: defaultPhrase.icon,
+        scene: defaultPhrase.scene,
+        patternId: defaultPhrase.patternId,
+        contextVariations: defaultPhrase.contextVariations
       }
     })
   }
