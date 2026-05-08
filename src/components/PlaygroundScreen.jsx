@@ -768,6 +768,25 @@ function PlaygroundScreen() {
     console.log('[Playground] Another seed:', newSeed.text);
   };
 
+  // Guided mode: Another shape button - load a fresh pattern-backed cluster
+  const handleAnotherShape = () => {
+    if (!guidedSequence.length) return;
+    const currentPhrase = guidedSequence[guidedIndex];
+    const newSeed = generatePlaygroundSeed(currentPhrase?.patternId || null);
+    const newSequence = buildPlaygroundSequence({
+      guidedMode: true,
+      seedSentence: newSeed.text,
+      seedMeaning: newSeed.meaning,
+      icon: newSeed.icon,
+      scene: newSeed.scene,
+      patternId: newSeed.patternId,
+      contextVariations: newSeed.contextVariations
+    });
+    setGuidedSequence(newSequence);
+    setGuidedIndex(0);
+    console.log('[Playground] Another shape loaded:', newSeed.text, 'patternId:', newSeed.patternId);
+  };
+
   return (
     <div className="playground-screen">
       <div className="playground-container">
@@ -880,7 +899,7 @@ function PlaygroundScreen() {
               >
                 Enter the Room
               </button>
-              
+
               <button
                 className="guided-action-button secondary"
                 onClick={() => {
@@ -903,6 +922,13 @@ function PlaygroundScreen() {
                 disabled={guidedIndex >= guidedSequence.length - 1}
               >
                 Next →
+              </button>
+
+              <button
+                className="guided-action-button subtle"
+                onClick={handleAnotherShape}
+              >
+                Another shape
               </button>
             </div>
           </div>

@@ -249,6 +249,20 @@
   border-color: rgba(22, 163, 74, 0.5);
 }
 
+.guided-action-button.subtle {
+  background: transparent;
+  border-color: transparent;
+  color: #aaa;
+  text-decoration: underline;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.guided-action-button.subtle:hover {
+  color: #ddd;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .playground-container {
   max-width: 700px;
   width: 100%;
