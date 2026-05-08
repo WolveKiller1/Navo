@@ -5,6 +5,7 @@ import { initStorage, getImmersionProfile } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { speak } from '../services/tts';
 import { buildPlaygroundSequence } from '../services/playgroundSequenceBuilder';
+import { generatePlaygroundSeed } from '../services/playgroundSeed';
 import '../styles/PlaygroundScreen.css';
 
 /**
@@ -237,6 +238,10 @@ function PlaygroundScreen() {
   const [guidedSequence, setGuidedSequence] = useState([]);
   const [guidedIndex, setGuidedIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Entry mode - Seed selection before entering guided flow
+  const [isEntryMode, setIsEntryMode] = useState(false);
+  const [entryPhrase, setEntryPhrase] = useState(null);
 
   // Load immersion profile (read-only) on mount
   useEffect(() => {
@@ -259,26 +264,28 @@ function PlaygroundScreen() {
     loadProfile();
   }, []);
 
-  // Initialize guided mode on mount
+  // Initialize guided mode or entry mode on mount
   useEffect(() => {
-    // Guided mode is required - either from Practice Loop or Landing Page
     if (location.state?.guidedMode && location.state?.seedSentence) {
-      // Use new sequence builder service
+      // Practice Loop: enter active cluster immediately
       const sequence = buildPlaygroundSequence(location.state);
-      
       setGuidedSequence(sequence);
       setGuidedIndex(0);
-      
       console.log('[Playground] Built sequence:', sequence.length, 'phrases');
-      
-      // Clear location state
       window.history.replaceState({}, document.title);
-    } else if (!guidedSequence.length) {
-      // No guided mode data provided - redirect to home
-      console.warn('[Playground] No guided mode data. Redirecting to home.');
+    } else if (location.state?.entryMode) {
+      // Landing: show entry state first
+      const seed = generatePlaygroundSeed();
+      setEntryPhrase(seed);
+      setIsEntryMode(true);
+      console.log('[Playground] Entry mode:', seed.text);
+      window.history.replaceState({}, document.title);
+    } else if (!guidedSequence.length && !isEntryMode) {
+      // No valid entry - redirect home
+      console.warn('[Playground] No valid entry. Redirecting to home.');
       navigate('/');
     }
-  }, [location, navigate]);
+  }, []);
 
   // Handle suggestion cycling (randomize)
   const handleCycleSuggestion = () => {
@@ -733,6 +740,34 @@ function PlaygroundScreen() {
     });
   };
 
+  // Entry mode: Begin button - enter active guided flow
+  const handleBeginFromEntry = () => {
+    if (!entryPhrase) return;
+    
+    // Build sequence from entry phrase
+    const sequence = buildPlaygroundSequence({
+      guidedMode: true,
+      seedSentence: entryPhrase.text,
+      seedMeaning: entryPhrase.meaning,
+      icon: entryPhrase.icon,
+      scene: entryPhrase.scene,
+      patternId: entryPhrase.patternId,
+      contextVariations: entryPhrase.contextVariations
+    });
+    
+    setGuidedSequence(sequence);
+    setGuidedIndex(0);
+    setIsEntryMode(false);
+    console.log('[Playground] Begin from entry:', sequence.length, 'phrases');
+  };
+
+  // Entry mode: Another seed button - generate new seed
+  const handleAnotherSeed = () => {
+    const newSeed = generatePlaygroundSeed(entryPhrase?.patternId);
+    setEntryPhrase(newSeed);
+    console.log('[Playground] Another seed:', newSeed.text);
+  };
+
   return (
     <div className="playground-screen">
       <div className="playground-container">
@@ -750,8 +785,33 @@ function PlaygroundScreen() {
           </div>
         </header>
 
+        {/* Entry State */}
+        {isEntryMode && entryPhrase && (
+          <div className="entry-state">
+            <p className="entry-subtitle">A phrase to move</p>
+            
+            <div className="entry-seed-card">
+              {entryPhrase.icon && (
+                <div className="entry-seed-icon">{entryPhrase.icon}</div>
+              )}
+              <div className="entry-seed-text">{entryPhrase.text}</div>
+              {entryPhrase.scene && (
+                <div className="entry-seed-scene">{entryPhrase.scene}</div>
+              )}
+            </div>
+
+            <button className="entry-begin-button" onClick={handleBeginFromEntry}>
+              Begin →
+            </button>
+
+            <button className="entry-another-seed" onClick={handleAnotherSeed}>
+              Another seed
+            </button>
+          </div>
+        )}
+
         {/* Guided Flow */}
-        {guidedSequence.length > 0 && (
+        {!isEntryMode && guidedSequence.length > 0 && (
           <div className="guided-flow">
             <div className="guided-phrase-card">
               {guidedSequence[guidedIndex].icon && (

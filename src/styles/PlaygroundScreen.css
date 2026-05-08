@@ -304,7 +304,94 @@
 }
 
 /* ============================================ */
-/* ENTRY PHASE */
+/* ENTRY MODE - Landing direct entry */
+/* ============================================ */
+
+.entry-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 3rem 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.entry-subtitle {
+  font-size: 0.95rem;
+  color: #e8e8e8;
+  opacity: 0.6;
+  font-weight: 300;
+  text-align: center;
+}
+
+.entry-seed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2.5rem 2rem;
+  background: rgba(42, 42, 42, 0.4);
+  border: 1px solid rgba(58, 58, 58, 0.4);
+  border-radius: 12px;
+  width: 100%;
+}
+
+.entry-seed-icon {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.entry-seed-text {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #e8e8e8;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.entry-seed-scene {
+  font-size: 0.9rem;
+  color: #888;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.entry-begin-button {
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #e8e8e8;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.entry-begin-button:hover {
+  background: #323232;
+  border-color: #444;
+  transform: translateY(-1px);
+}
+
+.entry-another-seed {
+  background: none;
+  border: none;
+  color: #e8e8e8;
+  opacity: 0.6;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 180ms ease;
+  padding: 0;
+}
+
+.entry-another-seed:hover {
+  opacity: 1;
+}
+
+/* ============================================ */
+/* ENTRY PHASE (legacy - can be removed later) */
 /* ============================================ */
 
 .entry-phase {
