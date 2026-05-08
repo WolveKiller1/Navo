@@ -97,6 +97,28 @@ function findPatternById(patternId) {
  */
 function buildSequenceFromPattern(routeState, pattern) {
   const seedPhrase = buildSeedPhrase(routeState);
+
+  if (Array.isArray(pattern.phrases) && pattern.phrases.length > 0) {
+    const seenTexts = new Set([seedPhrase.text.trim().toLowerCase()]);
+    const phraseItems = pattern.phrases
+      .filter(phrase => phrase && typeof phrase.text === 'string' && phrase.text.trim().length > 0)
+      .map(phrase => ({
+        text: phrase.text,
+        meaning: phrase.meaning || null,
+        scene: phrase.scene || null,
+        icon: phrase.icon || pattern.icon || '💭',
+        patternId: pattern.id,
+        generated: true
+      }))
+      .filter(phrase => {
+        const normalizedText = phrase.text.trim().toLowerCase();
+        if (seenTexts.has(normalizedText)) return false;
+        seenTexts.add(normalizedText);
+        return true;
+      });
+
+    return [seedPhrase, ...phraseItems];
+  }
   
   // Try to parse seed sentence into slots
   const parsedSlots = parseSeedIntoSlots(routeState.seedSentence, pattern);
@@ -149,6 +171,17 @@ function parseSeedIntoSlots(seedText, pattern) {
       const sv = pattern.subjectVerb[i];
       if (cleanSeed.includes(sv.subject) && cleanSeed.includes(sv.verb)) {
         slots.subjectVerb = { ...sv, index: i };
+        break;
+      }
+    }
+  }
+
+  // Try to find matching verb only (patterns that use pattern.verbs)
+  if (!slots.subjectVerb && hasVerbs) {
+    for (let i = 0; i < pattern.verbs.length; i++) {
+      const verb = pattern.verbs[i];
+      if (cleanSeed.includes(verb.verb)) {
+        slots.verb = { ...verb, index: i };
         break;
       }
     }
@@ -420,6 +453,13 @@ function buildPhraseFromSlots(pattern, slots) {
   // Get icon (priority: object > event > state > feeling > location > pattern default)
   const icon = slots.object?.icon || slots.event?.icon || slots.state?.icon || 
                slots.feeling?.icon || slots.location?.icon || pattern.icon || '💭';
+
+  const unresolvedPlaceholderPattern = /\{(subject|verb|event|time|object|article|prep|state|feeling)\}/;
+  if (!text || !text.trim() || unresolvedPlaceholderPattern.test(text) ||
+      (meaning && unresolvedPlaceholderPattern.test(meaning)) ||
+      (scene && unresolvedPlaceholderPattern.test(scene))) {
+    return null;
+  }
   
   return {
     text,
