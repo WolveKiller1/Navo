@@ -269,3 +269,177 @@ export const PHRASE_PATTERNS_PT = [
     ]
   }
 ];
+
+/**
+ * English Phrase Patterns
+ * Natural, reusable English phrase families for Practice Loop
+ */
+export const PHRASE_PATTERNS_EN = [
+  // Pattern 1: I just...
+  {
+    id: "just-did",
+    description: "Something I just did",
+    icon: "⏰",
+    language: "en",
+    
+    objects: [
+      { text: "got here", meaning: "arrived" },
+      { text: "finished", meaning: "completed" },
+      { text: "woke up", meaning: "woke" },
+      { text: "realized", meaning: "understood" },
+      { text: "remembered", meaning: "recalled" },
+      { text: "started", meaning: "began" }
+    ],
+    
+    template: "I just {object}.",
+    meaningTemplate: "just {objMeaning}",
+    sceneTemplate: "just {objMeaning}"
+  },
+
+  // Pattern 2: I was trying to...
+  {
+    id: "trying-to",
+    description: "Something I was trying to do",
+    icon: "🤔",
+    language: "en",
+    
+    objects: [
+      { text: "call you", meaning: "reach you" },
+      { text: "find it", meaning: "locate it" },
+      { text: "remember", meaning: "recall" },
+      { text: "figure it out", meaning: "solve it" },
+      { text: "explain", meaning: "clarify" },
+      { text: "help", meaning: "assist" }
+    ],
+    
+    template: "I was trying to {object}.",
+    meaningTemplate: "trying to {objMeaning}",
+    sceneTemplate: "trying to {objMeaning}"
+  },
+
+  // Pattern 3: I couldn't...
+  {
+    id: "couldnt",
+    description: "Something I couldn't do",
+    icon: "❌",
+    language: "en",
+    
+    objects: [
+      { text: "sleep", meaning: "rest" },
+      { text: "find it", meaning: "locate it" },
+      { text: "hear you", meaning: "understand" },
+      { text: "remember", meaning: "recall" },
+      { text: "focus", meaning: "concentrate" },
+      { text: "decide", meaning: "choose" }
+    ],
+    
+    template: "I couldn't {object}.",
+    meaningTemplate: "couldn't {objMeaning}",
+    sceneTemplate: "couldn't {objMeaning}"
+  },
+
+  // Pattern 4: Do you want to...?
+  {
+    id: "want-to",
+    description: "Asking if someone wants to do something",
+    icon: "❓",
+    language: "en",
+    
+    objects: [
+      { text: "go", meaning: "leave" },
+      { text: "eat", meaning: "have food" },
+      { text: "try it", meaning: "test it" },
+      { text: "come with me", meaning: "join me" },
+      { text: "talk about it", meaning: "discuss it" },
+      { text: "see", meaning: "look" }
+    ],
+    
+    template: "Do you want to {object}?",
+    meaningTemplate: "want to {objMeaning}",
+    sceneTemplate: "want to {objMeaning}"
+  },
+
+  // Pattern 5: I think I...
+  {
+    id: "think-i",
+    description: "Something I think I did or will do",
+    icon: "💭",
+    language: "en",
+    
+    objects: [
+      { text: "understand", meaning: "get it" },
+      { text: "forgot", meaning: "didn't remember" },
+      { text: "know", meaning: "am aware" },
+      { text: "made a mistake", meaning: "erred" },
+      { text: "can do it", meaning: "am able" },
+      { text: "see it", meaning: "perceive it" }
+    ],
+    
+    template: "I think I {object}.",
+    meaningTemplate: "think I {objMeaning}",
+    sceneTemplate: "think {objMeaning}"
+  },
+
+  // Pattern 6: I forgot to...
+  {
+    id: "forgot-to",
+    description: "Something I forgot to do",
+    icon: "🤦",
+    language: "en",
+    
+    objects: [
+      { text: "call", meaning: "phone" },
+      { text: "lock the door", meaning: "secure door" },
+      { text: "bring it", meaning: "carry it" },
+      { text: "tell you", meaning: "inform you" },
+      { text: "check", meaning: "verify" },
+      { text: "respond", meaning: "reply" }
+    ],
+    
+    template: "I forgot to {object}.",
+    meaningTemplate: "forgot to {objMeaning}",
+    sceneTemplate: "forgot {objMeaning}"
+  },
+
+  // Pattern 7: I need to...
+  {
+    id: "need-to",
+    description: "Something I need to do",
+    icon: "📝",
+    language: "en",
+    
+    objects: [
+      { text: "go", meaning: "leave" },
+      { text: "think about it", meaning: "consider" },
+      { text: "ask", meaning: "inquire" },
+      { text: "finish this", meaning: "complete" },
+      { text: "rest", meaning: "take break" },
+      { text: "decide", meaning: "choose" }
+    ],
+    
+    template: "I need to {object}.",
+    meaningTemplate: "need to {objMeaning}",
+    sceneTemplate: "need {objMeaning}"
+  },
+
+  // Pattern 8: I'm about to...
+  {
+    id: "about-to",
+    description: "Something I'm about to do",
+    icon: "⏳",
+    language: "en",
+    
+    objects: [
+      { text: "leave", meaning: "depart" },
+      { text: "start", meaning: "begin" },
+      { text: "call", meaning: "phone" },
+      { text: "try", meaning: "attempt" },
+      { text: "go", meaning: "move" },
+      { text: "ask", meaning: "inquire" }
+    ],
+    
+    template: "I'm about to {object}.",
+    meaningTemplate: "about to {objMeaning}",
+    sceneTemplate: "about to {objMeaning}"
+  }
+];

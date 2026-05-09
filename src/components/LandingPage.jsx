@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { getUserPreferences, initStorage } from '../services/storage'
 import '../styles/LandingPage.css'
 
 function LandingPage() {
@@ -44,14 +45,20 @@ function LandingPage() {
     navigate('/room')
   }
 
-  const handlePlaygroundEntry = () => {
+  const handlePlaygroundEntry = async () => {
     sessionStorage.setItem('rylingo_access', 'granted')
     
-    // Navigate to Playground in entry mode
-    // PlaygroundScreen will generate the seed phrase
+    // Get user's language preference
+    await initStorage()
+    const prefs = await getUserPreferences()
+    const lang = prefs.activeLanguage || 'en'
+    
+    // Navigate to Playground in entry mode with language
+    // PlaygroundScreen will generate the seed phrase using the correct language
     navigate('/playground', {
       state: {
-        entryMode: true
+        entryMode: true,
+        language: lang
       }
     })
   }

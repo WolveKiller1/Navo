@@ -6,7 +6,7 @@ import { sendMessage, resetConversation } from '../services/conversation';
 import { applyMoveEngine } from '../services/moveEngine';
 import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
-import { PHRASE_PATTERNS_PT } from '../data/phrasePatterns';
+import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from '../services/phraseGenerator';
 import { getUserPreferences, initStorage } from '../services/storage';
 import HomeArrow from './HomeArrow';
@@ -90,7 +90,7 @@ function ImitationLoop() {
       setActiveLanguage(lang);
       
       if (lang === 'pt') {
-        // Combine fixed units with generated phrases
+        // Portuguese: Combine fixed units with generated phrases
         // Only include fixed units that are pattern-backed (have valid patternId or contextVariations)
         const validPatternIds = PHRASE_PATTERNS_PT.map(p => p.id);
         const backedFixedUnits = IMITATION_UNITS_PT.filter(unit => 
@@ -99,10 +99,18 @@ function ImitationLoop() {
         const generatedPhrases = generateAllPhrases(PHRASE_PATTERNS_PT, 8); // 8 per pattern
         const combinedUnits = [...backedFixedUnits, ...generatedPhrases];
         
-        console.log(`[Practice Loop] Pool: ${backedFixedUnits.length} backed fixed + ${generatedPhrases.length} generated = ${combinedUnits.length} total`);
+        console.log(`[Practice Loop PT] Pool: ${backedFixedUnits.length} backed fixed + ${generatedPhrases.length} generated = ${combinedUnits.length} total`);
         
         setActiveUnits(combinedUnits);
+      } else if (lang === 'en') {
+        // English: Generate pattern-backed phrases (same architecture as Portuguese)
+        const generatedPhrases = generateAllPhrases(PHRASE_PATTERNS_EN, 8); // 8 per pattern
+        
+        console.log(`[Practice Loop EN] Pool: ${generatedPhrases.length} generated phrases`);
+        
+        setActiveUnits(generatedPhrases);
       } else {
+        // Fallback to fixed English units
         setActiveUnits(IMITATION_UNITS_EN);
       }
     };
@@ -337,7 +345,8 @@ function ImitationLoop() {
         icon: currentUnit.icon,
         scene: currentUnit.scene,
         patternId: currentUnit.patternId,
-        contextVariations: currentUnit.contextVariations
+        contextVariations: currentUnit.contextVariations,
+        language: currentUnit.language || activeLanguage // Explicit language metadata
       }
     });
   };

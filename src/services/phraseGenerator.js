@@ -17,7 +17,7 @@ export function generatePhrasesFromPattern(pattern, count = 5) {
   
   // Handle special case: pre-built complete phrases
   if (pattern.phrases) {
-    // Return pre-built phrases with generated IDs
+    // Return pre-built phrases with generated IDs and explicit language
     return pattern.phrases.map((phrase, index) => ({
       id: `gen-${pattern.id}-${index}`,
       text: phrase.text,
@@ -25,6 +25,7 @@ export function generatePhrasesFromPattern(pattern, count = 5) {
       icon: phrase.icon,
       scene: phrase.scene,
       patternId: pattern.id,
+      language: pattern.language || 'pt', // Explicit language metadata
       generated: true,
       words: phrase.words
     }));
@@ -487,6 +488,7 @@ function buildPhraseFromCombo(pattern, combo, index) {
     icon,
     scene,
     patternId: pattern.id,
+    language: pattern.language || 'pt', // Explicit language metadata
     generated: true,
     words: words.length > 0 ? words : undefined, // Only include if we built words
     contextVariations: contextVariations.length > 0 ? contextVariations : undefined  // Stable cluster

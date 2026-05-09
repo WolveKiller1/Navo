@@ -275,10 +275,11 @@ function PlaygroundScreen() {
       window.history.replaceState({}, document.title);
     } else if (location.state?.entryMode) {
       // Landing: show entry state first
-      const seed = generatePlaygroundSeed();
+      const lang = location.state?.language || 'en';
+      const seed = generatePlaygroundSeed(null, lang);
       setEntryPhrase(seed);
       setIsEntryMode(true);
-      console.log('[Playground] Entry mode:', seed.text);
+      console.log('[Playground] Entry mode:', seed.text, 'language:', lang);
       window.history.replaceState({}, document.title);
     } else if (!guidedSequence.length && !isEntryMode) {
       // No valid entry - redirect home
@@ -763,16 +764,18 @@ function PlaygroundScreen() {
 
   // Entry mode: Another seed button - generate new seed
   const handleAnotherSeed = () => {
-    const newSeed = generatePlaygroundSeed(entryPhrase?.patternId);
+    const lang = entryPhrase?.language || 'en';
+    const newSeed = generatePlaygroundSeed(entryPhrase?.patternId, lang);
     setEntryPhrase(newSeed);
-    console.log('[Playground] Another seed:', newSeed.text);
+    console.log('[Playground] Another seed:', newSeed.text, 'language:', lang);
   };
 
   // Guided mode: Another shape button - load a fresh pattern-backed cluster
   const handleAnotherShape = () => {
     if (!guidedSequence.length) return;
     const currentPhrase = guidedSequence[guidedIndex];
-    const newSeed = generatePlaygroundSeed(currentPhrase?.patternId || null);
+    const lang = currentPhrase?.language || 'en';
+    const newSeed = generatePlaygroundSeed(currentPhrase?.patternId || null, lang);
     const newSequence = buildPlaygroundSequence({
       guidedMode: true,
       seedSentence: newSeed.text,

@@ -3,20 +3,24 @@
  * Generates pattern-backed seed phrases for Playground entry
  */
 
-import { PHRASE_PATTERNS_PT } from '../data/phrasePatterns';
+import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from './phraseGenerator';
 
 /**
  * Generate a pattern-backed seed phrase for Playground entry
  * @param {string} avoidPatternId - Optional pattern ID to avoid repeating
- * @returns {Object} Seed phrase with text, meaning, icon, scene, patternId, contextVariations
+ * @param {string} language - Language code ('en' or 'pt', default: 'pt')
+ * @returns {Object} Seed phrase with text, meaning, icon, scene, patternId, contextVariations, language
  */
-export function generatePlaygroundSeed(avoidPatternId = null) {
-  // Select a random pattern (avoid previous if provided)
-  let availablePatterns = PHRASE_PATTERNS_PT;
+export function generatePlaygroundSeed(avoidPatternId = null, language = 'pt') {
+  // Select pattern set based on language
+  const patterns = language === 'en' ? PHRASE_PATTERNS_EN : PHRASE_PATTERNS_PT;
   
-  if (avoidPatternId && PHRASE_PATTERNS_PT.length > 1) {
-    const filtered = PHRASE_PATTERNS_PT.filter(p => p.id !== avoidPatternId);
+  // Select a random pattern (avoid previous if provided)
+  let availablePatterns = patterns;
+  
+  if (avoidPatternId && patterns.length > 1) {
+    const filtered = patterns.filter(p => p.id !== avoidPatternId);
     if (filtered.length > 0) {
       availablePatterns = filtered;
     }
