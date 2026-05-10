@@ -28,6 +28,8 @@ function CallScreen() {
   const location = useLocation();
   const navigate = useNavigate();
   
+  const hasOpeningSentence = Boolean(location.state?.openingSentence);
+  
   const [isListening, setIsListening] = useState(false);
   const [userText, setUserText] = useState('');
   const [aiText, setAiText] = useState('');
@@ -86,10 +88,11 @@ function CallScreen() {
     const init = async () => {
       await initStorage();
       const prefs = await getUserPreferences();
-      setCurrentLanguage(prefs.activeLanguage);
       
-      // PHASE 14 FIX: Auto-start session if opening sentence exists
       if (location.state?.openingSentence) {
+        const activeLanguage = location.state?.language || prefs.activeLanguage || 'en';
+        setCurrentLanguage(activeLanguage);
+        
         // Skip welcome screen, start session directly
         setSessionStarted(true);
         setExchangeCount(0);
@@ -103,8 +106,10 @@ function CallScreen() {
         sessionStartTimeRef.current = Date.now();
         
         // Create session
-        const newSessionId = await createSession(lastLang);
+        const newSessionId = await createSession(activeLanguage);
         setSessionId(newSessionId);
+      } else {
+        setCurrentLanguage(prefs.activeLanguage);
       }
     };
     init();
@@ -469,7 +474,7 @@ function CallScreen() {
   
   // Phase 10: Auto-send opening sentence from playground
   const handleAutoSendOpening = async (openingSentence) => {
-    if (openingSentenceProcessedRef.current && isProcessing) return;
+    if (openingSentenceProcessedRef.current) return;
 
     openingSentenceProcessedRef.current = true;
     setUserText(openingSentence);
@@ -529,7 +534,6 @@ function CallScreen() {
   // Phase 10: Check for opening sentence from playground
   useEffect(() => {
     if (location.state?.openingSentence && sessionStarted && sessionId && !openingSentenceProcessedRef.current) {
-      openingSentenceProcessedRef.current = true;
       const openingSentence = location.state.openingSentence;
       
       // Auto-send opening sentence
@@ -636,7 +640,7 @@ function CallScreen() {
   };
 
   // Show welcome screen (pre-conversation)
-  if (!sessionStarted && !sessionEnded) {
+  if (!sessionStarted && !sessionEnded && !hasOpeningSentence) {
     return (
       <div className="call-screen">
         <div className="welcome-container">
