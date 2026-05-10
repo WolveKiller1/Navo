@@ -30,6 +30,8 @@ function CallScreen() {
   
   const hasOpeningSentence = Boolean(location.state?.openingSentence);
   
+  const [openingPrompt, setOpeningPrompt] = useState(null);
+  
   const [isListening, setIsListening] = useState(false);
   const [userText, setUserText] = useState('');
   const [aiText, setAiText] = useState('');
@@ -108,8 +110,11 @@ function CallScreen() {
         // Create session
         const newSessionId = await createSession(activeLanguage);
         setSessionId(newSessionId);
-      } else {
-        setCurrentLanguage(prefs.activeLanguage);
+        
+        setOpeningPrompt(location.state.openingSentence);
+        
+        // Clear navigation state
+        window.history.replaceState({}, document.title);
       }
     };
     init();
@@ -317,6 +322,9 @@ function CallScreen() {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
       setIsListening(true);
+      if (openingPrompt) {
+        setOpeningPrompt(null);
+      }
       setUserText('');
       setAiText('');
       resetTranscript();
@@ -352,6 +360,7 @@ function CallScreen() {
     
     // Process the transcript
     if (transcript.trim()) {
+      setOpeningPrompt(null);
       setUserText(transcript);
       setIsProcessing(true);
       
@@ -442,6 +451,7 @@ function CallScreen() {
     setSessionEnded(true);
     setUserText('');
     setAiText('');
+    setOpeningPrompt(null);
     resetConversation();
     
     // Phase 5: Finalize session before closing
@@ -531,22 +541,10 @@ function CallScreen() {
     }
   };
   
-  // Phase 10: Check for opening sentence from playground
-  useEffect(() => {
-    if (location.state?.openingSentence && sessionStarted && sessionId && !openingSentenceProcessedRef.current) {
-      const openingSentence = location.state.openingSentence;
-      
-      // Auto-send opening sentence
-      handleAutoSendOpening(openingSentence);
-      
-      // Clear navigation state
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state, sessionStarted, sessionId]);
-
   // Handle start new call
   const handleStartNewCall = async () => {
     openingSentenceProcessedRef.current = false;
+    setOpeningPrompt(null);
     setSessionEnded(false);
     setSessionStarted(true);
     setUserText('');
@@ -607,6 +605,7 @@ function CallScreen() {
     SpeechRecognition.stopListening();
     stopSpeaking();
     setMeaningBubble(null);
+    setOpeningPrompt(null);
     resetConversation();
     
     // Clear session tracking
@@ -767,6 +766,13 @@ function CallScreen() {
           )}
         </div>
 
+        {/* DEBUG: Check if location.state.openingSentence exists */}
+        {location.state?.openingSentence && (
+          <div style={{ color: "white", fontSize: "20px", textAlign: "center", marginBottom: "20px", padding: "10px", backgroundColor: "rgba(255, 0, 0, 0.3)", borderRadius: "8px" }}>
+            Phrase: {location.state.openingSentence}
+          </div>
+        )}
+
         {/* Microphone Button */}
         <div className="mic-container">
           <button
@@ -784,6 +790,10 @@ function CallScreen() {
           {/* Only show invitation on first idle */}
           {!hasInteracted && !isListening && !isProcessing && !isSpeaking && (
             <p className="mic-invitation">Hold to speak</p>
+          )}
+          
+          {openingPrompt && !hasInteracted && (
+            <p className="opening-prompt">{openingPrompt}</p>
           )}
         </div>
 
