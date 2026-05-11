@@ -793,7 +793,19 @@ function CallScreen() {
           )}
           
           {openingPrompt && !hasInteracted && (
-            <p className="opening-prompt">{openingPrompt}</p>
+            <div className="opening-prompt-wrap">
+              <button
+                type="button"
+                className="opening-prompt-audio"
+                onClick={() => speak(openingPrompt)}
+                aria-label="Play phrase"
+                title="Play phrase"
+              >
+                🔊
+              </button>
+
+              <p className="opening-prompt">{openingPrompt}</p>
+            </div>
           )}
         </div>
 
