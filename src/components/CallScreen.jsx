@@ -89,10 +89,10 @@ function CallScreen() {
     // Initialize storage and get last language
     const init = async () => {
       await initStorage();
-      const prefs = await getUserPreferences();
+      const lastLanguage = await getLastLanguage();
+      const activeLanguage = location.state?.language || lastLanguage || 'en';
       
       if (location.state?.openingSentence) {
-        const activeLanguage = location.state?.language || prefs.activeLanguage || 'en';
         setCurrentLanguage(activeLanguage);
         
         // Skip welcome screen, start session directly
@@ -115,6 +115,8 @@ function CallScreen() {
         
         // Clear navigation state
         window.history.replaceState({}, document.title);
+      } else {
+        setCurrentLanguage(activeLanguage);
       }
     };
     init();
@@ -765,13 +767,6 @@ function CallScreen() {
             </div>
           )}
         </div>
-
-        {/* DEBUG: Check if location.state.openingSentence exists */}
-        {location.state?.openingSentence && (
-          <div style={{ color: "white", fontSize: "20px", textAlign: "center", marginBottom: "20px", padding: "10px", backgroundColor: "rgba(255, 0, 0, 0.3)", borderRadius: "8px" }}>
-            Phrase: {location.state.openingSentence}
-          </div>
-        )}
 
         {/* Microphone Button */}
         <div className="mic-container">
