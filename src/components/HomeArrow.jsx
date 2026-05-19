@@ -4,19 +4,21 @@
  */
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import '../styles/HomeArrow.css';
 
 function HomeArrow() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const target = location.state?.from || '/';
   
   return (
     <button 
       className="home-arrow"
-      onClick={() => navigate('/')}
-      aria-label="Back to home"
-      title="Back to home"
+      onClick={() => navigate(target)}
+      aria-label="Back to previous page"
+      title="Back to previous page"
     >
       <FaArrowLeft />
     </button>

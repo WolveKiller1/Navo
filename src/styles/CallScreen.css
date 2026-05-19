@@ -58,6 +58,27 @@
   z-index: 10;
 }
 
+.start-top-bar {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.welcome-icon-group {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  left: auto;
+  display: flex;
+  gap: 12px;
+  z-index: 20;
+}
+
 .history-icon,
 .account-icon {
   background: none;
@@ -481,6 +502,16 @@
   justify-content: center;
   align-items: center;
   gap: 28px;
+}
+
+.session-ended-icon-group {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  left: auto;
+  display: flex;
+  gap: 12px;
+  z-index: 20;
 }
 
 .session-ended h1 {

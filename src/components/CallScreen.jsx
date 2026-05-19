@@ -27,6 +27,7 @@ import '../styles/CallScreen.css';
 function CallScreen() {
   const location = useLocation();
   const navigate = useNavigate();
+  const currentRoute = location.pathname;
   
   const hasOpeningSentence = Boolean(location.state?.openingSentence);
   
@@ -644,16 +645,18 @@ function CallScreen() {
   if (!sessionStarted && !sessionEnded && !hasOpeningSentence) {
     return (
       <div className="call-screen">
-        <div className="welcome-container">
-          <div className="icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions')}>
+        <HomeArrow />
+        <div className="start-top-bar">
+          <div className="welcome-icon-group">
+            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
               <FaHistory />
             </button>
-            <button className="account-icon" onClick={() => navigate('/account')}>
+            <button className="account-icon" onClick={() => navigate('/account', { state: { from: currentRoute } })}>
               <FaUser />
             </button>
           </div>
-          
+        </div>
+        <div className="welcome-container">
           <button className="start-conversation-btn" onClick={handleStartConversation}>
             Start Conversation
           </button>
@@ -667,11 +670,11 @@ function CallScreen() {
     return (
       <div className="call-screen">
         <div className="session-ended">
-          <div className="icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions')}>
+          <div className="session-ended-icon-group">
+            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
               <FaHistory />
             </button>
-            <button className="account-icon" onClick={() => navigate('/account')}>
+            <button className="account-icon" onClick={() => navigate('/account', { state: { from: currentRoute } })}>
               <FaUser />
             </button>
           </div>
@@ -697,9 +700,6 @@ function CallScreen() {
 
   return (
     <div className="call-screen" data-state={isListening ? 'listening' : isProcessing ? 'processing' : isSpeaking ? 'speaking' : 'idle'}>
-      {/* Phase 15: Home Arrow */}
-      <HomeArrow />
-      
       {/* System Notice (appears above conversation) */}
       {systemNotice && (
         <SystemNotice
@@ -713,10 +713,10 @@ function CallScreen() {
       <div className="call-container">
         <div className="header">
           <div className="icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions')}>
+            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
               <FaHistory />
             </button>
-            <button className="account-icon" onClick={() => navigate('/account')}>
+            <button className="account-icon" onClick={() => navigate('/account', { state: { from: currentRoute } })}>
               <FaUser />
             </button>
           </div>

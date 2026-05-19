@@ -798,10 +798,10 @@ function PlaygroundScreen() {
           <h1 className="playground-title">Playground</h1>
           <p className="playground-subtitle">Guided pattern flow</p>
           <div className="icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions')} aria-label="Sessions">
+            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: location.pathname } })} aria-label="Sessions">
               <FaHistory />
             </button>
-            <button className="account-icon" onClick={() => navigate('/account')} aria-label="Account">
+            <button className="account-icon" onClick={() => navigate('/account', { state: { from: location.pathname } })} aria-label="Account">
               <FaUser />
             </button>
           </div>
