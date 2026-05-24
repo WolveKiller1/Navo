@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 0 3rem;
+  padding: 2.1rem 0 2.6rem;
 }
 
 .hero-content {
@@ -31,7 +31,7 @@
   margin-top: 1rem;
   max-width: 560px;
   color: var(--ink-soft);
-  font-size: 0.98rem;
+  font-size: 1.04rem;
   line-height: 1.6;
 }
 
@@ -78,7 +78,7 @@
   display: block;
   margin-top: 0.25rem;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   line-height: 1.45;
 }
 

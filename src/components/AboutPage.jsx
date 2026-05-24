@@ -5,7 +5,8 @@ import '../styles/AboutPage.css';
 function AboutPage() {
   return (
     <SubPageLayout
-      title="About Navo"
+      title="About"
+      headline="A language is a place."
       subtitle="A language is a place. Navo is a quiet room inside it."
     >
       <section className="about-grid">

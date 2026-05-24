@@ -9,7 +9,7 @@ import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
 import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from '../services/phraseGenerator';
 import { getUserPreferences, initStorage } from '../services/storage';
-import HomeArrow from './HomeArrow';
+import NavoNav from './NavoNav';
 import SystemNotice from './SystemNotice';
 import '../styles/ImitationLoop.css';
 
@@ -45,7 +45,6 @@ function ImitationLoop() {
   // Beginner support state
   const [showSentenceMeaning, setShowSentenceMeaning] = useState(false);
   const [pronunciationBubble, setPronunciationBubble] = useState(null);
-  const [hasUsedMeaning, setHasUsedMeaning] = useState(false);
   
   // Alignment animation state
   const [justAligned, setJustAligned] = useState(false);
@@ -253,6 +252,7 @@ function ImitationLoop() {
 
       if (finalTranscript) {
         setUserTranscript(finalTranscript);
+        setShowSentenceText(true);
 
         // Mark as engaged (mic used)
         if (!hasEngaged) setHasEngaged(true);
@@ -299,37 +299,10 @@ function ImitationLoop() {
     console.log('[Practice Loop] Next:', nextUnit.id, nextUnit.text);
   };
 
-  // Handle back button - go to previous in recent history
-  const handleBack = () => {
-    // Clear state
-    setUserTranscript('');
-    setSystemResponse('');
-    resetTranscript();
-    setShowSentenceMeaning(false);
-    setPronunciationBubble(null);
-    setShowSentenceText(false);
-    setHasEngaged(false);
-    
-    // Go to previous in recent history if exists
-    if (recentUnitIds.length > 1) {
-      const prevId = recentUnitIds[recentUnitIds.length - 2];
-      setCurrentUnitId(prevId);
-      
-      // Remove last from recent
-      setRecentUnitIds(prev => prev.slice(0, -1));
-      
-      console.log('[Practice Loop] Back:', prevId);
-    } else {
-      // If no history, pick random
-      handleNext();
-    }
-  };
-
   // Toggle sentence meaning
   const toggleSentenceMeaning = () => {
     if (!hasSupportContent) return;
     setShowSentenceMeaning(prev => !prev);
-    if (!hasUsedMeaning) setHasUsedMeaning(true);
     
     // Mark as engaged (meaning revealed)
     if (!hasEngaged) setHasEngaged(true);
@@ -411,7 +384,7 @@ function ImitationLoop() {
 
   return (
     <div className="imitation-loop navo-shell">
-      <HomeArrow />
+      <NavoNav compact />
       
       {systemNotice && (
         <SystemNotice
@@ -423,6 +396,12 @@ function ImitationLoop() {
       )}
       
       <div className="loop-container navo-container">
+        <header className="loop-header">
+          <span className="navo-pill"><span className="navo-dot" /> Practice Loop</span>
+          <h1>Listen first. Speak after.</h1>
+          <p className="loop-header-copy">One line at a time. Hear it, echo it, then move.</p>
+        </header>
+
         {/* Language context */}
         <div className="language-context navo-pill">
           <span className="navo-dot" />
@@ -440,10 +419,7 @@ function ImitationLoop() {
         {/* Target Sentence - Revealed on demand */}
         {showSentenceText && (
           <div className="text-reveal-section">
-            <div 
-              className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}
-              onClick={toggleSentenceMeaning}
-            >
+            <div className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}>
               {hasSupportContent && currentUnit.words ? (
                 currentUnit.words.map((wordData, index) => (
                   <span 
@@ -461,12 +437,6 @@ function ImitationLoop() {
           </div>
         )}
 
-        {/* Show text button - Subtle, secondary */}
-        {!showSentenceText && userTranscript && (
-          <button className="show-text-button" onClick={() => setShowSentenceText(true)}>
-            Show text
-          </button>
-        )}
 
         {/* Sentence Meaning (revealed on click) */}
         {showSentenceMeaning && hasSupportContent && (
@@ -475,10 +445,6 @@ function ImitationLoop() {
           </div>
         )}
 
-        {/* Tap hint (subtle, fades after first use) */}
-        {hasSupportContent && !hasUsedMeaning && !userTranscript && (
-          <div className="meaning-hint">tap for meaning</div>
-        )}
 
         {/* Microphone Button */}
         <div className="mic-container">
@@ -510,21 +476,25 @@ function ImitationLoop() {
           </div>
         )}
 
-        {/* Bridge to Playground (shows after engagement) */}
-        {hasEngaged && hasSupportContent && (
-          <button className="bridge-button" onClick={handleTryAnotherShape}>
-            Try another shape
-          </button>
-        )}
-
-        {/* Next / Back Buttons (show after attempt, regardless of alignment) */}
+        {/* Post-attempt actions */}
         {userTranscript && (
-          <div className="navigation-buttons">
-            <button className="back-button" onClick={handleBack}>
-              ← back
+          <div className="navigation-buttons loop-actions">
+            <button
+              className="action-chip"
+              onClick={toggleSentenceMeaning}
+              disabled={!hasSupportContent}
+            >
+              {showSentenceMeaning ? 'Hide meaning' : 'Show meaning'}
             </button>
-            <button className="next-button" onClick={handleNext}>
-              next →
+            <button className="action-chip" onClick={handleNext}>
+              Next phrase
+            </button>
+            <button
+              className="action-chip action-chip-warm"
+              onClick={handleTryAnotherShape}
+              disabled={!hasSupportContent}
+            >
+              Explore this pattern
             </button>
           </div>
         )}
@@ -560,3 +530,4 @@ function ImitationLoop() {
 }
 
 export default ImitationLoop;
+

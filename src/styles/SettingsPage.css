@@ -1,0 +1,97 @@
+﻿.settings-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.settings-row {
+  padding: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.settings-row-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.08rem;
+}
+
+.settings-row-sub {
+  margin-top: 0.16rem;
+  color: var(--ink-mute);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.settings-choice-group {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.settings-choice {
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.44rem 0.74rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.settings-choice:hover {
+  color: var(--ink);
+}
+
+.settings-choice.active {
+  color: var(--ink);
+  border-color: color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
+}
+
+.settings-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.settings-toggle-knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--ink-mute);
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  transition: left 150ms ease;
+}
+
+.settings-toggle.on {
+  border-color: color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
+}
+
+.settings-toggle.on .settings-toggle-knob {
+  left: 22px;
+  background: var(--accent-warm);
+}
+
+.settings-footnote {
+  margin-top: 0.8rem;
+  color: var(--ink-mute);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 760px) {
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-choice-group {
+    justify-content: flex-start;
+  }
+}

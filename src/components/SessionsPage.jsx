@@ -6,6 +6,7 @@ function SessionsPage() {
   return (
     <SubPageLayout
       title="Sessions"
+      headline="Rooms you've been in"
       subtitle="Quiet traces of previous conversations. Re-enter any thread."
     >
       <SessionHistoryContent />

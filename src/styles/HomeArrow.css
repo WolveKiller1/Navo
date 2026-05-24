@@ -2,14 +2,17 @@
   position: absolute;
   top: 18px;
   left: 18px;
-  width: 34px;
   height: 34px;
+  padding: 0 0.62rem 0 0.48rem;
   border-radius: 999px;
   border: 1px solid var(--edge);
   background: color-mix(in oklab, var(--ground-2) 88%, transparent);
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
   transition: color 0.2s, border-color 0.2s;
   z-index: 30;
 }
@@ -17,4 +20,8 @@
 .home-arrow:hover {
   color: var(--ink);
   border-color: color-mix(in oklab, var(--accent-warm) 55%, var(--edge));
+}
+
+.home-arrow-text {
+  font-family: "Fraunces", Georgia, serif;
 }

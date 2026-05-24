@@ -5,6 +5,7 @@ import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
 function NavoNav({ showEnterRoom = true, compact = false }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+
   const grantRoomAccess = () => {
     sessionStorage.setItem('rylingo_access', 'granted');
   };
@@ -35,11 +36,19 @@ function NavoNav({ showEnterRoom = true, compact = false }) {
           </Link>
         ))}
         {showEnterRoom && (
-          <Link to="/room" className="room-entry-chip" onClick={grantRoomAccess}>
+          <Link
+            to="/room"
+            className={`room-entry-chip ${isActive('/room') ? 'active' : ''}`}
+            onClick={grantRoomAccess}
+          >
             Enter Navo
           </Link>
         )}
-        <Link to="/account" className="account-chip" aria-label="Account">
+        <Link
+          to="/account"
+          className={`account-chip ${isActive('/account') ? 'active' : ''}`}
+          aria-label="Account"
+        >
           <FaUser />
         </Link>
       </nav>
@@ -68,7 +77,7 @@ function NavoNav({ showEnterRoom = true, compact = false }) {
             {showEnterRoom && (
               <Link
                 to="/room"
-                className="mobile-nav-link room"
+                className={`mobile-nav-link room ${isActive('/room') ? 'active' : ''}`}
                 onClick={() => {
                   grantRoomAccess();
                   setOpen(false);
@@ -77,7 +86,11 @@ function NavoNav({ showEnterRoom = true, compact = false }) {
                 Enter Navo
               </Link>
             )}
-            <Link to="/account" className="mobile-nav-link" onClick={() => setOpen(false)}>
+            <Link
+              to="/account"
+              className={`mobile-nav-link ${isActive('/account') ? 'active' : ''}`}
+              onClick={() => setOpen(false)}
+            >
               Account
             </Link>
           </nav>

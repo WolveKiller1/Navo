@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaPlay, FaTrash } from 'react-icons/fa';
 import { getAllSessions, deleteSession } from '../services/storage';
 import { speak } from '../services/tts';
 import '../styles/SessionHistory.css';
 
 function SessionHistoryContent() {
+  const navigate = useNavigate();
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -16,6 +18,7 @@ function SessionHistoryContent() {
       const sorted = allSessions.sort((a, b) => b.startTimestamp - a.startTimestamp);
       setSessions(sorted);
     };
+
     loadSessions();
   }, []);
 
@@ -23,46 +26,50 @@ function SessionHistoryContent() {
     setTimeout(() => setErrorMessage(''), 5000);
   };
 
-  const handleDeleteClick = (e, sessionId) => {
-    e.stopPropagation();
+  const handleDeleteClick = (event, sessionId) => {
+    event.stopPropagation();
     setConfirmDeleteId(sessionId);
   };
 
-  const handleCancelDelete = (e) => {
-    e.stopPropagation();
+  const handleCancelDelete = (event) => {
+    event.stopPropagation();
     setConfirmDeleteId(null);
   };
 
-  const handleConfirmDelete = async (e, sessionId) => {
-    e.stopPropagation();
+  const handleConfirmDelete = async (event, sessionId) => {
+    event.stopPropagation();
     setErrorMessage('');
-    
+
     const result = await deleteSession(sessionId);
-    
+
     if (result.success) {
-      setSessions(sessions.filter(s => s.sessionId !== sessionId));
+      setSessions(sessions.filter(session => session.sessionId !== sessionId));
       setConfirmDeleteId(null);
-      
+
       if (selectedSessionId === sessionId) {
         setSelectedSessionId(null);
       }
-    } else {
-      setErrorMessage(result.error);
-      clearError();
-      setConfirmDeleteId(null);
+      return;
     }
+
+    setErrorMessage(result.error);
+    clearError();
+    setConfirmDeleteId(null);
   };
 
   const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleDateString('en-US', { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
   const formatMinutes = (duration) => {
-    if (!duration || duration <= 0) return null;
+    if (!duration || duration <= 0) {
+      return null;
+    }
+
     return Math.max(1, Math.round(duration / 60000));
   };
 
@@ -70,49 +77,58 @@ function SessionHistoryContent() {
     speak(replyText);
   };
 
-  // Detail view
+  const handleReenterRoom = (session, event) => {
+    event.stopPropagation();
+    const seedPhrase = session.exchanges?.[0]?.userUtterance || '';
+
+    sessionStorage.setItem('rylingo_access', 'granted');
+    navigate('/room', {
+      state: {
+        language: session.language || 'en',
+        openingSentence: seedPhrase || undefined
+      }
+    });
+  };
+
   if (selectedSessionId !== null) {
-    const session = sessions.find(s => s.sessionId === selectedSessionId);
-    
+    const session = sessions.find(item => item.sessionId === selectedSessionId);
+
     if (!session) {
       return null;
     }
 
     return (
       <div className="session-history-content">
-        {errorMessage && (
-          <div className="history-error">{errorMessage}</div>
-        )}
+        {errorMessage && <div className="history-error">{errorMessage}</div>}
+
         <div className="detail-header">
           <button className="detail-back-btn" onClick={() => setSelectedSessionId(null)}>
             <FaArrowLeft />
           </button>
           <span className="detail-date">{formatDate(session.startTimestamp)}</span>
+          <button className="detail-reenter-btn" onClick={(event) => handleReenterRoom(session, event)}>
+            Re-enter room
+          </button>
           {confirmDeleteId === session.sessionId ? (
             <div className="inline-confirm">
-              <button 
-                className="confirm-delete-btn" 
-                onClick={(e) => handleConfirmDelete(e, session.sessionId)}
-              >
+              <button className="confirm-delete-btn" onClick={(event) => handleConfirmDelete(event, session.sessionId)}>
                 Delete
               </button>
-              <button 
-                className="cancel-delete-btn" 
-                onClick={handleCancelDelete}
-              >
+              <button className="cancel-delete-btn" onClick={handleCancelDelete}>
                 Cancel
               </button>
             </div>
           ) : (
-            <button 
-              className="delete-btn" 
-              onClick={(e) => handleDeleteClick(e, session.sessionId)}
+            <button
+              className="delete-btn"
+              onClick={(event) => handleDeleteClick(event, session.sessionId)}
               title="Delete conversation"
             >
               <FaTrash />
             </button>
           )}
         </div>
+
         <div className="detail-transcript">
           {session.exchanges.map((exchange, index) => (
             <div key={index} className="transcript-exchange">
@@ -123,11 +139,7 @@ function SessionHistoryContent() {
               <div className="transcript-ai">
                 <span className="transcript-label">Navo:</span>
                 <span className="transcript-text">{exchange.rylingoReply}</span>
-                <button 
-                  className="play-reply-btn" 
-                  onClick={() => handlePlayReply(exchange.rylingoReply)}
-                  title="Play audio"
-                >
+                <button className="play-reply-btn" onClick={() => handlePlayReply(exchange.rylingoReply)} title="Play audio">
                   <FaPlay />
                 </button>
               </div>
@@ -138,29 +150,24 @@ function SessionHistoryContent() {
     );
   }
 
-  // List view
   return (
     <div className="session-history-content">
-      {errorMessage && (
-        <div className="history-error">{errorMessage}</div>
-      )}
-      
+      {errorMessage && <div className="history-error">{errorMessage}</div>}
+
       {sessions.length === 0 ? (
         <div className="history-empty">
-          <p>No conversations yet</p>
+          <p>No rooms yet</p>
         </div>
       ) : (
         <div className="history-list">
           {sessions.map((session) => (
-            <div 
-              key={session.sessionId} 
+            <div
+              key={session.sessionId}
               className="history-item"
               onClick={() => setSelectedSessionId(session.sessionId)}
             >
               <div className="history-copy">
-                <p className="history-preview">
-                  "{session.exchanges?.[0]?.userUtterance || 'Conversation'}"
-                </p>
+                <p className="history-preview">"{session.exchanges?.[0]?.userUtterance || 'Conversation'}"</p>
                 <p className="session-date">
                   {formatDate(session.startTimestamp)}
                   {session.language ? ` · ${session.language.toUpperCase()}` : ''}
@@ -168,25 +175,24 @@ function SessionHistoryContent() {
                   {session.exchangeCount ? ` · ${session.exchangeCount} turns` : ''}
                 </p>
               </div>
+
+              <button className="reenter-btn" onClick={(event) => handleReenterRoom(session, event)}>
+                Re-enter
+              </button>
+
               {confirmDeleteId === session.sessionId ? (
                 <div className="inline-confirm">
-                  <button 
-                    className="confirm-delete-btn" 
-                    onClick={(e) => handleConfirmDelete(e, session.sessionId)}
-                  >
+                  <button className="confirm-delete-btn" onClick={(event) => handleConfirmDelete(event, session.sessionId)}>
                     Delete
                   </button>
-                  <button 
-                    className="cancel-delete-btn" 
-                    onClick={handleCancelDelete}
-                  >
+                  <button className="cancel-delete-btn" onClick={handleCancelDelete}>
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button 
-                  className="delete-btn" 
-                  onClick={(e) => handleDeleteClick(e, session.sessionId)}
+                <button
+                  className="delete-btn"
+                  onClick={(event) => handleDeleteClick(event, session.sessionId)}
                   title="Delete conversation"
                 >
                   <FaTrash />

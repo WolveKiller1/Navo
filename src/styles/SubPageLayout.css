@@ -5,7 +5,7 @@
 
 .subpage-content {
   flex: 1;
-  padding: 0.9rem 0 1.6rem;
+  padding: 1rem 0 1.45rem;
 }
 
 .subpage-header {
@@ -20,22 +20,8 @@
 
 .subpage-subtitle {
   margin-top: 0.45rem;
-  max-width: 620px;
+  max-width: 680px;
   color: var(--ink-soft);
   line-height: 1.55;
-  font-size: 0.95rem;
-}
-
-.subpage-home-link-wrap {
-  margin-top: 1.4rem;
-}
-
-.subpage-home-link {
-  text-decoration: none;
-  color: var(--ink-mute);
-  font-size: 0.82rem;
-}
-
-.subpage-home-link:hover {
-  color: var(--ink-soft);
+  font-size: 1rem;
 }

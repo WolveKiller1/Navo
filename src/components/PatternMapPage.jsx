@@ -22,6 +22,7 @@ function PatternMapPage() {
   return (
     <SubPageLayout
       title="Pattern Map"
+      headline="A map of nearby shapes"
       subtitle="A quiet map of patterns you have moved through."
     >
       <section className="pattern-map-wrap navo-card navo-hairline-top">

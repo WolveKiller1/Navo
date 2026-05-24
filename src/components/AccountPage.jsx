@@ -1,52 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import { exportSessionsAsJSON, deleteAllSessions, deleteAllData, getUserPreferences, saveUserPreferences } from '../services/storage';
+﻿import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  exportSessionsAsJSON,
+  deleteAllSessions,
+  deleteAllData,
+  getUserPreferences,
+  getAllSessions
+} from '../services/storage';
 import ConfirmationDialog from './ConfirmationDialog';
 import SubPageLayout from './SubPageLayout';
 import '../styles/AccountPage.css';
 
+const LANGUAGE_META = {
+  en: { name: 'English', note: 'Available in this build' },
+  pt: { name: 'Portuguese', note: 'Available in this build' }
+};
+
+function formatTotalMinutes(totalDurationMs, fallbackTurns) {
+  if (totalDurationMs > 0) {
+    return Math.max(1, Math.round(totalDurationMs / 60000));
+  }
+
+  if (fallbackTurns > 0) {
+    return Math.max(1, Math.round(fallbackTurns * 0.6));
+  }
+
+  return 0;
+}
+
 function AccountPage() {
-  const [currentSection, setCurrentSection] = useState('general');
   const [preferences, setPreferences] = useState(null);
+  const [stats, setStats] = useState({
+    sessionCount: 0,
+    turns: 0,
+    minutes: 0,
+    latestLine: null,
+    languages: []
+  });
   const [errorMessage, setErrorMessage] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmDialogConfig, setConfirmDialogConfig] = useState({
     action: null,
     title: '',
     body: '',
-    confirmText: 'Confirm'
+    confirmText: 'Confirm',
+    isDangerous: false
   });
 
   useEffect(() => {
-    const loadPreferences = async () => {
+    const loadAccount = async () => {
       const prefs = await getUserPreferences();
+      const sessions = await getAllSessions();
+      const ordered = [...sessions].sort((a, b) => b.startTimestamp - a.startTimestamp);
+
+      const totalDuration = ordered.reduce((sum, session) => sum + (session.duration || 0), 0);
+      const totalTurns = ordered.reduce((sum, session) => sum + (session.exchangeCount || session.exchanges?.length || 0), 0);
+      const minutes = formatTotalMinutes(totalDuration, totalTurns);
+
+      const languageSet = new Set(
+        ordered
+          .map(session => session.language)
+          .filter(Boolean)
+      );
+
+      if (prefs.activeLanguage) {
+        languageSet.add(prefs.activeLanguage);
+      }
+
       setPreferences(prefs);
-      applyTheme(prefs.theme);
+      setStats({
+        sessionCount: ordered.length,
+        turns: totalTurns,
+        minutes,
+        latestLine: ordered[0]?.exchanges?.[0]?.userUtterance || null,
+        languages: Array.from(languageSet)
+      });
     };
-    loadPreferences();
+
+    loadAccount();
   }, []);
 
   const clearError = () => {
     setTimeout(() => setErrorMessage(''), 5000);
-  };
-
-  const applyTheme = (theme) => {
-    if (theme === 'light') {
-      document.body.classList.add('light-theme');
-      document.body.classList.remove('dark-theme');
-    } else {
-      document.body.classList.add('dark-theme');
-      document.body.classList.remove('light-theme');
-    }
-  };
-
-  const updatePreference = async (key, value) => {
-    const updated = { ...preferences, [key]: value };
-    setPreferences(updated);
-    await saveUserPreferences(updated);
-
-    if (key === 'theme') {
-      applyTheme(value);
-    }
   };
 
   const handleExport = async () => {
@@ -92,13 +127,19 @@ function AccountPage() {
         setErrorMessage(result.error);
         clearError();
       }
-    } else if (confirmDialogConfig.action === 'deleteSessions') {
+      return;
+    }
+
+    if (confirmDialogConfig.action === 'deleteSessions') {
       const result = await deleteAllSessions();
       if (!result.success) {
         setErrorMessage(result.error);
         clearError();
       }
-    } else if (confirmDialogConfig.action === 'deleteData') {
+      return;
+    }
+
+    if (confirmDialogConfig.action === 'deleteData') {
       const result = await deleteAllData();
       if (!result.success) {
         setErrorMessage(result.error);
@@ -107,121 +148,123 @@ function AccountPage() {
     }
   };
 
-  const handleCancelDelete = () => {
-    setShowConfirmDialog(false);
-  };
-
   if (!preferences) {
     return null;
   }
+
+  const activeLanguage = preferences.activeLanguage || 'en';
+  const knownLanguages = ['en', 'pt'];
 
   return (
     <>
       <SubPageLayout
         title="Account"
-        subtitle="Profile and local-device controls for this preview build."
+        headline="Your quiet profile"
+        subtitle="Local profile details and traces from your sessions in Navo."
       >
         <section className="account-hero navo-card navo-hairline-top">
           <div className="account-avatar">N</div>
           <div className="account-meta">
             <p className="account-name">Navo Preview User</p>
-            <p className="account-sub">Local profile � no cloud account connected</p>
+            <p className="account-sub">Local profile · no cloud account connected</p>
           </div>
         </section>
 
-        <div className="account-tabs">
-          <button
-            className={`tab-btn ${currentSection === 'general' ? 'active' : ''}`}
-            onClick={() => setCurrentSection('general')}
-          >
-            General
-          </button>
-          <button
-            className={`tab-btn ${currentSection === 'data' ? 'active' : ''}`}
-            onClick={() => setCurrentSection('data')}
-          >
-            Data
-          </button>
-        </div>
+        <section className="account-traces">
+          <article className="trace-card navo-card navo-hairline-top">
+            <p className="trace-label">Time in the room</p>
+            <p className="trace-value">{stats.minutes > 0 ? `${stats.minutes} min` : 'No time yet'}</p>
+            <p className="trace-note">Across {stats.sessionCount} saved session{stats.sessionCount === 1 ? '' : 's'}.</p>
+          </article>
+          <article className="trace-card navo-card navo-hairline-top">
+            <p className="trace-label">Conversation turns</p>
+            <p className="trace-value">{stats.turns || 0}</p>
+            <p className="trace-note">Observed exchanges, not a score.</p>
+          </article>
+          <article className="trace-card navo-card navo-hairline-top">
+            <p className="trace-label">Current language</p>
+            <p className="trace-value">{LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase()}</p>
+            <p className="trace-note">Active in your local preferences.</p>
+          </article>
+        </section>
 
-        {errorMessage && (
-          <div className="settings-error">{errorMessage}</div>
-        )}
+        <section className="account-language-panel navo-card navo-hairline-top">
+          <div className="account-language-header">
+            <h2>Languages</h2>
+            <p>Use Settings to switch your active language.</p>
+          </div>
+          <div className="language-list">
+            {knownLanguages.map((langCode) => {
+              const lang = LANGUAGE_META[langCode];
+              const isActive = activeLanguage === langCode;
+              const seenInSessions = stats.languages.includes(langCode);
 
-        {currentSection === 'general' && (
-          <section className="settings-panel navo-card navo-hairline-top">
-            <div className="setting-row">
-              <label className="setting-label">Active language</label>
-              <div className="setting-options">
-                <button
-                  className={`option-btn ${preferences.activeLanguage === 'en' ? 'active' : ''}`}
-                  onClick={() => updatePreference('activeLanguage', 'en')}
-                >
-                  English
-                </button>
-                <button
-                  className={`option-btn ${preferences.activeLanguage === 'pt' ? 'active' : ''}`}
-                  onClick={() => updatePreference('activeLanguage', 'pt')}
-                >
-                  Portuguese
-                </button>
-              </div>
-            </div>
+              return (
+                <div key={langCode} className="language-row">
+                  <div>
+                    <p className="language-name">{lang.name}</p>
+                    <p className="language-note">
+                      {isActive
+                        ? 'Active now'
+                        : seenInSessions
+                          ? 'Seen in your traces'
+                          : lang.note}
+                    </p>
+                  </div>
+                  {isActive ? (
+                    <span className="language-active-pill"><span className="navo-dot" /> Active</span>
+                  ) : (
+                    <Link to="/settings" className="language-action-link">Set active</Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
-            <div className="setting-row">
-              <label className="setting-label">Theme</label>
-              <div className="setting-options">
-                <button
-                  className={`option-btn ${preferences.theme === 'dark' ? 'active' : ''}`}
-                  onClick={() => updatePreference('theme', 'dark')}
-                >
-                  Dark
-                </button>
-                <button
-                  className={`option-btn ${preferences.theme === 'light' ? 'active' : ''}`}
-                  onClick={() => updatePreference('theme', 'light')}
-                >
-                  Light
-                </button>
-              </div>
-            </div>
+        <section className="account-links-grid">
+          <Link to="/sessions" className="account-link-card navo-card navo-hairline-top">
+            <p className="account-link-kicker">Archive</p>
+            <p className="account-link-title">Past sessions</p>
+            <p className="account-link-body">Re-enter rooms and revisit phrase traces.</p>
+          </Link>
+          <Link to="/settings" className="account-link-card navo-card navo-hairline-top">
+            <p className="account-link-kicker">Atmosphere</p>
+            <p className="account-link-title">Settings</p>
+            <p className="account-link-body">Tune language, voice feel, and display behavior.</p>
+          </Link>
+        </section>
 
-            <div className="setting-row">
-              <label className="setting-label">Show heard speech</label>
-              <div className="setting-toggle">
-                <button
-                  className={`toggle-btn ${preferences.showHeardSpeech ? 'on' : 'off'}`}
-                  onClick={() => updatePreference('showHeardSpeech', !preferences.showHeardSpeech)}
-                >
-                  <span className="toggle-slider"></span>
-                </button>
-                <span className="toggle-label">{preferences.showHeardSpeech ? 'On' : 'Off'}</span>
-              </div>
-            </div>
+        {stats.latestLine && (
+          <section className="account-latest navo-card navo-hairline-top">
+            <p className="account-latest-label">Latest carried line</p>
+            <p className="account-latest-line">"{stats.latestLine}"</p>
           </section>
         )}
 
-        {currentSection === 'data' && (
-          <section className="settings-panel navo-card navo-hairline-top">
-            <div className="data-controls">
-              <button className="data-btn" onClick={handleExport}>
-                Export conversations
-              </button>
-              <button className="data-btn" onClick={handleDeleteAllSessions}>
-                Delete all conversations
-              </button>
-              <button className="data-btn data-btn-danger" onClick={handleDeleteAllData}>
-                Delete all data
-              </button>
-            </div>
-          </section>
-        )}
+        {errorMessage && <div className="settings-error">{errorMessage}</div>}
+
+        <section className="account-data-panel navo-card navo-hairline-top">
+          <h2>Local data</h2>
+          <p>Data stays on this device unless you export it.</p>
+          <div className="data-controls">
+            <button className="data-btn" onClick={handleExport}>
+              Export conversations
+            </button>
+            <button className="data-btn" onClick={handleDeleteAllSessions}>
+              Delete all conversations
+            </button>
+            <button className="data-btn data-btn-danger" onClick={handleDeleteAllData}>
+              Delete all data
+            </button>
+          </div>
+        </section>
       </SubPageLayout>
 
       {showConfirmDialog && (
         <ConfirmationDialog
           onConfirm={handleConfirmAction}
-          onCancel={handleCancelDelete}
+          onCancel={() => setShowConfirmDialog(false)}
           title={confirmDialogConfig.title}
           body={confirmDialogConfig.body}
           confirmText={confirmDialogConfig.confirmText}

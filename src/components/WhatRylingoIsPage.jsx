@@ -5,7 +5,8 @@ import '../styles/WhatRylingoIsPage.css';
 function WhatRylingoIsPage() {
   return (
     <SubPageLayout
-      title="What Navo Is"
+      title="What it is"
+      headline="Conversation and pattern exposure first"
       subtitle="Conversation and pattern exposure first."
     >
       <section className="what-grid">

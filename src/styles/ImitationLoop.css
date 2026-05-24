@@ -1,20 +1,38 @@
 .imitation-loop {
   width: 100%;
   color: var(--ink);
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .loop-container {
-  padding: 2.5rem 0 3rem;
+  flex: 1;
+  padding: 1.3rem 0 2.4rem;
   display: grid;
   justify-items: center;
-  gap: 1.2rem;
+  gap: 0.9rem;
+}
+
+.loop-header {
+  width: 100%;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+}
+
+.loop-header h1 {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 1.05;
+}
+
+.loop-header-copy {
+  max-width: 510px;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  line-height: 1.5;
 }
 
 .language-context {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   letter-spacing: 0.11em;
 }
 
@@ -22,11 +40,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.8rem;
 }
 
 .listen-instruction {
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   color: var(--ink-mute);
 }
 
@@ -51,19 +69,18 @@
 }
 
 .text-reveal-section {
-  width: min(660px, 100%);
-  animation: loopReveal 220ms ease-out;
+  width: min(680px, 100%);
 }
 
 .sentence-display {
   text-align: center;
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(1.6rem, 4.2vw, 2.25rem);
-  line-height: 1.22;
+  font-size: clamp(1.55rem, 4vw, 2.15rem);
+  line-height: 1.24;
 }
 
 .sentence-display.has-support {
-  cursor: pointer;
+  cursor: default;
 }
 
 .word-clickable {
@@ -74,44 +91,25 @@
   color: var(--accent-warm);
 }
 
-.show-text-button {
-  background: transparent;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius-pill);
-  color: var(--ink-soft);
-  font-size: 0.75rem;
-  padding: 0.45rem 0.95rem;
-  cursor: pointer;
-}
-
-.show-text-button:hover {
-  color: var(--ink);
-}
-
 .sentence-meaning {
-  font-size: 0.94rem;
-  line-height: 1.55;
-  color: var(--ink-soft);
+  width: min(600px, 100%);
   text-align: center;
-  max-width: 560px;
-}
-
-.meaning-hint {
-  font-size: 0.73rem;
   color: var(--ink-mute);
-  text-transform: lowercase;
+  font-style: italic;
+  font-size: 0.87rem;
+  line-height: 1.5;
 }
 
 .mic-container {
-  margin-top: 0.25rem;
+  margin-top: 0.1rem;
 }
 
 .mic-button {
-  width: 124px;
-  height: 124px;
+  width: 120px;
+  height: 120px;
   border-radius: 999px;
   border: 1px solid var(--edge);
-  background: color-mix(in oklab, var(--ground-2) 88%, transparent);
+  background: color-mix(in oklab, var(--ground-2) 90%, transparent);
   color: var(--ink);
   cursor: pointer;
   transition: transform 180ms ease, border-color 180ms ease, opacity 180ms ease;
@@ -128,14 +126,14 @@
 }
 
 .mic-icon {
-  font-size: 2.6rem;
+  font-size: 2.55rem;
 }
 
 .heard-section {
-  min-height: 62px;
+  min-height: 56px;
   display: grid;
   justify-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .heard-section.hidden {
@@ -144,14 +142,14 @@
 
 .heard-label {
   color: var(--ink-mute);
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
 }
 
 .heard-text {
   color: var(--ink-soft);
-  opacity: 0.65;
-  font-size: 0.92rem;
+  opacity: 0.7;
+  font-size: 0.95rem;
   text-align: center;
   line-height: 1.45;
 }
@@ -161,76 +159,71 @@
 }
 
 .response-display {
-  width: min(660px, 100%);
-  padding: 1rem 1rem 1.05rem;
+  width: min(680px, 100%);
   border-radius: var(--radius);
   border: 1px solid var(--edge);
   background: color-mix(in oklab, var(--ground-2) 88%, transparent);
   color: var(--ink-soft);
-  line-height: 1.55;
+  line-height: 1.52;
   text-align: center;
+  padding: 0.86rem 0.95rem;
+  font-size: 0.88rem;
 }
 
-.bridge-button {
-  border: 1px solid color-mix(in oklab, var(--accent-warm) 55%, var(--edge));
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--ground-2) 85%, transparent);
-  color: var(--ink);
-  padding: 0.72rem 1.25rem;
-  cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease;
-}
-
-.bridge-button:hover {
-  transform: translateY(-1px);
-  background: color-mix(in oklab, var(--ground-2) 75%, var(--accent-warm-soft));
-}
-
-.navigation-buttons {
+.loop-actions {
   display: flex;
-  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
 }
 
-.back-button,
-.next-button {
-  border-radius: var(--radius-pill);
+.action-chip {
+  border-radius: 999px;
   border: 1px solid var(--edge);
   background: transparent;
   color: var(--ink-soft);
-  padding: 0.53rem 0.95rem;
-  font-size: 0.84rem;
+  padding: 0.47rem 0.75rem;
+  font-size: 0.79rem;
   cursor: pointer;
 }
 
-.back-button:hover,
-.next-button:hover {
+.action-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-chip:hover:not(:disabled) {
   color: var(--ink);
+}
+
+.action-chip-warm {
+  border-color: color-mix(in oklab, var(--accent-warm) 55%, var(--edge));
 }
 
 .pronunciation-bubble {
   background: color-mix(in oklab, var(--ground-2) 93%, transparent);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
-  padding: 0.65rem 0.8rem;
+  padding: 0.64rem 0.75rem;
   z-index: 1000;
 }
 
 .bubble-word {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .bubble-pronunciation {
-  margin-top: 0.2rem;
+  margin-top: 0.18rem;
   color: var(--accent-warm);
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .bubble-meaning {
-  margin-top: 0.2rem;
+  margin-top: 0.18rem;
   color: var(--ink-mute);
-  font-size: 0.75rem;
+  font-size: 0.73rem;
 }
 
 .bubble-backdrop {
@@ -239,26 +232,14 @@
   z-index: 999;
 }
 
-@keyframes loopReveal {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 760px) {
   .loop-container {
-    padding-top: 1.7rem;
-    gap: 1rem;
+    padding-top: 1rem;
   }
 
   .mic-button {
-    width: 106px;
-    height: 106px;
+    width: 104px;
+    height: 104px;
   }
 
   .mic-icon {

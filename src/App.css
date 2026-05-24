@@ -64,7 +64,7 @@ h3 {
 }
 
 .navo-container {
-  width: min(760px, 92vw);
+  width: min(820px, 92vw);
   margin-inline: auto;
 }
 
@@ -155,6 +155,20 @@ h3 {
   gap: 0.9rem;
 }
 
+.nav-link {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.nav-link:visited {
+  color: var(--ink-soft);
+}
+
+.nav-link:hover {
+  color: var(--ink);
+}
+
 .nav-link.active {
   color: var(--accent-warm);
 }
@@ -166,9 +180,17 @@ h3 {
   color: var(--ink);
   background: color-mix(in oklab, var(--ground-2) 84%, transparent);
   padding: 0.4rem 0.8rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+.room-entry-chip:visited {
+  color: var(--ink);
+}
+
+.room-entry-chip.active {
+  border-color: color-mix(in oklab, var(--accent-warm) 72%, var(--edge));
 }
 
 .account-chip {
@@ -185,6 +207,11 @@ h3 {
 
 .account-chip:hover {
   color: var(--ink);
+}
+
+.account-chip.active {
+  color: var(--accent-warm);
+  border-color: color-mix(in oklab, var(--accent-warm) 58%, var(--edge));
 }
 
 .nav-mobile-toggle {
@@ -219,6 +246,10 @@ h3 {
   font-size: 0.88rem;
 }
 
+.mobile-nav-link:visited {
+  color: var(--ink-soft);
+}
+
 .mobile-nav-link:hover,
 .mobile-nav-link.active {
   color: var(--ink);
@@ -226,20 +257,20 @@ h3 {
 }
 
 .mobile-nav-link.room {
-  color: var(--accent-warm);
+  color: var(--ink-soft);
 }
 
 .navo-footer {
   border-top: 1px solid var(--edge);
-  margin-top: 2.8rem;
-  padding: 1.6rem 0 2rem;
+  margin-top: 2.2rem;
+  padding: 1.5rem 0 1.6rem;
 }
 
 .navo-footer-inner {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.4rem;
 }
 
 .navo-footer-brand {
@@ -254,23 +285,50 @@ h3 {
 
 .navo-footer-brand p {
   color: var(--ink-mute);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .navo-footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem 1.4rem;
+}
+
+.navo-footer-group {
+  display: grid;
+  gap: 0.26rem;
+}
+
+.navo-footer-group-label {
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.65rem;
+  margin-bottom: 0.1rem;
 }
 
 .navo-footer-links a {
   text-decoration: none;
   color: var(--ink-mute);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+}
+
+.navo-footer-links a:visited {
+  color: var(--ink-mute);
 }
 
 .navo-footer-links a:hover {
   color: var(--ink-soft);
+}
+
+.navo-footer-meta {
+  margin-top: 0.95rem;
+}
+
+.navo-footer-meta p {
+  color: var(--ink-mute);
+  font-size: 0.74rem;
 }
 
 .navo-reveal {
@@ -334,5 +392,10 @@ a:focus-visible {
   .navo-footer-inner {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .navo-footer-links {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

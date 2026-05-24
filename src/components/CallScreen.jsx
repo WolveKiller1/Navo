@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
-import { FaMicrophone, FaPhone, FaHistory, FaUser } from 'react-icons/fa';
+import { FaMicrophone, FaPhone } from 'react-icons/fa';
 import { sendMessage, resetConversation, setOpeningContext } from '../services/conversation';
 import { speak, stopSpeaking, initializeTTS } from '../services/tts';
 import { applyMoveEngine } from '../services/moveEngine';
@@ -21,15 +21,12 @@ import {
 import { analyzeSession, updateProfile, getDefaultProfile, detectStructuralMoves } from '../services/immersionProfile';
 import SystemNotice from './SystemNotice';
 import MeaningBubble from './MeaningBubble';
-import HomeArrow from './HomeArrow';
+import NavoNav from './NavoNav';
 import '../styles/CallScreen.css';
 
 function CallScreen() {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentRoute = location.pathname;
-  
-  const hasOpeningSentence = Boolean(location.state?.openingSentence);
   
   const [openingPrompt, setOpeningPrompt] = useState(null);
   
@@ -38,7 +35,6 @@ function CallScreen() {
   const [aiText, setAiText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [browserSupported, setBrowserSupported] = useState(true);
   const [exchangeCount, setExchangeCount] = useState(0);
@@ -97,7 +93,6 @@ function CallScreen() {
         setCurrentLanguage(activeLanguage);
         
         // Skip welcome screen, start session directly
-        setSessionStarted(true);
         setExchangeCount(0);
         resetConversation();
         
@@ -118,6 +113,17 @@ function CallScreen() {
         window.history.replaceState({}, document.title);
       } else {
         setCurrentLanguage(activeLanguage);
+        setExchangeCount(0);
+        resetConversation();
+
+        sessionFinalizedRef.current = false;
+        turnGapsRef.current = [];
+        userUtterancesRef.current = [];
+        lastUserEndRef.current = null;
+        sessionStartTimeRef.current = Date.now();
+
+        const newSessionId = await createSession(activeLanguage);
+        setSessionId(newSessionId);
       }
     };
     init();
@@ -467,24 +473,6 @@ function CallScreen() {
     }
   };
 
-  // Handle start conversation from welcome
-  const handleStartConversation = async () => {
-    setSessionStarted(true);
-    setExchangeCount(0);
-    resetConversation();
-    
-    // Phase 5: Reset session tracking
-    sessionFinalizedRef.current = false;
-    turnGapsRef.current = [];
-    userUtterancesRef.current = [];
-    lastUserEndRef.current = null;
-    sessionStartTimeRef.current = Date.now();
-    
-    // Create new session
-    const newSessionId = await createSession(currentLanguage);
-    setSessionId(newSessionId);
-  };
-  
   // Phase 10: Auto-send opening sentence from playground
   const handleAutoSendOpening = async (openingSentence) => {
     if (openingSentenceProcessedRef.current) return;
@@ -549,7 +537,6 @@ function CallScreen() {
     openingSentenceProcessedRef.current = false;
     setOpeningPrompt(null);
     setSessionEnded(false);
-    setSessionStarted(true);
     setUserText('');
     setAiText('');
     setExchangeCount(0);
@@ -641,56 +628,22 @@ function CallScreen() {
     });
   };
 
-  // Show welcome screen (pre-conversation)
-  if (!sessionStarted && !sessionEnded && !hasOpeningSentence) {
-    return (
-      <div className="call-screen navo-shell">
-        <HomeArrow />
-        <div className="start-top-bar">
-          <div className="welcome-icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
-              <FaHistory />
-            </button>
-            <button className="account-icon" onClick={() => navigate('/account', { state: { from: currentRoute } })}>
-              <FaUser />
-            </button>
-          </div>
-        </div>
-        <div className="welcome-container">
-          <button className="start-conversation-btn" onClick={handleStartConversation}>
-            Start Conversation
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Show session ended screen
   if (sessionEnded) {
     return (
       <div className="call-screen navo-shell">
+        <NavoNav compact />
         <div className="session-ended">
-          <div className="session-ended-icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
-              <FaHistory />
-            </button>
-            <button className="account-icon" onClick={() => navigate('/account', { state: { from: currentRoute } })}>
-              <FaUser />
-            </button>
-          </div>
-          <h1>Session complete</h1>
-          {exchangeCount > 0 && (
-            <p>You spoke for {exchangeCount} exchange{exchangeCount !== 1 ? 's' : ''}.</p>
-          )}
+          <h1>Room closed for now</h1>
+          <p>The conversation can stay here. Re-enter whenever you want.</p>
           <div className="session-end-actions">
             <button className="new-call-btn" onClick={handleStartNewCall}>
-              Start Another Conversation
+              Start again
             </button>
             <button className="continue-playground-btn" onClick={handleContinueInPlayground}>
-              Continue in Playground →
-            </button>
+              Explore in Playground</button>
             <button className="back-home-btn" onClick={handleBackToHome}>
-              Exit to Home
+              Leave
             </button>
           </div>
         </div>
@@ -700,6 +653,7 @@ function CallScreen() {
 
   return (
     <div className="call-screen navo-shell" data-state={isListening ? 'listening' : isProcessing ? 'processing' : isSpeaking ? 'speaking' : 'idle'}>
+      <NavoNav compact />
       {/* System Notice (appears above conversation) */}
       {systemNotice && (
         <SystemNotice
@@ -712,14 +666,6 @@ function CallScreen() {
       
       <div className="call-container navo-container">
         <div className="header">
-          <div className="icon-group">
-            <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
-              <FaHistory />
-            </button>
-            <button className="account-icon" onClick={() => navigate('/account', { state: { from: currentRoute } })}>
-              <FaUser />
-            </button>
-          </div>
           <span className="navo-pill"><span className="navo-dot" /> Conversation</span>
           <h1>The Room</h1>
         </div>
@@ -826,3 +772,4 @@ function CallScreen() {
 }
 
 export default CallScreen;
+

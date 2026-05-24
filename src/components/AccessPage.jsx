@@ -42,6 +42,7 @@ function AccessPage() {
     return (
       <SubPageLayout
         title="Pricing"
+        headline="Quiet, honest pricing"
         subtitle="Quiet, honest pricing. No gamified upsells."
       >
         <section className="tier-grid">
@@ -65,6 +66,7 @@ function AccessPage() {
   return (
     <SubPageLayout
       title="Access"
+      headline="Entry and access"
       subtitle="Access controls are still frontend-only in this build."
     >
       <section className="access-panel navo-card navo-hairline-top">
