@@ -61,6 +61,11 @@ function SessionHistoryContent() {
     });
   };
 
+  const formatMinutes = (duration) => {
+    if (!duration || duration <= 0) return null;
+    return Math.max(1, Math.round(duration / 60000));
+  };
+
   const handlePlayReply = (replyText) => {
     speak(replyText);
   };
@@ -152,7 +157,17 @@ function SessionHistoryContent() {
               className="history-item"
               onClick={() => setSelectedSessionId(session.sessionId)}
             >
-              <span className="session-date">{formatDate(session.startTimestamp)}</span>
+              <div className="history-copy">
+                <p className="history-preview">
+                  "{session.exchanges?.[0]?.userUtterance || 'Conversation'}"
+                </p>
+                <p className="session-date">
+                  {formatDate(session.startTimestamp)}
+                  {session.language ? ` · ${session.language.toUpperCase()}` : ''}
+                  {formatMinutes(session.duration) ? ` · ${formatMinutes(session.duration)} min` : ''}
+                  {session.exchangeCount ? ` · ${session.exchangeCount} turns` : ''}
+                </p>
+              </div>
               {confirmDeleteId === session.sessionId ? (
                 <div className="inline-confirm">
                   <button 

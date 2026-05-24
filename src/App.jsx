@@ -12,7 +12,7 @@ import SessionsPage from './components/SessionsPage'
 import AccountPage from './components/AccountPage'
 import AccessPage from './components/AccessPage'
 import AboutPage from './components/AboutPage'
-import PlaceholderPage from './components/PlaceholderPage'
+import PatternMapPage from './components/PatternMapPage'
 
 function ProtectedRoute({ children }) {
   const hasAccess = sessionStorage.getItem('rylingo_access') === 'granted'
@@ -78,6 +78,7 @@ function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/pricing" element={<AccessPage />} />
           <Route path="/access" element={<AccessPage />} />
+          <Route path="/map" element={<PatternMapPage />} />
           <Route path="/about" element={<AboutPage />} />
         </Routes>
       </div>
