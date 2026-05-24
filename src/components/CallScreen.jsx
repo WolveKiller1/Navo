@@ -644,7 +644,7 @@ function CallScreen() {
   // Show welcome screen (pre-conversation)
   if (!sessionStarted && !sessionEnded && !hasOpeningSentence) {
     return (
-      <div className="call-screen">
+      <div className="call-screen navo-shell">
         <HomeArrow />
         <div className="start-top-bar">
           <div className="welcome-icon-group">
@@ -668,7 +668,7 @@ function CallScreen() {
   // Show session ended screen
   if (sessionEnded) {
     return (
-      <div className="call-screen">
+      <div className="call-screen navo-shell">
         <div className="session-ended">
           <div className="session-ended-icon-group">
             <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
@@ -699,7 +699,7 @@ function CallScreen() {
   }
 
   return (
-    <div className="call-screen" data-state={isListening ? 'listening' : isProcessing ? 'processing' : isSpeaking ? 'speaking' : 'idle'}>
+    <div className="call-screen navo-shell" data-state={isListening ? 'listening' : isProcessing ? 'processing' : isSpeaking ? 'speaking' : 'idle'}>
       {/* System Notice (appears above conversation) */}
       {systemNotice && (
         <SystemNotice
@@ -710,7 +710,7 @@ function CallScreen() {
         />
       )}
       
-      <div className="call-container">
+      <div className="call-container navo-container">
         <div className="header">
           <div className="icon-group">
             <button className="history-icon" onClick={() => navigate('/sessions', { state: { from: currentRoute } })}>
@@ -720,6 +720,7 @@ function CallScreen() {
               <FaUser />
             </button>
           </div>
+          <span className="navo-pill"><span className="navo-dot" /> Conversation</span>
           <h1>The Room</h1>
         </div>
 

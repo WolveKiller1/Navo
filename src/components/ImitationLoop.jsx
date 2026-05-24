@@ -410,7 +410,7 @@ function ImitationLoop() {
   };
 
   return (
-    <div className="imitation-loop">
+    <div className="imitation-loop navo-shell">
       <HomeArrow />
       
       {systemNotice && (
@@ -422,9 +422,10 @@ function ImitationLoop() {
         />
       )}
       
-      <div className="loop-container">
+      <div className="loop-container navo-container">
         {/* Language context */}
-        <div className="language-context">
+        <div className="language-context navo-pill">
+          <span className="navo-dot" />
           {getLanguageDisplay()}
         </div>
 

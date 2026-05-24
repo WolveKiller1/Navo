@@ -791,10 +791,11 @@ function PlaygroundScreen() {
   };
 
   return (
-    <div className="playground-screen">
-      <div className="playground-container">
+    <div className="playground-screen navo-shell">
+      <div className="playground-container navo-container">
         {/* Header */}
         <header className="playground-header">
+          <span className="navo-pill"><span className="navo-dot" /> Pattern Playground</span>
           <h1 className="playground-title">Playground</h1>
           <p className="playground-subtitle">Guided pattern flow</p>
           <div className="icon-group">

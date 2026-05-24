@@ -64,10 +64,13 @@ function LandingPage() {
   }
 
   return (
-    <div className="landing-page">
+    <div className="landing-page navo-shell">
       {/* Header Navigation */}
-      <header className="site-header">
-        <div className="brand">Navo</div>
+      <header className="site-header navo-container">
+        <div className="brand">
+          <span className="navo-dot" />
+          <span className="brand-text">Navo</span>
+        </div>
         <nav className="header-nav">
           <button onClick={handlePlaygroundEntry} className="nav-link nav-link-emphasized">Playground</button>
           <Link to="/what-rylingo-is" className="nav-link">What it is</Link>
@@ -77,7 +80,8 @@ function LandingPage() {
 
       {/* Hero Section */}
       <section ref={heroRef} className="hero-section">
-        <div className="hero-content">
+        <div className="hero-content navo-container">
+          <span className="navo-pill"><span className="navo-dot" /> Quiet language environment</span>
           <h1 className="hero-title">Learn a language by speaking.</h1>
           <p className="hero-subtitle">Navo responds and keeps the conversation moving.</p>
           
@@ -97,7 +101,7 @@ function LandingPage() {
 
       {/* How It Works */}
       <section ref={howRef} className="how-section">
-        <div className="how-content">
+        <div className="how-content navo-container">
           <div className="how-step">
             <div className="step-number">1</div>
             <div className="step-text">Speak</div>
@@ -117,18 +121,18 @@ function LandingPage() {
 
       {/* Product Map */}
       <section ref={mapRef} className="product-map-section">
-        <div className="product-map-content">
+        <div className="product-map-content navo-container">
           <h2 className="section-title">Inside Navo</h2>
           <div className="map-grid">
-            <Link to="/sessions" className="map-card">
+            <Link to="/sessions" className="map-card navo-card navo-hairline-top">
               <span className="map-card-title">Sessions</span>
               <span className="map-card-descriptor">Past conversations</span>
             </Link>
-            <Link to="/account" className="map-card">
+            <Link to="/account" className="map-card navo-card navo-hairline-top">
               <span className="map-card-title">Account</span>
               <span className="map-card-descriptor">Your profile</span>
             </Link>
-            <Link to="/pricing" className="map-card">
+            <Link to="/pricing" className="map-card navo-card navo-hairline-top">
               <span className="map-card-title">Pricing</span>
               <span className="map-card-descriptor">Access to Navo</span>
             </Link>
@@ -138,7 +142,7 @@ function LandingPage() {
 
       {/* Lower Section */}
       <section ref={lowerRef} className="lower-section">
-        <Link to="/what-rylingo-is" className="info-panel">
+        <Link to="/what-rylingo-is" className="info-panel navo-card navo-hairline-top">
           <span className="info-label">What Navo is / isn't</span>
           <span className="info-hint">System overview</span>
         </Link>
