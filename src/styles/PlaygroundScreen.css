@@ -96,51 +96,56 @@
 }
 
 .guided-flow {
-  margin-top: 1.5rem;
+  margin-top: 1.2rem;
   display: grid;
-  gap: 0.7rem;
+  gap: 0.45rem;
 }
 
 .guided-phrase-card {
-  border-radius: var(--radius);
-  border: 1px solid var(--edge);
-  background: color-mix(in oklab, var(--ground-2) 90%, transparent);
-  padding: 1.12rem 1.1rem;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid color-mix(in oklab, var(--edge) 88%, transparent);
+  background: color-mix(in oklab, var(--ground-2) 94%, transparent);
+  padding: 0.9rem 0.9rem 0.8rem;
+  display: grid;
+  gap: 0.42rem;
 }
 
 .guided-visual-marker {
   text-align: center;
-  font-size: 2.5rem;
+  font-size: 2.1rem;
+  opacity: 0.95;
 }
 
 .guided-phrase-row {
-  margin-top: 0.56rem;
+  margin-top: 0.36rem;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.7rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
 .guided-audio-button {
   border-radius: 999px;
-  border: 1px solid var(--edge);
+  border: 1px solid color-mix(in oklab, var(--edge) 90%, transparent);
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--ink-mute);
   cursor: pointer;
-  padding: 0.34rem 0.66rem;
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  padding: 0.28rem 0.5rem;
+  font-size: 0.72rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  opacity: 0.92;
 }
 
 .guided-audio-button:hover {
-  color: var(--accent-warm);
+  color: var(--ink);
+  transform: translateY(-1px);
 }
 
 .guided-phrase-text {
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(1.5rem, 3.8vw, 2rem);
-  line-height: 1.28;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  line-height: 1.22;
 }
 
 .guided-changed-word {
@@ -148,115 +153,119 @@
 }
 
 .guided-compressed-meaning {
-  margin-top: 0.72rem;
+  margin-top: 0.5rem;
   color: var(--ink-mute);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
 .guided-primary-actions {
-  margin-top: 0.72rem;
+  margin-top: 0.56rem;
   display: flex;
-  gap: 0.45rem;
-  flex-wrap: wrap;
+  gap: 0.42rem;
+  flex-wrap: nowrap;
 }
 
 .nearby-paths {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.36rem;
 }
 
 .nearby-label {
   color: var(--ink-mute);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .nearby-list {
   display: grid;
-  gap: 0.48rem;
+  gap: 0.36rem;
 }
 
 .nearby-item {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.55rem;
+  display: flex;
   align-items: center;
-  padding: 0.78rem 0.82rem;
+  gap: 0.6rem;
+  padding: 0.48rem 0.72rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ground-2) 96%, transparent);
+  border: 1px solid color-mix(in oklab, var(--edge) 92%, transparent);
 }
 
 .nearby-audio-button {
   border-radius: 999px;
-  border: 1px solid var(--edge);
+  border: 1px solid color-mix(in oklab, var(--edge) 92%, transparent);
   background: transparent;
   color: var(--ink-mute);
   cursor: pointer;
-  padding: 0.32rem 0.6rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  padding: 0.22rem 0.42rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.95;
 }
 
 .nearby-audio-button:hover {
-  color: var(--accent-warm);
+  color: var(--ink);
 }
 
 .nearby-copy {
   min-width: 0;
+  overflow: hidden;
 }
 
 .nearby-jump {
   border: none;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--ink);
   text-align: left;
   padding: 0;
   cursor: pointer;
-  line-height: 1.4;
-  font-size: 1rem;
+  line-height: 1.2;
+  font-size: 0.98rem;
+  font-weight: 500;
 }
 
 .nearby-jump:hover {
-  color: var(--ink);
+  text-decoration: underline;
 }
 
 .nearby-scene {
-  margin-top: 0.18rem;
+  margin-top: 0.08rem;
   color: var(--ink-mute);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 
 .nearby-carry {
   border-radius: 999px;
-  border: 1px solid var(--edge);
+  border: 1px solid transparent;
   background: transparent;
   color: var(--ink-mute);
-  padding: 0.4rem 0.7rem;
+  padding: 0.28rem 0.46rem;
   font-size: 0.72rem;
   cursor: pointer;
   white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .nearby-carry:hover {
-  color: var(--ink-soft);
-  border-color: color-mix(in oklab, var(--accent-warm) 55%, var(--edge));
+  color: var(--ink);
 }
 
 .guided-flow-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
 }
 
 .guided-action-button {
-  border-radius: var(--radius);
-  border: 1px solid var(--edge);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in oklab, var(--edge) 92%, transparent);
   background: transparent;
-  color: var(--ink-soft);
-  padding: 0.56rem 0.72rem;
-  font-size: 0.79rem;
+  color: var(--ink-mute);
+  padding: 0.44rem 0.6rem;
+  font-size: 0.78rem;
   cursor: pointer;
 }
 
@@ -265,7 +274,8 @@
 }
 
 .guided-action-button.secondary {
-  background: color-mix(in oklab, var(--ground-2) 88%, transparent);
+  background: color-mix(in oklab, var(--ground-2) 92%, transparent);
+  color: var(--ink);
 }
 
 .guided-action-button.subtle {

@@ -34,8 +34,10 @@ function NavoFooter() {
     <footer className="navo-footer">
       <div className="navo-container navo-footer-inner">
         <div className="navo-footer-brand">
-          <span className="navo-dot" />
-          <span className="brand-text">Navo</span>
+          <div className="navo-footer-brand-heading">
+            <span className="navo-dot" />
+            <span className="brand-text">Navo</span>
+          </div>
           <p>A quiet conversational language environment.</p>
         </div>
         <div className="navo-footer-links">

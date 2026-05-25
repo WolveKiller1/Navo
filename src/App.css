@@ -279,6 +279,12 @@ h3 {
   color: var(--ink-soft);
 }
 
+.navo-footer-brand-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .navo-footer-brand .brand-text {
   font-family: "Fraunces", Georgia, serif;
 }

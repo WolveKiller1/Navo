@@ -406,102 +406,95 @@ function ImitationLoop() {
           <p className="loop-header-copy">Hear a phrase, repeat it, then move to nearby patterns.</p>
         </header>
 
-        {/* Audio-first: Listen instruction + Prominent play button */}
-        <div className="audio-first-section">
-          <p className="listen-instruction">Listen. Then imitate.</p>
-          <button className="play-target-button-prominent" onClick={handlePlayTarget} title="Play target sentence">
-            <span className="play-icon">▶</span>
-          </button>
-        </div>
-
-        {!showSentenceText && (
-          <div className="loop-unrevealed-hint">
-            Phrase stays hidden until you speak.
+        <div className="loop-card">
+          <div className="audio-first-section">
+            <p className="listen-instruction">Listen. Then imitate.</p>
+            <button className="play-target-button-prominent" onClick={handlePlayTarget} title="Play target sentence">
+              <span className="play-icon">▶</span>
+            </button>
           </div>
-        )}
 
-        {/* Target Sentence - Revealed on demand */}
-        {showSentenceText && (
-          <div className="text-reveal-section">
-            <div className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}>
-              {hasSupportContent && currentUnit.words ? (
-                currentUnit.words.map((wordData, index) => (
-                  <span 
-                    key={index}
-                    className="word-clickable"
-                    onClick={(e) => handleWordClick(wordData.text, e)}
-                  >
-                    {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
-                  </span>
-                ))
-              ) : (
-                currentUnit.text
-              )}
+          {!showSentenceText && (
+            <div className="loop-unrevealed-hint">
+              Phrase stays hidden until you speak.
+            </div>
+          )}
+
+          {showSentenceText && (
+            <div className="text-reveal-section">
+              <div className={`sentence-display ${hasSupportContent ? 'has-support' : ''}`}>
+                {hasSupportContent && currentUnit.words ? (
+                  currentUnit.words.map((wordData, index) => (
+                    <span 
+                      key={index}
+                      className="word-clickable"
+                      onClick={(e) => handleWordClick(wordData.text, e)}
+                    >
+                      {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
+                    </span>
+                  ))
+                ) : (
+                  currentUnit.text
+                )}
+              </div>
+            </div>
+          )}
+
+          {showSentenceMeaning && hasSupportContent && (
+            <div className="sentence-meaning">
+              {currentUnit.meaning}
+            </div>
+          )}
+
+          <div className="mic-container">
+            <button
+              className={`mic-button ${isListening ? 'listening' : ''} ${isProcessing ? 'processing' : ''}`}
+              onMouseDown={handleMicPress}
+              onMouseUp={handleMicRelease}
+              onMouseLeave={handleMicRelease}
+              onTouchStart={handleMicPress}
+              onTouchEnd={handleMicRelease}
+              disabled={!browserSupported || isProcessing}
+            >
+              <FaMicrophone className="mic-icon" />
+            </button>
+          </div>
+
+          <div className={`heard-section ${userTranscript ? '' : 'hidden'}`}>
+            <span className="heard-label">heard</span>
+            <div className={`heard-text ${justAligned ? 'settled' : ''}`}>
+              {userTranscript}
             </div>
           </div>
-        )}
 
+          {systemResponse && systemResponse.trim() && (
+            <div className="response-display">
+              {systemResponse}
+            </div>
+          )}
 
-        {/* Sentence Meaning (revealed on click) */}
-        {showSentenceMeaning && hasSupportContent && (
-          <div className="sentence-meaning">
-            {currentUnit.meaning}
-          </div>
-        )}
-
-
-        {/* Microphone Button */}
-        <div className="mic-container">
-          <button
-            className={`mic-button ${isListening ? 'listening' : ''} ${isProcessing ? 'processing' : ''}`}
-            onMouseDown={handleMicPress}
-            onMouseUp={handleMicRelease}
-            onMouseLeave={handleMicRelease}
-            onTouchStart={handleMicPress}
-            onTouchEnd={handleMicRelease}
-            disabled={!browserSupported || isProcessing}
-          >
-            <FaMicrophone className="mic-icon" />
-          </button>
+          {userTranscript && (
+            <div className="navigation-buttons loop-actions">
+              <button
+                className="action-chip"
+                onClick={toggleSentenceMeaning}
+                disabled={!hasSupportContent}
+              >
+                {showSentenceMeaning ? 'Hide meaning' : 'Show meaning'}
+              </button>
+              <button className="action-chip" onClick={handleNext}>
+                Next phrase
+              </button>
+              <button
+                className="action-chip action-chip-warm"
+                onClick={handleTryAnotherShape}
+                disabled={!hasSupportContent}
+              >
+                Explore this pattern
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Heard Transcript (appears after speaking) */}
-        <div className={`heard-section ${userTranscript ? '' : 'hidden'}`}>
-          <span className="heard-label">heard</span>
-          <div className={`heard-text ${justAligned ? 'settled' : ''}`}>
-            {userTranscript}
-          </div>
-        </div>
-
-        {/* System Response (only when not aligned) */}
-        {systemResponse && systemResponse.trim() && (
-          <div className="response-display">
-            {systemResponse}
-          </div>
-        )}
-
-        {/* Post-attempt actions */}
-        {userTranscript && (
-          <div className="navigation-buttons loop-actions">
-            <button
-              className="action-chip"
-              onClick={toggleSentenceMeaning}
-              disabled={!hasSupportContent}
-            >
-              {showSentenceMeaning ? 'Hide meaning' : 'Show meaning'}
-            </button>
-            <button className="action-chip" onClick={handleNext}>
-              Next phrase
-            </button>
-            <button
-              className="action-chip action-chip-warm"
-              onClick={handleTryAnotherShape}
-              disabled={!hasSupportContent}
-            >
-              Explore this pattern
-            </button>
-          </div>
-        )}
       </div>
 
       <NavoFooter />

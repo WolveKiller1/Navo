@@ -43,3 +43,22 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Soften card treatment for About page: keep hairline but remove heavy card borders */
+.about-stanza.navo-card,
+.about-flow.navo-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.about-stanza {
+  padding: 0.8rem 0; /* let text breathe */
+}
+
+.about-flow {
+  margin-top: 1rem;
+  padding: 0;
+}
+
