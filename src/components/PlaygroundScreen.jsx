@@ -6,6 +6,7 @@ import { speak } from '../services/tts';
 import { buildPlaygroundSequence } from '../services/playgroundSequenceBuilder';
 import { generatePlaygroundSeed } from '../services/playgroundSeed';
 import NavoNav from './NavoNav';
+import NavoFooter from './NavoFooter';
 import '../styles/PlaygroundScreen.css';
 
 function normalizeWord(word) {
@@ -151,7 +152,7 @@ function PlaygroundScreen() {
     }
 
     navigate('/');
-  }, [location.state, navigate]);
+  }, []);
 
   const handleBeginFromEntry = () => {
     if (!entryPhrase) {
@@ -251,6 +252,7 @@ function PlaygroundScreen() {
             <p className="entry-subtitle">A phrase to move</p>
 
             <div className="entry-seed-card">
+              <p className="entry-seed-kicker">Seed phrase</p>
               {entryPhrase.icon && <div className="entry-seed-icon">{entryPhrase.icon}</div>}
               <div className="entry-seed-text">{entryPhrase.text}</div>
               {entryPhrase.scene && <div className="entry-seed-scene">{entryPhrase.scene}</div>}
@@ -370,6 +372,8 @@ function PlaygroundScreen() {
           </div>
         )}
       </div>
+
+      <NavoFooter />
     </div>
   );
 }

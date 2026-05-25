@@ -1,16 +1,23 @@
 import React from 'react';
-import SubPageLayout from './SubPageLayout';
+import NavoNav from './NavoNav';
+import NavoFooter from './NavoFooter';
 import SessionHistoryContent from './SessionHistoryContent';
+import '../styles/SubPageLayout.css';
 
 function SessionsPage() {
   return (
-    <SubPageLayout
-      title="Sessions"
-      headline="Rooms you've been in"
-      subtitle="Quiet traces of previous conversations. Re-enter any thread."
-    >
-      <SessionHistoryContent />
-    </SubPageLayout>
+    <div className="navo-shell">
+      <NavoNav compact />
+      <main className="subpage-content navo-container">
+        <header className="subpage-header navo-reveal">
+          <span className="navo-pill"><span className="navo-dot" /> Traces</span>
+          <h1 className="subpage-title">Rooms you've been in.</h1>
+          <p className="subpage-subtitle">Quiet traces of conversations. Re-enter any of them.</p>
+        </header>
+        <SessionHistoryContent />
+      </main>
+      <NavoFooter />
+    </div>
   );
 }
 

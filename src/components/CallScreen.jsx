@@ -22,6 +22,7 @@ import { analyzeSession, updateProfile, getDefaultProfile, detectStructuralMoves
 import SystemNotice from './SystemNotice';
 import MeaningBubble from './MeaningBubble';
 import NavoNav from './NavoNav';
+import NavoFooter from './NavoFooter';
 import '../styles/CallScreen.css';
 
 function CallScreen() {
@@ -61,6 +62,7 @@ function CallScreen() {
   const openingSentenceProcessedRef = useRef(false); // Prevent double opening send
 
   const speechOptions = { language: currentLanguage === 'en' ? 'en-US' : 'pt-BR' };
+  const roomLanguageLabel = currentLanguage === 'pt' ? 'Portuguese' : 'English';
 
   const {
     transcript,
@@ -647,6 +649,7 @@ function CallScreen() {
             </button>
           </div>
         </div>
+        <NavoFooter />
       </div>
     );
   }
@@ -666,7 +669,10 @@ function CallScreen() {
       
       <div className="call-container navo-container">
         <div className="header">
-          <span className="navo-pill"><span className="navo-dot" /> Conversation</span>
+          <div className="room-top-row">
+            <span className="navo-pill"><span className="navo-dot" /> The Room</span>
+            <span className="room-presence-tag">with Navo · {roomLanguageLabel}</span>
+          </div>
           <h1>The Room</h1>
         </div>
 
@@ -767,6 +773,8 @@ function CallScreen() {
           onDismiss={() => setMeaningBubble(null)}
         />
       )}
+
+      <NavoFooter />
     </div>
   );
 }

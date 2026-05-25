@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   exportSessionsAsJSON,
@@ -8,12 +8,13 @@ import {
   getAllSessions
 } from '../services/storage';
 import ConfirmationDialog from './ConfirmationDialog';
-import SubPageLayout from './SubPageLayout';
+import NavoNav from './NavoNav';
+import NavoFooter from './NavoFooter';
 import '../styles/AccountPage.css';
 
 const LANGUAGE_META = {
-  en: { name: 'English', note: 'Available in this build' },
-  pt: { name: 'Portuguese', note: 'Available in this build' }
+  en: { name: 'English' },
+  pt: { name: 'Portuguese' }
 };
 
 function formatTotalMinutes(totalDurationMs, fallbackTurns) {
@@ -84,36 +85,8 @@ function AccountPage() {
     setTimeout(() => setErrorMessage(''), 5000);
   };
 
-  const handleExport = async () => {
-    setConfirmDialogConfig({
-      action: 'export',
-      title: 'Export conversations?',
-      body: 'Your conversations will be downloaded as a JSON file.',
-      confirmText: 'Export',
-      isDangerous: false
-    });
-    setShowConfirmDialog(true);
-  };
-
-  const handleDeleteAllSessions = async () => {
-    setConfirmDialogConfig({
-      action: 'deleteSessions',
-      title: 'Delete all conversations?',
-      body: 'This permanently removes all local conversations. This cannot be undone.',
-      confirmText: 'Delete',
-      isDangerous: true
-    });
-    setShowConfirmDialog(true);
-  };
-
-  const handleDeleteAllData = () => {
-    setConfirmDialogConfig({
-      action: 'deleteData',
-      title: 'Delete all data?',
-      body: 'This removes all local conversations and settings. This cannot be undone.',
-      confirmText: 'Delete',
-      isDangerous: true
-    });
+  const queueConfirm = (action, title, body, confirmText, isDangerous) => {
+    setConfirmDialogConfig({ action, title, body, confirmText, isDangerous });
     setShowConfirmDialog(true);
   };
 
@@ -157,109 +130,116 @@ function AccountPage() {
 
   return (
     <>
-      <SubPageLayout
-        title="Account"
-        headline="Your quiet profile"
-        subtitle="Local profile details and traces from your sessions in Navo."
-      >
-        <section className="account-hero navo-card navo-hairline-top">
-          <div className="account-avatar">N</div>
-          <div className="account-meta">
-            <p className="account-name">Navo Preview User</p>
-            <p className="account-sub">Local profile · no cloud account connected</p>
-          </div>
-        </section>
+      <div className="account-page navo-shell">
+        <NavoNav compact />
 
-        <section className="account-traces">
-          <article className="trace-card navo-card navo-hairline-top">
-            <p className="trace-label">Time in the room</p>
-            <p className="trace-value">{stats.minutes > 0 ? `${stats.minutes} min` : 'No time yet'}</p>
-            <p className="trace-note">Across {stats.sessionCount} saved session{stats.sessionCount === 1 ? '' : 's'}.</p>
-          </article>
-          <article className="trace-card navo-card navo-hairline-top">
-            <p className="trace-label">Conversation turns</p>
-            <p className="trace-value">{stats.turns || 0}</p>
-            <p className="trace-note">Observed exchanges, not a score.</p>
-          </article>
-          <article className="trace-card navo-card navo-hairline-top">
-            <p className="trace-label">Current language</p>
-            <p className="trace-value">{LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase()}</p>
-            <p className="trace-note">Active in your local preferences.</p>
-          </article>
-        </section>
-
-        <section className="account-language-panel navo-card navo-hairline-top">
-          <div className="account-language-header">
-            <h2>Languages</h2>
-            <p>Use Settings to switch your active language.</p>
-          </div>
-          <div className="language-list">
-            {knownLanguages.map((langCode) => {
-              const lang = LANGUAGE_META[langCode];
-              const isActive = activeLanguage === langCode;
-              const seenInSessions = stats.languages.includes(langCode);
-
-              return (
-                <div key={langCode} className="language-row">
-                  <div>
-                    <p className="language-name">{lang.name}</p>
-                    <p className="language-note">
-                      {isActive
-                        ? 'Active now'
-                        : seenInSessions
-                          ? 'Seen in your traces'
-                          : lang.note}
-                    </p>
-                  </div>
-                  {isActive ? (
-                    <span className="language-active-pill"><span className="navo-dot" /> Active</span>
-                  ) : (
-                    <Link to="/settings" className="language-action-link">Set active</Link>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="account-links-grid">
-          <Link to="/sessions" className="account-link-card navo-card navo-hairline-top">
-            <p className="account-link-kicker">Archive</p>
-            <p className="account-link-title">Past sessions</p>
-            <p className="account-link-body">Re-enter rooms and revisit phrase traces.</p>
-          </Link>
-          <Link to="/settings" className="account-link-card navo-card navo-hairline-top">
-            <p className="account-link-kicker">Atmosphere</p>
-            <p className="account-link-title">Settings</p>
-            <p className="account-link-body">Tune language, voice feel, and display behavior.</p>
-          </Link>
-        </section>
-
-        {stats.latestLine && (
-          <section className="account-latest navo-card navo-hairline-top">
-            <p className="account-latest-label">Latest carried line</p>
-            <p className="account-latest-line">"{stats.latestLine}"</p>
+        <main className="account-main navo-container">
+          <section className="account-profile-row">
+            <div className="account-avatar">N</div>
+            <div>
+              <p className="account-name">Navo Preview User</p>
+              <p className="account-sub">Local profile · no cloud account connected</p>
+            </div>
           </section>
-        )}
 
-        {errorMessage && <div className="settings-error">{errorMessage}</div>}
+          <p className="account-eyebrow">Quiet traces</p>
+          <section className="account-traces-grid">
+            <article className="trace-card navo-card navo-hairline-top">
+              <p className="trace-label">Time in the room</p>
+              <p className="trace-value">{stats.minutes > 0 ? `${stats.minutes} min` : 'No time yet'}</p>
+              <p className="trace-note">Across a few quiet sessions.</p>
+            </article>
+            <article className="trace-card navo-card navo-hairline-top">
+              <p className="trace-label">Conversation turns</p>
+              <p className="trace-value">{stats.turns || 0}</p>
+              <p className="trace-note">Observed exchanges, not a score.</p>
+            </article>
+            <article className="trace-card navo-card navo-hairline-top">
+              <p className="trace-label">Current language</p>
+              <p className="trace-value">{LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase()}</p>
+              <p className="trace-note">Active in your local preferences.</p>
+            </article>
+          </section>
 
-        <section className="account-data-panel navo-card navo-hairline-top">
-          <h2>Local data</h2>
-          <p>Data stays on this device unless you export it.</p>
-          <div className="data-controls">
-            <button className="data-btn" onClick={handleExport}>
-              Export conversations
-            </button>
-            <button className="data-btn" onClick={handleDeleteAllSessions}>
-              Delete all conversations
-            </button>
-            <button className="data-btn data-btn-danger" onClick={handleDeleteAllData}>
-              Delete all data
-            </button>
-          </div>
-        </section>
-      </SubPageLayout>
+          <section className="account-language-wrap">
+            <h2>Languages</h2>
+            <div className="language-list">
+              {knownLanguages.map((langCode) => {
+                const lang = LANGUAGE_META[langCode];
+                const isActive = activeLanguage === langCode;
+                const seenInSessions = stats.languages.includes(langCode);
+
+                return (
+                  <div key={langCode} className="language-row">
+                    <div>
+                      <p className="language-name">{lang.name}</p>
+                      <p className="language-note">
+                        {isActive ? 'Active now' : seenInSessions ? 'Seen in your traces' : 'Available in this build'}
+                      </p>
+                    </div>
+                    {isActive ? (
+                      <span className="language-active-pill"><span className="navo-dot" /> Active</span>
+                    ) : (
+                      <Link to="/settings" className="language-action-link">Set active</Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="account-links-grid">
+            <Link to="/sessions" className="account-link-card navo-card navo-hairline-top">
+              <p className="account-link-kicker">Archive</p>
+              <p className="account-link-title">Past sessions</p>
+              <p className="account-link-body">Re-enter rooms you have already been in.</p>
+            </Link>
+            <Link to="/settings" className="account-link-card navo-card navo-hairline-top">
+              <p className="account-link-kicker">Atmosphere</p>
+              <p className="account-link-title">Settings</p>
+              <p className="account-link-body">Tune language and room behavior.</p>
+            </Link>
+          </section>
+
+          {stats.latestLine && (
+            <section className="account-latest navo-card navo-hairline-top">
+              <p className="account-latest-label">Latest carried line</p>
+              <p className="account-latest-line">"{stats.latestLine}"</p>
+            </section>
+          )}
+
+          {errorMessage && <div className="settings-error">{errorMessage}</div>}
+
+          <section className="account-data-panel navo-card navo-hairline-top">
+            <h2>Local data</h2>
+            <p>Data stays on this device unless you export it.</p>
+            <div className="data-controls">
+              <button
+                className="data-btn"
+                onClick={() => queueConfirm('export', 'Export conversations?', 'Your conversations will be downloaded as a JSON file.', 'Export', false)}
+              >
+                Export conversations
+              </button>
+              <button
+                className="data-btn"
+                onClick={() => queueConfirm('deleteSessions', 'Delete all conversations?', 'This permanently removes all local conversations. This cannot be undone.', 'Delete', true)}
+              >
+                Delete all conversations
+              </button>
+              <button
+                className="data-btn data-btn-danger"
+                onClick={() => queueConfirm('deleteData', 'Delete all data?', 'This removes all local conversations and settings. This cannot be undone.', 'Delete', true)}
+              >
+                Delete all data
+              </button>
+            </div>
+          </section>
+
+          <p className="account-preview-note">Preview · no real account is signed in.</p>
+        </main>
+
+        <NavoFooter />
+      </div>
 
       {showConfirmDialog && (
         <ConfirmationDialog

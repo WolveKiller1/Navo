@@ -10,6 +10,7 @@ import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from '../services/phraseGenerator';
 import { getUserPreferences, initStorage } from '../services/storage';
 import NavoNav from './NavoNav';
+import NavoFooter from './NavoFooter';
 import SystemNotice from './SystemNotice';
 import '../styles/ImitationLoop.css';
 
@@ -397,16 +398,13 @@ function ImitationLoop() {
       
       <div className="loop-container navo-container">
         <header className="loop-header">
-          <span className="navo-pill"><span className="navo-dot" /> Practice Loop</span>
+          <div className="loop-top-row">
+            <span className="navo-pill"><span className="navo-dot" /> Practice Loop</span>
+            <span className="loop-language-tag">{getLanguageDisplay()}</span>
+          </div>
           <h1>Listen first. Speak after.</h1>
-          <p className="loop-header-copy">One line at a time. Hear it, echo it, then move.</p>
+          <p className="loop-header-copy">Hear a phrase, repeat it, then move to nearby patterns.</p>
         </header>
-
-        {/* Language context */}
-        <div className="language-context navo-pill">
-          <span className="navo-dot" />
-          {getLanguageDisplay()}
-        </div>
 
         {/* Audio-first: Listen instruction + Prominent play button */}
         <div className="audio-first-section">
@@ -415,6 +413,12 @@ function ImitationLoop() {
             <span className="play-icon">▶</span>
           </button>
         </div>
+
+        {!showSentenceText && (
+          <div className="loop-unrevealed-hint">
+            Phrase stays hidden until you speak.
+          </div>
+        )}
 
         {/* Target Sentence - Revealed on demand */}
         {showSentenceText && (
@@ -499,6 +503,8 @@ function ImitationLoop() {
           </div>
         )}
       </div>
+
+      <NavoFooter />
 
       {/* Pronunciation Bubble */}
       {pronunciationBubble && (

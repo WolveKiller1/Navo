@@ -1,13 +1,13 @@
 .tier-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .tier-card {
-  padding: 0.95rem;
+  padding: 0.8rem;
   display: grid;
-  gap: 0.32rem;
+  gap: 0.28rem;
 }
 
 .tier-card.featured {
@@ -18,46 +18,46 @@
   color: var(--ink-mute);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
 }
 
 .tier-price {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 2rem;
+  font-size: 1.85rem;
 }
 
 .tier-cadence {
   color: var(--ink-mute);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
 }
 
 .tier-body {
-  margin-top: 0.3rem;
+  margin-top: 0.24rem;
   color: var(--ink-soft);
-  font-size: 0.83rem;
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
 .tier-features {
-  margin-top: 0.3rem;
-  padding-left: 1rem;
+  margin-top: 0.24rem;
+  padding-left: 0.9rem;
   display: grid;
-  gap: 0.2rem;
+  gap: 0.16rem;
 }
 
 .tier-features li {
   color: var(--ink-soft);
-  font-size: 0.78rem;
+  font-size: 0.73rem;
 }
 
 .tier-cta {
-  margin-top: 0.5rem;
+  margin-top: 0.42rem;
   text-decoration: none;
   border: 1px solid var(--edge);
   border-radius: 999px;
   color: var(--ink-soft);
-  padding: 0.5rem 0.65rem;
-  font-size: 0.74rem;
+  padding: 0.45rem 0.58rem;
+  font-size: 0.68rem;
   text-align: center;
 }
 
@@ -67,24 +67,24 @@
 }
 
 .access-panel {
-  padding: 1rem;
+  padding: 0.8rem;
 }
 
 .access-panel h2 {
-  font-size: 1.18rem;
+  font-size: 1.08rem;
 }
 
 .access-panel p {
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   color: var(--ink-soft);
   line-height: 1.55;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
 .access-actions {
-  margin-top: 0.8rem;
+  margin-top: 0.65rem;
   display: flex;
-  gap: 0.45rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
 
@@ -93,8 +93,8 @@
   border: 1px solid var(--edge);
   border-radius: 999px;
   color: var(--ink-soft);
-  padding: 0.48rem 0.72rem;
-  font-size: 0.75rem;
+  padding: 0.42rem 0.62rem;
+  font-size: 0.68rem;
 }
 
 .access-link:hover {

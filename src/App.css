@@ -64,7 +64,7 @@ h3 {
 }
 
 .navo-container {
-  width: min(820px, 92vw);
+  width: min(720px, 92vw);
   margin-inline: auto;
 }
 
@@ -124,13 +124,13 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 0;
+  padding: 1.15rem 0;
   z-index: 40;
 }
 
 .navo-topbar.compact {
-  padding-top: 0.9rem;
-  padding-bottom: 0.9rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
 .brand-link {
@@ -146,19 +146,19 @@ h3 {
 
 .brand-text {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.16rem;
+  font-size: 1.35rem;
 }
 
 .header-nav.desktop {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 1.05rem;
 }
 
 .nav-link {
   text-decoration: none;
   color: var(--ink-soft);
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .nav-link:visited {
@@ -179,8 +179,8 @@ h3 {
   border: 1px solid color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
   color: var(--ink);
   background: color-mix(in oklab, var(--ground-2) 84%, transparent);
-  padding: 0.4rem 0.8rem;
-  font-size: 0.75rem;
+  padding: 0.42rem 0.86rem;
+  font-size: 0.82rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -262,15 +262,15 @@ h3 {
 
 .navo-footer {
   border-top: 1px solid var(--edge);
-  margin-top: 2.2rem;
-  padding: 1.5rem 0 1.6rem;
+  margin-top: 1.6rem;
+  padding: 1.2rem 0 1.3rem;
 }
 
 .navo-footer-inner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1.4rem;
+  gap: 1rem;
 }
 
 .navo-footer-brand {
@@ -292,7 +292,7 @@ h3 {
 .navo-footer-links {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem 1.4rem;
+  gap: 0.6rem 1rem;
 }
 
 .navo-footer-group {

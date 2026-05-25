@@ -45,8 +45,8 @@ function LandingPage() {
             <span className="hero-emphasis">language</span>, not a lesson.
           </h1>
           <p className="hero-subtitle">
-            Navo is a calm conversational space. Listen, imitate, and speak.
-            No scores, no streaks, just repeated contact with real patterns.
+            Navo is a small, calm room. You listen, you echo, you speak.
+            No scores, no streaks, just the rhythm of real conversation.
           </p>
 
           <div className="entry-grid">
@@ -59,13 +59,13 @@ function LandingPage() {
             <button onClick={handlePlaygroundEntry} className="entry-card navo-card navo-hairline-top">
               <span className="entry-kicker">Find variations</span>
               <span className="entry-title">Pattern Playground</span>
-              <span className="entry-body">See how one phrase bends into nearby shapes.</span>
+              <span className="entry-body">See how one phrase bends into many nearby paths.</span>
             </button>
 
             <button onClick={handleRoomEntry} className="entry-card navo-card navo-hairline-top">
-              <span className="entry-kicker">Speak freely</span>
+              <span className="entry-kicker">Speak with someone</span>
               <span className="entry-title">The Room</span>
-              <span className="entry-body">A real exchange, short and conversational.</span>
+              <span className="entry-body">A calm voice on the other end. Just talk.</span>
             </button>
 
             <Link to="/map" className="entry-card navo-card navo-hairline-top">

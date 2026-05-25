@@ -5,7 +5,7 @@
 
 .playground-container {
   flex: 1;
-  padding: 1.35rem 0 2.6rem;
+  padding: 1rem 0 2rem;
 }
 
 .playground-header {
@@ -13,23 +13,23 @@
 }
 
 .playground-title {
-  margin-top: 0.9rem;
-  font-size: clamp(2rem, 5.2vw, 2.9rem);
+  margin-top: 0.7rem;
+  font-size: clamp(1.9rem, 5vw, 2.7rem);
   line-height: 1.05;
 }
 
 .playground-subtitle {
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   color: var(--ink-soft);
-  font-size: 0.98rem;
+  font-size: 0.93rem;
   line-height: 1.5;
 }
 
 .entry-state {
-  margin-top: 1.7rem;
+  margin-top: 1.3rem;
   display: grid;
   justify-items: center;
-  gap: 0.9rem;
+  gap: 0.7rem;
 }
 
 .entry-subtitle {
@@ -41,21 +41,29 @@
 
 .entry-seed-card {
   width: 100%;
-  padding: 1.2rem 1.1rem;
+  padding: 1rem 0.95rem;
   border-radius: var(--radius);
   border: 1px solid var(--edge);
   background: color-mix(in oklab, var(--ground-2) 90%, transparent);
   text-align: center;
 }
 
+.entry-seed-kicker {
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+}
+
 .entry-seed-icon {
   font-size: 2.4rem;
+  margin-top: 0.35rem;
 }
 
 .entry-seed-text {
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.52rem;
+  font-size: 1.42rem;
   line-height: 1.28;
 }
 
@@ -70,8 +78,8 @@
   border: 1px solid color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
   background: color-mix(in oklab, var(--ground-2) 84%, transparent);
   color: var(--ink);
-  padding: 0.72rem 1.36rem;
-  font-size: 0.82rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.78rem;
   cursor: pointer;
 }
 
@@ -88,16 +96,16 @@
 }
 
 .guided-flow {
-  margin-top: 1.7rem;
+  margin-top: 1.3rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 0.7rem;
 }
 
 .guided-phrase-card {
   border-radius: var(--radius);
   border: 1px solid var(--edge);
   background: color-mix(in oklab, var(--ground-2) 90%, transparent);
-  padding: 1.05rem 1rem;
+  padding: 0.9rem 0.95rem;
 }
 
 .guided-visual-marker {
@@ -131,7 +139,7 @@
 
 .guided-phrase-text {
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(1.3rem, 3.6vw, 1.84rem);
+  font-size: clamp(1.25rem, 3.4vw, 1.72rem);
   line-height: 1.28;
 }
 
@@ -166,7 +174,7 @@
 
 .nearby-list {
   display: grid;
-  gap: 0.42rem;
+  gap: 0.35rem;
 }
 
 .nearby-item {

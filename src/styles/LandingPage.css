@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.1rem 0 2.6rem;
+  padding: 1.6rem 0 2rem;
 }
 
 .hero-content {
@@ -17,8 +17,8 @@
 }
 
 .hero-title {
-  margin-top: 1.25rem;
-  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  margin-top: 1rem;
+  font-size: clamp(2.3rem, 5.8vw, 3.8rem);
   line-height: 1.02;
 }
 
@@ -28,18 +28,18 @@
 }
 
 .hero-subtitle {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
   max-width: 560px;
   color: var(--ink-soft);
-  font-size: 1.04rem;
+  font-size: 0.98rem;
   line-height: 1.6;
 }
 
 .entry-grid {
-  margin-top: 2rem;
+  margin-top: 1.6rem;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0.55rem;
 }
 
 .entry-card {
@@ -48,7 +48,7 @@
   border: 1px solid var(--edge);
   border-radius: var(--radius);
   background: color-mix(in oklab, var(--ground-2) 90%, transparent);
-  padding: 1rem;
+  padding: 0.85rem;
   text-align: left;
   cursor: pointer;
   transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
@@ -64,21 +64,21 @@
   color: var(--ink-mute);
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  font-size: 0.67rem;
+  font-size: 0.63rem;
 }
 
 .entry-title {
   display: block;
-  margin-top: 0.33rem;
+  margin-top: 0.28rem;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.18rem;
+  font-size: 1.1rem;
 }
 
 .entry-body {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
   color: var(--ink-soft);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   line-height: 1.45;
 }
 

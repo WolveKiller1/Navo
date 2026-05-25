@@ -1,29 +1,29 @@
 .what-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-  margin-bottom: 0.7rem;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
 }
 
 .what-card {
-  padding: 1rem;
+  padding: 0.85rem;
 }
 
 .what-card h2 {
-  font-size: 1.06rem;
-  margin-bottom: 0.45rem;
+  font-size: 0.98rem;
+  margin-bottom: 0.35rem;
 }
 
 .what-card ul {
-  padding-left: 1rem;
+  padding-left: 0.95rem;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.32rem;
 }
 
 .what-card li {
   color: var(--ink-soft);
   line-height: 1.5;
-  font-size: 0.87rem;
+  font-size: 0.8rem;
 }
 
 @media (max-width: 860px) {
