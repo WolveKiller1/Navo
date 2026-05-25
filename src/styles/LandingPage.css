@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.6rem 0 2rem;
+  padding: 2.2rem 0 2.6rem;
 }
 
 .hero-content {
@@ -18,7 +18,7 @@
 
 .hero-title {
   margin-top: 1rem;
-  font-size: clamp(2.3rem, 5.8vw, 3.8rem);
+  font-size: clamp(2.8rem, 6.1vw, 4.6rem);
   line-height: 1.02;
 }
 
@@ -28,18 +28,18 @@
 }
 
 .hero-subtitle {
-  margin-top: 0.85rem;
-  max-width: 560px;
+  margin-top: 1rem;
+  max-width: 590px;
   color: var(--ink-soft);
-  font-size: 0.98rem;
-  line-height: 1.6;
+  font-size: 1.06rem;
+  line-height: 1.62;
 }
 
 .entry-grid {
-  margin-top: 1.6rem;
+  margin-top: 2rem;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.72rem;
 }
 
 .entry-card {
@@ -48,7 +48,7 @@
   border: 1px solid var(--edge);
   border-radius: var(--radius);
   background: color-mix(in oklab, var(--ground-2) 90%, transparent);
-  padding: 0.85rem;
+  padding: 1.12rem 1.08rem;
   text-align: left;
   cursor: pointer;
   transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
@@ -64,22 +64,37 @@
   color: var(--ink-mute);
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  font-size: 0.63rem;
+  font-size: 0.68rem;
 }
 
 .entry-title {
   display: block;
   margin-top: 0.28rem;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 
 .entry-body {
   display: block;
   margin-top: 0.2rem;
   color: var(--ink-soft);
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: 0.93rem;
+  line-height: 1.5;
+}
+
+.entry-enter {
+  display: block;
+  margin-top: 0.52rem;
+  color: var(--accent-warm);
+  font-size: 0.8rem;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.entry-card:hover .entry-enter {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (max-width: 760px) {

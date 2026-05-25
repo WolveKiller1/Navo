@@ -1,41 +1,41 @@
 .about-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.6rem;
+  gap: 0.78rem;
 }
 
 .about-stanza {
-  padding: 0.85rem;
+  padding: 1.08rem 1.04rem;
 }
 
 .stanza-label {
   color: var(--ink-mute);
   text-transform: uppercase;
   letter-spacing: 0.13em;
-  font-size: 0.62rem;
-  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+  margin-bottom: 0.44rem;
 }
 
 .about-stanza p {
   color: var(--ink-soft);
   line-height: 1.56;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
 }
 
 .about-flow {
-  margin-top: 0.65rem;
-  padding: 0.85rem;
+  margin-top: 0.9rem;
+  padding: 1.12rem 1.04rem;
 }
 
 .about-flow h2 {
-  font-size: 1.16rem;
+  font-size: 1.42rem;
 }
 
 .about-flow p {
-  margin-top: 0.45rem;
+  margin-top: 0.58rem;
   color: var(--ink-soft);
   line-height: 1.56;
-  font-size: 0.84rem;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 860px) {

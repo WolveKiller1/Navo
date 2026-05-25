@@ -54,24 +54,28 @@ function LandingPage() {
               <span className="entry-kicker">Begin softly</span>
               <span className="entry-title">Practice Loop</span>
               <span className="entry-body">Hear a phrase. Say it back. Let it settle.</span>
+              <span className="entry-enter">Enter →</span>
             </button>
 
             <button onClick={handlePlaygroundEntry} className="entry-card navo-card navo-hairline-top">
               <span className="entry-kicker">Find variations</span>
               <span className="entry-title">Pattern Playground</span>
               <span className="entry-body">See how one phrase bends into many nearby paths.</span>
+              <span className="entry-enter">Enter →</span>
             </button>
 
             <button onClick={handleRoomEntry} className="entry-card navo-card navo-hairline-top">
               <span className="entry-kicker">Speak with someone</span>
               <span className="entry-title">The Room</span>
               <span className="entry-body">A calm voice on the other end. Just talk.</span>
+              <span className="entry-enter">Enter →</span>
             </button>
 
             <Link to="/map" className="entry-card navo-card navo-hairline-top">
               <span className="entry-kicker">See the shape</span>
               <span className="entry-title">Pattern Map</span>
               <span className="entry-body">A quiet map of phrases and paths.</span>
+              <span className="entry-enter">Enter →</span>
             </Link>
           </div>
         </section>

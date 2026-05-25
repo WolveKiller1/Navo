@@ -742,6 +742,7 @@ function CallScreen() {
           
           {openingPrompt && !hasInteracted && (
             <div className="opening-prompt-wrap">
+              <span className="opening-prompt-label">Carried in</span>
               <button
                 type="button"
                 className="opening-prompt-audio"
@@ -752,7 +753,8 @@ function CallScreen() {
                 🔊
               </button>
 
-              <p className="opening-prompt">{openingPrompt}</p>
+              <p className="opening-prompt">"{openingPrompt}"</p>
+              <span className="opening-prompt-note">say it when you're ready</span>
             </div>
           )}
         </div>
@@ -760,7 +762,7 @@ function CallScreen() {
         {/* End Call Button */}
         <button className="end-call-btn" onClick={handleEndCall}>
           <FaPhone className="phone-icon" />
-          End Call
+          Leave the room
         </button>
       </div>
 

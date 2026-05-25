@@ -5,7 +5,7 @@
 
 .playground-container {
   flex: 1;
-  padding: 1rem 0 2rem;
+  padding: 1.2rem 0 2.2rem;
 }
 
 .playground-header {
@@ -13,20 +13,20 @@
 }
 
 .playground-title {
-  margin-top: 0.7rem;
-  font-size: clamp(1.9rem, 5vw, 2.7rem);
+  margin-top: 0.82rem;
+  font-size: clamp(2.2rem, 5.5vw, 3.2rem);
   line-height: 1.05;
 }
 
 .playground-subtitle {
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   color: var(--ink-soft);
-  font-size: 0.93rem;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
 .entry-state {
-  margin-top: 1.3rem;
+  margin-top: 1.6rem;
   display: grid;
   justify-items: center;
   gap: 0.7rem;
@@ -41,7 +41,7 @@
 
 .entry-seed-card {
   width: 100%;
-  padding: 1rem 0.95rem;
+  padding: 1.2rem 1.15rem;
   border-radius: var(--radius);
   border: 1px solid var(--edge);
   background: color-mix(in oklab, var(--ground-2) 90%, transparent);
@@ -61,9 +61,9 @@
 }
 
 .entry-seed-text {
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.42rem;
+  font-size: 1.62rem;
   line-height: 1.28;
 }
 
@@ -78,8 +78,8 @@
   border: 1px solid color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
   background: color-mix(in oklab, var(--ground-2) 84%, transparent);
   color: var(--ink);
-  padding: 0.6rem 1.2rem;
-  font-size: 0.78rem;
+  padding: 0.66rem 1.24rem;
+  font-size: 0.82rem;
   cursor: pointer;
 }
 
@@ -96,7 +96,7 @@
 }
 
 .guided-flow {
-  margin-top: 1.3rem;
+  margin-top: 1.5rem;
   display: grid;
   gap: 0.7rem;
 }
@@ -105,7 +105,7 @@
   border-radius: var(--radius);
   border: 1px solid var(--edge);
   background: color-mix(in oklab, var(--ground-2) 90%, transparent);
-  padding: 0.9rem 0.95rem;
+  padding: 1.12rem 1.1rem;
 }
 
 .guided-visual-marker {
@@ -139,7 +139,7 @@
 
 .guided-phrase-text {
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(1.25rem, 3.4vw, 1.72rem);
+  font-size: clamp(1.5rem, 3.8vw, 2rem);
   line-height: 1.28;
 }
 
@@ -148,9 +148,9 @@
 }
 
 .guided-compressed-meaning {
-  margin-top: 0.62rem;
+  margin-top: 0.72rem;
   color: var(--ink-mute);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
 }
 
 .guided-primary-actions {
@@ -174,7 +174,7 @@
 
 .nearby-list {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.48rem;
 }
 
 .nearby-item {
@@ -182,7 +182,7 @@
   grid-template-columns: auto 1fr auto;
   gap: 0.55rem;
   align-items: center;
-  padding: 0.62rem 0.7rem;
+  padding: 0.78rem 0.82rem;
 }
 
 .nearby-audio-button {
@@ -213,7 +213,7 @@
   padding: 0;
   cursor: pointer;
   line-height: 1.4;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .nearby-jump:hover {
@@ -231,8 +231,8 @@
   border: 1px solid var(--edge);
   background: transparent;
   color: var(--ink-mute);
-  padding: 0.38rem 0.62rem;
-  font-size: 0.7rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.72rem;
   cursor: pointer;
   white-space: nowrap;
   text-transform: uppercase;
@@ -247,7 +247,7 @@
 .guided-flow-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .guided-action-button {
@@ -255,8 +255,8 @@
   border: 1px solid var(--edge);
   background: transparent;
   color: var(--ink-soft);
-  padding: 0.66rem 0.74rem;
-  font-size: 0.83rem;
+  padding: 0.56rem 0.72rem;
+  font-size: 0.79rem;
   cursor: pointer;
 }
 
