@@ -40,11 +40,10 @@ function AccessPage() {
 
   if (pricingView) {
     return (
-      <SubPageLayout
-        title="Pricing"
-        headline="Quiet, honest pricing"
-        subtitle="Quiet, honest pricing. No gamified upsells."
-      >
+      <SubPageLayout title="Pricing">
+        <h1 className="pricing-title">Quiet, honest pricing.</h1>
+        <p className="pricing-sub">One number, monthly, cancel from the account page. Nothing is sold by the lesson.</p>
+
         <section className="tier-grid">
           {TIERS.map((tier) => (
             <article key={tier.name} className={`tier-card navo-card navo-hairline-top ${tier.featured ? 'featured' : ''}`}>
@@ -55,7 +54,7 @@ function AccessPage() {
               <ul className="tier-features">
                 {tier.features.map((feature) => <li key={feature}>{feature}</li>)}
               </ul>
-              <Link to={tier.to} className="tier-cta">{tier.cta}</Link>
+              <Link to={tier.to} className={`tier-cta ${tier.featured ? 'featured' : ''}`}>{tier.cta}</Link>
             </article>
           ))}
         </section>
@@ -64,25 +63,13 @@ function AccessPage() {
   }
 
   return (
-    <SubPageLayout
-      title="Access"
-      headline="Entry and access"
-      subtitle="Access controls are still frontend-only in this build."
-    >
+    <SubPageLayout title="Access" headline="Entry and access" subtitle="Access controls are still frontend-only in this build.">
       <section className="access-panel navo-card navo-hairline-top">
         <h2>Current build status</h2>
-        <p>
-          Billing and auth integrations are not wired yet. All product routes shown in this prototype are local-app behavior.
-        </p>
+        <p>Billing and auth integrations are not wired yet. All product routes shown in this prototype are local-app behavior.</p>
         <div className="access-actions">
           <Link to="/pricing" className="access-link">View pricing</Link>
-          <Link
-            to="/room"
-            className="access-link"
-            onClick={() => sessionStorage.setItem('rylingo_access', 'granted')}
-          >
-            Enter the Room
-          </Link>
+          <Link to="/room" className="access-link" onClick={() => sessionStorage.setItem('rylingo_access', 'granted')}>Enter the Room</Link>
         </div>
       </section>
     </SubPageLayout>

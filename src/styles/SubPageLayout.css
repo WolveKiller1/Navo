@@ -5,23 +5,23 @@
 
 .subpage-content {
   flex: 1;
-  padding: 0.85rem 0 1.15rem;
+  padding: 2rem 0 2.5rem;
 }
 
 .subpage-header {
-  margin-bottom: 0.95rem;
+  margin-bottom: 1.8rem;
 }
 
 .subpage-title {
-  margin-top: 0.6rem;
-  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  margin-top: 0.8rem;
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
   line-height: 1.05;
 }
 
 .subpage-subtitle {
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
   max-width: 680px;
   color: var(--ink-soft);
   line-height: 1.55;
-  font-size: 0.94rem;
+  font-size: 0.98rem;
 }

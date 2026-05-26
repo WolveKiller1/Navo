@@ -1,12 +1,6 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  exportSessionsAsJSON,
-  deleteAllSessions,
-  deleteAllData,
-  getUserPreferences,
-  getAllSessions
-} from '../services/storage';
+import { exportSessionsAsJSON, deleteAllSessions, deleteAllData, getUserPreferences, getAllSessions } from '../services/storage';
 import ConfirmationDialog from './ConfirmationDialog';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
@@ -18,35 +12,17 @@ const LANGUAGE_META = {
 };
 
 function formatTotalMinutes(totalDurationMs, fallbackTurns) {
-  if (totalDurationMs > 0) {
-    return Math.max(1, Math.round(totalDurationMs / 60000));
-  }
-
-  if (fallbackTurns > 0) {
-    return Math.max(1, Math.round(fallbackTurns * 0.6));
-  }
-
+  if (totalDurationMs > 0) return Math.max(1, Math.round(totalDurationMs / 60000));
+  if (fallbackTurns > 0) return Math.max(1, Math.round(fallbackTurns * 0.6));
   return 0;
 }
 
 function AccountPage() {
   const [preferences, setPreferences] = useState(null);
-  const [stats, setStats] = useState({
-    sessionCount: 0,
-    turns: 0,
-    minutes: 0,
-    latestLine: null,
-    languages: []
-  });
+  const [stats, setStats] = useState({ sessionCount: 0, turns: 0, minutes: 0, latestLine: null, languages: [] });
   const [errorMessage, setErrorMessage] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [confirmDialogConfig, setConfirmDialogConfig] = useState({
-    action: null,
-    title: '',
-    body: '',
-    confirmText: 'Confirm',
-    isDangerous: false
-  });
+  const [confirmDialogConfig, setConfirmDialogConfig] = useState({ action: null, title: '', body: '', confirmText: 'Confirm', isDangerous: false });
 
   useEffect(() => {
     const loadAccount = async () => {
@@ -58,15 +34,8 @@ function AccountPage() {
       const totalTurns = ordered.reduce((sum, session) => sum + (session.exchangeCount || session.exchanges?.length || 0), 0);
       const minutes = formatTotalMinutes(totalDuration, totalTurns);
 
-      const languageSet = new Set(
-        ordered
-          .map(session => session.language)
-          .filter(Boolean)
-      );
-
-      if (prefs.activeLanguage) {
-        languageSet.add(prefs.activeLanguage);
-      }
+      const languageSet = new Set(ordered.map((session) => session.language).filter(Boolean));
+      if (prefs.activeLanguage) languageSet.add(prefs.activeLanguage);
 
       setPreferences(prefs);
       setStats({
@@ -81,9 +50,7 @@ function AccountPage() {
     loadAccount();
   }, []);
 
-  const clearError = () => {
-    setTimeout(() => setErrorMessage(''), 5000);
-  };
+  const clearError = () => setTimeout(() => setErrorMessage(''), 5000);
 
   const queueConfirm = (action, title, body, confirmText, isDangerous) => {
     setConfirmDialogConfig({ action, title, body, confirmText, isDangerous });
@@ -121,9 +88,7 @@ function AccountPage() {
     }
   };
 
-  if (!preferences) {
-    return null;
-  }
+  if (!preferences) return null;
 
   const activeLanguage = preferences.activeLanguage || 'en';
   const knownLanguages = ['en', 'pt'];
@@ -133,12 +98,12 @@ function AccountPage() {
       <div className="account-page navo-shell">
         <NavoNav compact />
 
-        <main className="account-main navo-container">
+        <main className="account-main navo-container navo-container--normal">
           <section className="account-profile-row">
             <div className="account-avatar">N</div>
             <div>
               <p className="account-name">Navo Preview User</p>
-              <p className="account-sub">Local profile · no cloud account connected</p>
+              <p className="account-sub">Local profile - no cloud account connected</p>
             </div>
           </section>
 
@@ -173,9 +138,7 @@ function AccountPage() {
                   <div key={langCode} className="language-row">
                     <div>
                       <p className="language-name">{lang.name}</p>
-                      <p className="language-note">
-                        {isActive ? 'Active now' : seenInSessions ? 'Seen in your traces' : 'Available in this build'}
-                      </p>
+                      <p className="language-note">{isActive ? 'Active now' : seenInSessions ? 'Seen in your traces' : 'Available in this build'}</p>
                     </div>
                     {isActive ? (
                       <span className="language-active-pill"><span className="navo-dot" /> Active</span>
@@ -214,28 +177,13 @@ function AccountPage() {
             <h2>Local data</h2>
             <p>Data stays on this device unless you export it.</p>
             <div className="data-controls">
-              <button
-                className="data-btn"
-                onClick={() => queueConfirm('export', 'Export conversations?', 'Your conversations will be downloaded as a JSON file.', 'Export', false)}
-              >
-                Export conversations
-              </button>
-              <button
-                className="data-btn"
-                onClick={() => queueConfirm('deleteSessions', 'Delete all conversations?', 'This permanently removes all local conversations. This cannot be undone.', 'Delete', true)}
-              >
-                Delete all conversations
-              </button>
-              <button
-                className="data-btn data-btn-danger"
-                onClick={() => queueConfirm('deleteData', 'Delete all data?', 'This removes all local conversations and settings. This cannot be undone.', 'Delete', true)}
-              >
-                Delete all data
-              </button>
+              <button className="data-btn" onClick={() => queueConfirm('export', 'Export conversations?', 'Your conversations will be downloaded as a JSON file.', 'Export', false)}>Export conversations</button>
+              <button className="data-btn" onClick={() => queueConfirm('deleteSessions', 'Delete all conversations?', 'This permanently removes all local conversations. This cannot be undone.', 'Delete', true)}>Delete all conversations</button>
+              <button className="data-btn data-btn-danger" onClick={() => queueConfirm('deleteData', 'Delete all data?', 'This removes all local conversations and settings. This cannot be undone.', 'Delete', true)}>Delete all data</button>
             </div>
           </section>
 
-          <p className="account-preview-note">Preview · no real account is signed in.</p>
+          <p className="account-preview-note">Preview - no real account is signed in.</p>
         </main>
 
         <NavoFooter />

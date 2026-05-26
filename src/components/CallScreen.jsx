@@ -677,16 +677,7 @@ function CallScreen() {
         </div>
 
         {/* Conversation Area */}
-        <div className="conversation-area">
-          {/* Previous exchange as ghost layer */}
-          {previousExchange.user && (
-            <>
-              <div className="conversation-text user-text ghost">{previousExchange.user}</div>
-              <div className="conversation-text ai-text ghost">{previousExchange.ai}</div>
-            </>
-          )}
-          
-          {/* Current exchange */}
+        <div className="conversation-area">        {/* Current exchange */}
           {isListening && transcript && (
             <div className="conversation-text user-text">{transcript}</div>
           )}
@@ -782,4 +773,5 @@ function CallScreen() {
 }
 
 export default CallScreen;
+
 

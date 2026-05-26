@@ -10,7 +10,7 @@ function SubPageLayout({ title, headline, subtitle, children }) {
     <div className="subpage-container navo-shell">
       <NavoNav compact />
 
-      <main className="subpage-content navo-container">
+      <main className="subpage-content navo-container navo-container--normal">
         <header className="subpage-header navo-reveal">
           <span className="navo-pill"><span className="navo-dot" /> {title}</span>
           <h1 className="subpage-title">{displayHeadline}</h1>

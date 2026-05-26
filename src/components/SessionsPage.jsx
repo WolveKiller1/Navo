@@ -8,7 +8,7 @@ function SessionsPage() {
   return (
     <div className="navo-shell">
       <NavoNav compact />
-      <main className="subpage-content navo-container">
+      <main className="subpage-content navo-container navo-container--normal">
         <header className="subpage-header navo-reveal">
           <span className="navo-pill"><span className="navo-dot" /> Traces</span>
           <h1 className="subpage-title">Rooms you've been in.</h1>

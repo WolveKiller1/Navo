@@ -1,29 +1,41 @@
+.pricing-title {
+  margin-top: 0.5rem;
+  font-size: clamp(2.4rem, 5vw, 3.7rem);
+}
+
+.pricing-sub {
+  margin-top: 0.8rem;
+  max-width: 640px;
+  color: var(--ink-soft);
+}
+
 .tier-grid {
+  margin-top: 2.2rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.72rem;
+  gap: 1rem;
 }
 
 .tier-card {
-  padding: 1.15rem 1.05rem;
+  padding: 1.5rem;
   display: grid;
-  gap: 0.36rem;
+  gap: 0.5rem;
 }
 
 .tier-card.featured {
-  border-color: color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
+  box-shadow: inset 0 0 0 1px var(--accent-warm-soft);
 }
 
 .tier-name {
   color: var(--ink-mute);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   font-size: 0.68rem;
 }
 
 .tier-price {
   font-family: "Fraunces", Georgia, serif;
-  font-size: 2.35rem;
+  font-size: 3rem;
 }
 
 .tier-cadence {
@@ -31,60 +43,53 @@
   font-size: 0.76rem;
 }
 
-.tier-body {
-  margin-top: 0.32rem;
+.tier-body,
+.tier-features li {
   color: var(--ink-soft);
-  font-size: 0.92rem;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .tier-features {
-  margin-top: 0.34rem;
+  margin-top: 0.4rem;
   padding-left: 1rem;
   display: grid;
-  gap: 0.22rem;
-}
-
-.tier-features li {
-  color: var(--ink-soft);
-  font-size: 0.83rem;
+  gap: 0.3rem;
 }
 
 .tier-cta {
-  margin-top: 0.62rem;
+  margin-top: 0.7rem;
   text-decoration: none;
-  border: 1px solid var(--edge);
   border-radius: 999px;
+  border: 1px solid var(--edge);
   color: var(--ink-soft);
   padding: 0.58rem 0.72rem;
   font-size: 0.76rem;
   text-align: center;
 }
 
-.tier-cta:hover {
-  color: var(--ink);
-  border-color: color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
+.tier-cta.featured {
+  border-color: color-mix(in oklab, var(--accent-warm) 55%, var(--edge));
+  color: var(--accent-warm);
 }
 
 .access-panel {
-  padding: 1.1rem 1rem;
+  padding: 1.3rem;
 }
 
 .access-panel h2 {
-  font-size: 1.3rem;
+  font-size: 1.6rem;
 }
 
 .access-panel p {
-  margin-top: 0.5rem;
+  margin-top: 0.6rem;
   color: var(--ink-soft);
   line-height: 1.55;
-  font-size: 0.92rem;
 }
 
 .access-actions {
-  margin-top: 0.84rem;
+  margin-top: 1rem;
   display: flex;
-  gap: 0.35rem;
+  gap: 0.55rem;
   flex-wrap: wrap;
 }
 
@@ -93,12 +98,8 @@
   border: 1px solid var(--edge);
   border-radius: 999px;
   color: var(--ink-soft);
-  padding: 0.5rem 0.72rem;
-  font-size: 0.74rem;
-}
-
-.access-link:hover {
-  color: var(--ink);
+  padding: 0.5rem 0.8rem;
+  font-size: 0.76rem;
 }
 
 @media (max-width: 960px) {

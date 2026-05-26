@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getUserPreferences, saveUserPreferences } from '../services/storage';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
@@ -48,120 +48,80 @@ function SettingsPage() {
     <div className="navo-shell">
       <NavoNav compact />
 
-      <main className="settings-main navo-container">
+      <main className="settings-main navo-container navo-container--normal">
         <span className="navo-pill"><span className="navo-dot" /> Atmosphere</span>
         <h1 className="settings-headline">Tune the room.</h1>
-        <p className="settings-intro">Adjust only what helps conversation feel natural. Keep the room quiet.</p>
+        <p className="settings-intro">A few quiet things to adjust. Change them whenever the room feels off.</p>
 
         <section className="settings-stack">
-          <article className="settings-row navo-card navo-hairline-top">
+          <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Active language</p>
               <p className="settings-row-sub">Used by Practice Loop and Room.</p>
             </div>
             <div className="settings-choice-group">
-              <button
-                className={`settings-choice ${preferences.activeLanguage === 'en' ? 'active' : ''}`}
-                onClick={() => updatePreference('activeLanguage', 'en')}
-              >
-                English
-              </button>
-              <button
-                className={`settings-choice ${preferences.activeLanguage === 'pt' ? 'active' : ''}`}
-                onClick={() => updatePreference('activeLanguage', 'pt')}
-              >
-                Portuguese
-              </button>
+              <button className={`settings-choice ${preferences.activeLanguage === 'en' ? 'active' : ''}`} onClick={() => updatePreference('activeLanguage', 'en')}>English</button>
+              <button className={`settings-choice ${preferences.activeLanguage === 'pt' ? 'active' : ''}`} onClick={() => updatePreference('activeLanguage', 'pt')}>Portuguese</button>
             </div>
           </article>
 
-          <article className="settings-row navo-card navo-hairline-top">
+          <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Theme</p>
-              <p className="settings-row-sub">Light or dark atmosphere.</p>
+              <p className="settings-row-sub">Light in the room.</p>
             </div>
             <div className="settings-choice-group">
-              <button
-                className={`settings-choice ${preferences.theme === 'dark' ? 'active' : ''}`}
-                onClick={() => updatePreference('theme', 'dark')}
-              >
-                Dark
-              </button>
-              <button
-                className={`settings-choice ${preferences.theme === 'light' ? 'active' : ''}`}
-                onClick={() => updatePreference('theme', 'light')}
-              >
-                Light
-              </button>
+              <button className={`settings-choice ${preferences.theme === 'dark' ? 'active' : ''}`} onClick={() => updatePreference('theme', 'dark')}>Dark</button>
+              <button className={`settings-choice ${preferences.theme === 'light' ? 'active' : ''}`} onClick={() => updatePreference('theme', 'light')}>Light</button>
             </div>
           </article>
 
-          <article className="settings-row navo-card navo-hairline-top">
+          <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Show heard speech</p>
               <p className="settings-row-sub">Keep recognized speech visible after speaking.</p>
             </div>
-            <button
-              className={`settings-toggle ${preferences.showHeardSpeech ? 'on' : ''}`}
-              onClick={() => updatePreference('showHeardSpeech', !preferences.showHeardSpeech)}
-              aria-pressed={preferences.showHeardSpeech}
-            >
+            <button className={`settings-toggle ${preferences.showHeardSpeech ? 'on' : ''}`} onClick={() => updatePreference('showHeardSpeech', !preferences.showHeardSpeech)} aria-pressed={preferences.showHeardSpeech}>
               <span className="settings-toggle-knob" />
             </button>
           </article>
 
-          <article className="settings-row navo-card navo-hairline-top">
+          <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Voice feel</p>
               <p className="settings-row-sub">Frontend placeholder. Backend voice selection is not wired yet.</p>
             </div>
             <div className="settings-choice-group">
-              <button className={`settings-choice ${voice === 'calm' ? 'active' : ''}`} onClick={() => setVoice('calm')}>
-                Calm
-              </button>
-              <button className={`settings-choice ${voice === 'warm' ? 'active' : ''}`} onClick={() => setVoice('warm')}>
-                Warm
-              </button>
-              <button className={`settings-choice ${voice === 'bright' ? 'active' : ''}`} onClick={() => setVoice('bright')}>
-                Bright
-              </button>
+              <button className={`settings-choice ${voice === 'calm' ? 'active' : ''}`} onClick={() => setVoice('calm')}>Calm</button>
+              <button className={`settings-choice ${voice === 'warm' ? 'active' : ''}`} onClick={() => setVoice('warm')}>Warm</button>
+              <button className={`settings-choice ${voice === 'bright' ? 'active' : ''}`} onClick={() => setVoice('bright')}>Bright</button>
             </div>
           </article>
 
-          <article className="settings-row navo-card navo-hairline-top">
+          <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Phrase spacing</p>
               <p className="settings-row-sub">Frontend placeholder for pacing presets.</p>
             </div>
             <div className="settings-choice-group">
-              <button className={`settings-choice ${spacing === 'close' ? 'active' : ''}`} onClick={() => setSpacing('close')}>
-                Closer
-              </button>
-              <button className={`settings-choice ${spacing === 'balanced' ? 'active' : ''}`} onClick={() => setSpacing('balanced')}>
-                Balanced
-              </button>
-              <button className={`settings-choice ${spacing === 'slow' ? 'active' : ''}`} onClick={() => setSpacing('slow')}>
-                Slower
-              </button>
+              <button className={`settings-choice ${spacing === 'close' ? 'active' : ''}`} onClick={() => setSpacing('close')}>Closer</button>
+              <button className={`settings-choice ${spacing === 'balanced' ? 'active' : ''}`} onClick={() => setSpacing('balanced')}>Balanced</button>
+              <button className={`settings-choice ${spacing === 'slow' ? 'active' : ''}`} onClick={() => setSpacing('slow')}>Slower</button>
             </div>
           </article>
 
-          <article className="settings-row navo-card navo-hairline-top">
+          <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Soft haptics</p>
               <p className="settings-row-sub">Frontend placeholder for tactile feedback.</p>
             </div>
-            <button
-              className={`settings-toggle ${softHaptics ? 'on' : ''}`}
-              onClick={() => setSoftHaptics(value => !value)}
-              aria-pressed={softHaptics}
-            >
+            <button className={`settings-toggle ${softHaptics ? 'on' : ''}`} onClick={() => setSoftHaptics((v) => !v)} aria-pressed={softHaptics}>
               <span className="settings-toggle-knob" />
             </button>
           </article>
         </section>
 
-        <p className="settings-footnote">Preview build: atmosphere controls are local-only.</p>
+        <p className="settings-footnote">Preview - settings are local-only.</p>
       </main>
 
       <NavoFooter />

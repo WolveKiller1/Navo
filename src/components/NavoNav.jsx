@@ -19,52 +19,36 @@ function NavoNav({ showEnterRoom = true, compact = false }) {
   const isActive = (to) => location.pathname === to;
 
   return (
-    <header className={`navo-topbar navo-container ${compact ? 'compact' : ''}`}>
+    <header className={`navo-topbar navo-container navo-container--wide ${compact ? 'compact' : ''}`}>
       <Link to="/" className="brand brand-link">
         <span className="navo-dot" />
         <span className="brand-text">Navo</span>
       </Link>
 
       <nav className="header-nav desktop">
-        {links.map(link => (
-          <Link
-            key={link.to}
-            to={link.to}
-            className={`nav-link ${isActive(link.to) ? 'active' : ''}`}
-          >
+        {links.map((link) => (
+          <Link key={link.to} to={link.to} className={`nav-link ${isActive(link.to) ? 'active' : ''}`}>
             {link.label}
           </Link>
         ))}
         {showEnterRoom && (
-          <Link
-            to="/room"
-            className={`room-entry-chip ${isActive('/room') ? 'active' : ''}`}
-            onClick={grantRoomAccess}
-          >
+          <Link to="/room" className="room-entry-chip" onClick={grantRoomAccess}>
             Enter Navo
           </Link>
         )}
-        <Link
-          to="/account"
-          className={`account-chip ${isActive('/account') ? 'active' : ''}`}
-          aria-label="Account"
-        >
+        <Link to="/account" className={`account-chip ${isActive('/account') ? 'active' : ''}`} aria-label="Account">
           <FaUser />
         </Link>
       </nav>
 
-      <button
-        className="nav-mobile-toggle"
-        aria-label="Toggle menu"
-        onClick={() => setOpen(v => !v)}
-      >
+      <button className="nav-mobile-toggle" aria-label="Toggle menu" onClick={() => setOpen((v) => !v)}>
         {open ? <FaTimes /> : <FaBars />}
       </button>
 
       {open && (
-        <div className="mobile-nav-wrap">
+        <div className="mobile-nav-wrap navo-reveal">
           <nav className="mobile-nav navo-card navo-hairline-top">
-            {links.map(link => (
+            {links.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}

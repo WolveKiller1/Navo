@@ -1,54 +1,48 @@
-﻿.settings-main {
+.settings-main {
   flex: 1;
-  padding: 1rem 0 2rem;
+  padding: 2rem 0 3rem;
 }
 
 .settings-headline {
-  margin-top: 0.7rem;
-  font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(2rem, 5vw, 2.9rem);
-  line-height: 1.05;
+  margin-top: 1rem;
+  font-size: clamp(2.3rem, 5vw, 3.6rem);
 }
 
 .settings-intro {
-  margin-top: 0.45rem;
-  max-width: 560px;
+  margin-top: 0.55rem;
+  max-width: 620px;
   color: var(--ink-soft);
-  font-size: 0.95rem;
-  line-height: 1.5;
 }
 
 .settings-stack {
-  margin-top: 1.1rem;
+  margin-top: 2rem;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.65rem;
 }
 
 .settings-row {
-  padding: 0.8rem;
+  padding: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .settings-row-title {
+  font-size: 1.2rem;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1rem;
 }
 
 .settings-row-sub {
-  margin-top: 0.12rem;
+  margin-top: 0.16rem;
   color: var(--ink-mute);
-  font-size: 0.77rem;
-  line-height: 1.45;
+  font-size: 0.84rem;
 }
 
 .settings-choice-group {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .settings-choice {
@@ -56,18 +50,14 @@
   border: 1px solid var(--edge);
   background: transparent;
   color: var(--ink-soft);
-  padding: 0.4rem 0.68rem;
-  font-size: 0.73rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.76rem;
   cursor: pointer;
 }
 
-.settings-choice:hover {
-  color: var(--ink);
-}
-
 .settings-choice.active {
-  color: var(--ink);
   border-color: color-mix(in oklab, var(--accent-warm) 60%, var(--edge));
+  color: var(--accent-warm);
 }
 
 .settings-toggle {
@@ -101,18 +91,14 @@
 }
 
 .settings-footnote {
-  margin-top: 0.65rem;
+  margin-top: 1rem;
   color: var(--ink-mute);
-  font-size: 0.77rem;
+  font-size: 0.78rem;
 }
 
 @media (max-width: 760px) {
   .settings-row {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .settings-choice-group {
-    justify-content: flex-start;
   }
 }
