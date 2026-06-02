@@ -1,15 +1,54 @@
-.about-content {
-  max-width: 600px;
+.about-hero {
+  margin-top: 0.4rem;
+  max-width: 980px;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  line-height: 1.08;
 }
 
-.about-text {
-  font-size: 1.1rem;
+.about-hero span {
+  font-style: italic;
+  color: var(--accent-warm);
+}
+
+.about-grid {
+  margin-top: 2.4rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.about-stanza .stanza-label {
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.68rem;
+}
+
+.about-stanza p {
+  margin-top: 0.5rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.about-flow {
+  margin-top: 3rem;
+  display: grid;
+  gap: 0.7rem;
+  max-width: 760px;
+}
+
+.about-flow h2 {
+  font-size: 2rem;
+  color: var(--ink-soft);
+}
+
+.about-flow p {
+  color: var(--ink-soft);
   line-height: 1.6;
-  color: #e8e8e8;
-  opacity: 0.85;
-  margin: 0 0 1.5rem 0;
 }
 
-.about-text:last-child {
-  margin-bottom: 0;
+@media (max-width: 860px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
 }

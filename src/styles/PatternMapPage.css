@@ -1,0 +1,24 @@
+.pattern-map-wrap {
+  padding: 1rem;
+}
+
+.pattern-map-svg {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.pattern-map-svg line {
+  stroke: color-mix(in oklab, var(--accent-warm) 50%, var(--edge));
+  stroke-width: 0.3;
+}
+
+.pattern-map-svg circle {
+  fill: var(--accent-warm);
+}
+
+.pattern-map-svg text {
+  fill: var(--ink-mute);
+  text-anchor: middle;
+  font-size: 2.4px;
+  font-family: "Fraunces", Georgia, serif;
+}

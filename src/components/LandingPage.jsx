@@ -1,40 +1,12 @@
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { getUserPreferences, initStorage } from '../services/storage'
+import NavoNav from './NavoNav'
+import NavoFooter from './NavoFooter'
 import '../styles/LandingPage.css'
 
 function LandingPage() {
   const navigate = useNavigate()
-  const heroRef = useRef(null)
-  const howRef = useRef(null)
-  const mapRef = useRef(null)
-  const lowerRef = useRef(null)
-
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.15,
-      rootMargin: '0px 0px -50px 0px'
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !entry.target.classList.contains('section-reveal')) {
-          entry.target.classList.add('section-reveal')
-        }
-      })
-    }, observerOptions)
-
-    const sections = [heroRef.current, howRef.current, mapRef.current, lowerRef.current]
-    sections.forEach(section => {
-      if (section) observer.observe(section)
-    })
-
-    return () => {
-      sections.forEach(section => {
-        if (section) observer.unobserve(section)
-      })
-    }
-  }, [])
 
   const handleLoopEntry = () => {
     navigate('/loop')
@@ -47,14 +19,11 @@ function LandingPage() {
 
   const handlePlaygroundEntry = async () => {
     sessionStorage.setItem('rylingo_access', 'granted')
-    
-    // Get user's language preference
+
     await initStorage()
     const prefs = await getUserPreferences()
     const lang = prefs.activeLanguage || 'en'
-    
-    // Navigate to Playground in entry mode with language
-    // PlaygroundScreen will generate the seed phrase using the correct language
+
     navigate('/playground', {
       state: {
         entryMode: true,
@@ -64,85 +33,55 @@ function LandingPage() {
   }
 
   return (
-    <div className="landing-page">
-      {/* Header Navigation */}
-      <header className="site-header">
-        <div className="brand">Navo</div>
-        <nav className="header-nav">
-          <button onClick={handlePlaygroundEntry} className="nav-link nav-link-emphasized">Playground</button>
-          <Link to="/what-rylingo-is" className="nav-link">What it is</Link>
-          <button onClick={handleRoomEntry} className="nav-link">Room</button>
-        </nav>
-      </header>
+    <div className="landing-page navo-shell">
+      <NavoNav />
 
-      {/* Hero Section */}
-      <section ref={heroRef} className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">Learn a language by speaking.</h1>
-          <p className="hero-subtitle">Navo responds and keeps the conversation moving.</p>
-          
-          <div className="hero-actions">
-            <button onClick={handleLoopEntry} className="playground-button">
-              <span className="playground-label">Practice Loop</span>
-              <span className="playground-hint">Start here</span>
+      <main className="hero-section navo-container">
+        <section className="hero-content navo-reveal">
+          <span className="navo-pill"><span className="navo-dot" /> Quiet language environment</span>
+          <h1 className="hero-title">
+            Step inside the
+            <br />
+            <span className="hero-emphasis">language</span>, not a lesson.
+          </h1>
+          <p className="hero-subtitle">
+            Navo is a small, calm room. You listen, you echo, you speak.
+            No scores, no streaks, just the rhythm of real conversation.
+          </p>
+
+          <div className="entry-grid">
+            <button onClick={handleLoopEntry} className="entry-card navo-card navo-hairline-top">
+              <span className="entry-kicker">Begin softly</span>
+              <span className="entry-title">Practice Loop</span>
+              <span className="entry-body">Hear a phrase. Say it back. Let it settle.</span>
+              <span className="entry-enter">Enter →</span>
             </button>
 
-            <button onClick={handleRoomEntry} className="room-button">
-              <span className="room-label">The Room</span>
-              <span className="room-hint">Conversation</span>
+            <button onClick={handlePlaygroundEntry} className="entry-card navo-card navo-hairline-top">
+              <span className="entry-kicker">Find variations</span>
+              <span className="entry-title">Pattern Playground</span>
+              <span className="entry-body">See how one phrase bends into many nearby paths.</span>
+              <span className="entry-enter">Enter →</span>
             </button>
-          </div>
-        </div>
-      </section>
 
-      {/* How It Works */}
-      <section ref={howRef} className="how-section">
-        <div className="how-content">
-          <div className="how-step">
-            <div className="step-number">1</div>
-            <div className="step-text">Speak</div>
-          </div>
-          <div className="how-arrow">→</div>
-          <div className="how-step">
-            <div className="step-number">2</div>
-            <div className="step-text">It responds</div>
-          </div>
-          <div className="how-arrow">→</div>
-          <div className="how-step">
-            <div className="step-number">3</div>
-            <div className="step-text">You adapt naturally</div>
-          </div>
-        </div>
-      </section>
+            <button onClick={handleRoomEntry} className="entry-card navo-card navo-hairline-top">
+              <span className="entry-kicker">Speak with someone</span>
+              <span className="entry-title">The Room</span>
+              <span className="entry-body">A calm voice on the other end. Just talk.</span>
+              <span className="entry-enter">Enter →</span>
+            </button>
 
-      {/* Product Map */}
-      <section ref={mapRef} className="product-map-section">
-        <div className="product-map-content">
-          <h2 className="section-title">Inside Navo</h2>
-          <div className="map-grid">
-            <Link to="/sessions" className="map-card">
-              <span className="map-card-title">Sessions</span>
-              <span className="map-card-descriptor">Past conversations</span>
-            </Link>
-            <Link to="/account" className="map-card">
-              <span className="map-card-title">Account</span>
-              <span className="map-card-descriptor">Your profile</span>
-            </Link>
-            <Link to="/pricing" className="map-card">
-              <span className="map-card-title">Pricing</span>
-              <span className="map-card-descriptor">Access to Navo</span>
+            <Link to="/map" className="entry-card navo-card navo-hairline-top">
+              <span className="entry-kicker">See the shape</span>
+              <span className="entry-title">Pattern Map</span>
+              <span className="entry-body">A quiet map of phrases and paths.</span>
+              <span className="entry-enter">Enter →</span>
             </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* Lower Section */}
-      <section ref={lowerRef} className="lower-section">
-        <Link to="/what-rylingo-is" className="info-panel">
-          <span className="info-label">What Navo is / isn't</span>
-          <span className="info-hint">System overview</span>
-        </Link>
-      </section>
+      <NavoFooter />
     </div>
   )
 }

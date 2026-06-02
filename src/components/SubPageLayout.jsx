@@ -1,29 +1,28 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import NavoNav from './NavoNav';
+import NavoFooter from './NavoFooter';
 import '../styles/SubPageLayout.css';
 
-function SubPageLayout({ title, children }) {
-  const navigate = useNavigate();
+function SubPageLayout({ title, headline, subtitle, children }) {
+  const displayHeadline = headline || title;
 
   return (
-    <div className="subpage-container">
-      <div className="subpage-content">
-        <div className="subpage-header">
-          <button 
-            className="subpage-back-btn" 
-            onClick={() => navigate('/')}
-            aria-label="Back to home"
-          >
-            <FaArrowLeft />
-          </button>
-          <h1 className="subpage-title">{title}</h1>
-        </div>
-        
+    <div className="subpage-container navo-shell">
+      <NavoNav compact />
+
+      <main className="subpage-content navo-container navo-container--normal">
+        <header className="subpage-header navo-reveal">
+          <span className="navo-pill"><span className="navo-dot" /> {title}</span>
+          <h1 className="subpage-title">{displayHeadline}</h1>
+          {subtitle && <p className="subpage-subtitle">{subtitle}</p>}
+        </header>
+
         <div className="subpage-body">
           {children}
         </div>
-      </div>
+      </main>
+
+      <NavoFooter />
     </div>
   );
 }
