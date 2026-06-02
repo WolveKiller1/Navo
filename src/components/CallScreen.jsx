@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
-import { FaMicrophone, FaPhone } from 'react-icons/fa';
+import { FaMicrophone, FaPhone, FaPlay, FaPause } from 'react-icons/fa';
 import { sendMessage, resetConversation, setOpeningContext } from '../services/conversation';
 import { speak, stopSpeaking, initializeTTS } from '../services/tts';
 import { applyMoveEngine } from '../services/moveEngine';
@@ -44,6 +44,8 @@ function CallScreen() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [previousExchange, setPreviousExchange] = useState({ user: '', ai: '' });
   const [systemNotice, setSystemNotice] = useState(null);
+  const [isReplayPlaying, setIsReplayPlaying] = useState(false);
+  const [isOpeningAudioPlaying, setIsOpeningAudioPlaying] = useState(false);
   
   // Phase 7: Track learner_last for Move Engine
   const [learnerLast, setLearnerLast] = useState('');
@@ -584,10 +586,25 @@ function CallScreen() {
   };
 
   // Phase 11: Handle replay AI message
-  const handleReplayMessage = (text) => {
+  const handleReplayMessage = async (text) => {
     // Only replay if not currently listening or processing
     if (!isListening && !isProcessing) {
-      speak(text);
+      setIsReplayPlaying(true);
+      try {
+        await speak(text);
+      } finally {
+        setIsReplayPlaying(false);
+      }
+    }
+  };
+
+  const handleOpeningPromptAudio = async () => {
+    if (!openingPrompt || isListening || isProcessing) return;
+    setIsOpeningAudioPlaying(true);
+    try {
+      await speak(openingPrompt);
+    } finally {
+      setIsOpeningAudioPlaying(false);
     }
   };
 
@@ -679,24 +696,33 @@ function CallScreen() {
         {/* Conversation Area */}
         <div className="conversation-area">        {/* Current exchange */}
           {isListening && transcript && (
-            <div className="conversation-text user-text">{transcript}</div>
+            <article className="message-card user-card">
+              <span className="transcript-label">You</span>
+              <div className="conversation-text user-text">{transcript}</div>
+            </article>
           )}
           
           {userText && !isListening && (
-            <div className="conversation-text user-text">{userText}</div>
+            <article className="message-card user-card">
+              <span className="transcript-label">You</span>
+              <div className="conversation-text user-text">{userText}</div>
+            </article>
           )}
           
           {aiText && (
-            <div className="ai-message-container">
-              <button 
-                className="replay-button"
-                onClick={() => handleReplayMessage(aiText)}
-                disabled={isListening || isProcessing}
-                aria-label="Replay message"
-                title="Replay message"
-              >
-                🔊
-              </button>
+            <article className="ai-message-container message-card ai-card">
+              <div className="message-head">
+                <span className="transcript-label">Navo</span>
+                <button 
+                  className="replay-button"
+                  onClick={() => handleReplayMessage(aiText)}
+                  disabled={isListening || isProcessing}
+                  aria-label="Replay message"
+                  title="Replay message"
+                >
+                  {isReplayPlaying ? <FaPause /> : <FaPlay />}
+                </button>
+              </div>
               <div className="conversation-text ai-text">
                 {aiText.split(/\s+/).map((word, i) => (
                   <span 
@@ -708,12 +734,29 @@ function CallScreen() {
                   </span>
                 ))}
               </div>
-            </div>
+            </article>
           )}
         </div>
 
         {/* Microphone Button */}
         <div className="mic-container">
+          {openingPrompt && !hasInteracted && (
+            <div className="opening-prompt-wrap">
+              <span className="opening-prompt-label">Carried in</span>
+              <p className="opening-prompt">"{openingPrompt}"</p>
+              <button
+                type="button"
+                className="opening-prompt-audio"
+                onClick={handleOpeningPromptAudio}
+                aria-label="Play phrase"
+                title="Play phrase"
+              >
+                {isOpeningAudioPlaying ? <FaPause /> : <FaPlay />}
+              </button>
+              <span className="opening-prompt-note">say it when you're ready</span>
+            </div>
+          )}
+
           <button
             className={`mic-button ${isListening ? 'listening' : ''} ${isProcessing ? 'processing' : ''} ${isSpeaking ? 'speaking' : ''}`}
             onMouseDown={handleMicPress}
@@ -729,24 +772,6 @@ function CallScreen() {
           {/* Only show invitation on first idle */}
           {!hasInteracted && !isListening && !isProcessing && !isSpeaking && (
             <p className="mic-invitation">Hold to speak</p>
-          )}
-          
-          {openingPrompt && !hasInteracted && (
-            <div className="opening-prompt-wrap">
-              <span className="opening-prompt-label">Carried in</span>
-              <button
-                type="button"
-                className="opening-prompt-audio"
-                onClick={() => speak(openingPrompt)}
-                aria-label="Play phrase"
-                title="Play phrase"
-              >
-                🔊
-              </button>
-
-              <p className="opening-prompt">"{openingPrompt}"</p>
-              <span className="opening-prompt-note">say it when you're ready</span>
-            </div>
           )}
         </div>
 
@@ -773,5 +798,7 @@ function CallScreen() {
 }
 
 export default CallScreen;
+
+
 
 

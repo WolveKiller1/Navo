@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
-import { FaMicrophone, FaPlay } from 'react-icons/fa';
+import { FaMicrophone, FaPlay, FaPause, FaRegEye, FaRegCompass } from 'react-icons/fa';
 import { resetConversation } from '../services/conversation';
 import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
@@ -35,18 +35,34 @@ function ImitationLoop() {
   const [pronunciationBubble, setPronunciationBubble] = useState(null);
   const [hasEngaged, setHasEngaged] = useState(false);
   const [showSentenceText, setShowSentenceText] = useState(false);
+  const [isPlayingTarget, setIsPlayingTarget] = useState(false);
   const transcriptRef = useRef('');
+  const bestTranscriptRef = useRef('');
   const speechFinalizeTimeout = useRef(null);
+  const playbackTimeout = useRef(null);
 
   const speechOptions = { language: activeLanguage === 'en' ? 'en-US' : 'pt-BR' };
   const { transcript, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition(speechOptions);
 
   useEffect(() => {
     transcriptRef.current = transcript;
+    // Track the best/fullest transcript available
+    // Update if new transcript is longer, or if it's a refinement (has words we saw before plus new words)
+    if (transcript.length > bestTranscriptRef.current.length) {
+      bestTranscriptRef.current = transcript;
+    } else if (
+      transcript.length > 0 &&
+      transcript !== bestTranscriptRef.current &&
+      transcript.toLowerCase().includes(bestTranscriptRef.current.toLowerCase())
+    ) {
+      // If new transcript contains the best one and adds punctuation/refinement, update it
+      bestTranscriptRef.current = transcript;
+    }
   }, [transcript]);
 
   useEffect(() => () => {
     if (speechFinalizeTimeout.current) clearTimeout(speechFinalizeTimeout.current);
+    if (playbackTimeout.current) clearTimeout(playbackTimeout.current);
   }, []);
 
   const currentUnit = activeUnits.find((u) => u.id === currentUnitId) || activeUnits[0] || {};
@@ -109,6 +125,8 @@ function ImitationLoop() {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsListening(true);
       setUserTranscript('');
+      transcriptRef.current = '';
+      bestTranscriptRef.current = '';
       resetTranscript();
       SpeechRecognition.startListening({ continuous: true, interimResults: true, language: activeLanguage === 'pt' ? 'pt-BR' : 'en-US' });
     } catch {
@@ -124,9 +142,12 @@ function ImitationLoop() {
 
     if (speechFinalizeTimeout.current) clearTimeout(speechFinalizeTimeout.current);
 
+    // Wait longer for longer sentences and to ensure final transcript is captured
+    // The browser may continue updating the transcript after stopListening() is called
     speechFinalizeTimeout.current = setTimeout(() => {
       speechFinalizeTimeout.current = null;
-      const finalTranscript = transcriptRef.current.trim();
+      // Use the best/longest transcript available
+      const finalTranscript = (bestTranscriptRef.current || transcriptRef.current).trim();
       if (finalTranscript) {
         setUserTranscript(finalTranscript);
         setShowSentenceText(true);
@@ -135,7 +156,7 @@ function ImitationLoop() {
         setSystemNotice({ message: 'No speech detected.' });
       }
       setIsProcessing(false);
-    }, 300);
+    }, 1200);
   };
 
   const handleNext = () => {
@@ -191,8 +212,66 @@ function ImitationLoop() {
     });
   };
 
+  // Render the full target sentence with clickable word support where metadata exists
+  const renderTargetSentence = () => {
+    if (!currentUnit.text) return '';
+
+    const textTokens = currentUnit.text.split(/(\s+)/);
+    
+    return textTokens.map((token, index) => {
+      // Preserve whitespace tokens as-is
+      if (/^\s+$/.test(token)) {
+        return token;
+      }
+
+      // Check if this token has metadata in currentUnit.words
+      let hasWordData = false;
+      if (hasSupportContent && currentUnit.words) {
+        hasWordData = currentUnit.words.some((w) => w.text === token);
+      }
+
+      if (hasWordData) {
+        return (
+          <span
+            key={index}
+            className="word-clickable"
+            onClick={(e) => handleWordClick(token, e)}
+            style={{ cursor: 'pointer' }}
+          >
+            {token}
+          </span>
+        );
+      }
+
+      return <span key={index}>{token}</span>;
+    });
+  };
+
   const handlePlayTarget = () => {
-    speak(currentUnit.text, activeLanguage === 'pt' ? 'pt-BR' : 'en-US');
+    if (isPlayingTarget) return;
+    setIsPlayingTarget(true);
+    
+    // Estimate playback duration based on text length
+    const estimatedDuration = Math.max(currentUnit.text.length * 50, 1000);
+    
+    // Try to use speechSynthesis events if available
+    const utterance = new SpeechSynthesisUtterance(currentUnit.text);
+    const lang = activeLanguage === 'pt' ? 'pt-BR' : 'en-US';
+    utterance.lang = lang;
+    
+    utterance.onend = () => {
+      setIsPlayingTarget(false);
+      if (playbackTimeout.current) clearTimeout(playbackTimeout.current);
+    };
+    
+    // Fallback timeout in case onend doesn't fire
+    if (playbackTimeout.current) clearTimeout(playbackTimeout.current);
+    playbackTimeout.current = setTimeout(() => {
+      setIsPlayingTarget(false);
+      playbackTimeout.current = null;
+    }, estimatedDuration);
+    
+    speak(currentUnit.text, lang);
     if (!hasEngaged) setHasEngaged(true);
   };
 
@@ -207,13 +286,7 @@ function ImitationLoop() {
         <div className="loop-phrase-wrap navo-reveal">
           {showSentenceText ? (
             <p className="loop-phrase">
-              {hasSupportContent && currentUnit.words
-                ? currentUnit.words.map((wordData, index) => (
-                    <span key={index} className="word-clickable" onClick={(e) => handleWordClick(wordData.text, e)}>
-                      {wordData.text}{index < currentUnit.words.length - 1 ? ' ' : ''}
-                    </span>
-                  ))
-                : currentUnit.text}
+              {renderTargetSentence()}
             </p>
           ) : (
             <p className="loop-phrase hidden-hint">Phrase stays hidden until you speak.</p>
@@ -221,8 +294,8 @@ function ImitationLoop() {
           {showSentenceMeaning && hasSupportContent && <p className="loop-meaning navo-reveal">{currentUnit.meaning}</p>}
         </div>
 
-        <button className="loop-play-btn" onClick={handlePlayTarget} title="Play target sentence">
-          <FaPlay />
+        <button className={`loop-play-btn ${isPlayingTarget ? 'playing' : ''}`} onClick={handlePlayTarget} title="Play target sentence">
+          {isPlayingTarget ? <FaPause /> : <FaPlay />}
         </button>
 
         <div className="mic-container">
@@ -244,9 +317,14 @@ function ImitationLoop() {
 
         {hasEngaged && (
           <div className="loop-actions">
-            <button className="action-chip" onClick={toggleSentenceMeaning} disabled={!hasSupportContent}>{showSentenceMeaning ? 'Hide meaning' : 'Show meaning'}</button>
+            <button className="action-chip" onClick={toggleSentenceMeaning} disabled={!hasSupportContent}>
+              <FaRegEye /> {showSentenceMeaning ? 'Hide meaning' : 'Show meaning'}
+            </button>
             <button className="action-chip" onClick={handleNext}>Next phrase</button>
-            <button className="action-chip action-chip-warm" onClick={handleTryAnotherShape} disabled={!hasSupportContent}>Explore this pattern</button>
+            <div style={{ width: '100%' }} />
+            <button className="action-link-warm" onClick={handleTryAnotherShape} disabled={!hasSupportContent}>
+              <FaRegCompass /> Explore this pattern
+            </button>
           </div>
         )}
       </main>

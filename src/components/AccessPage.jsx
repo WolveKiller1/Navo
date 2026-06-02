@@ -40,9 +40,11 @@ function AccessPage() {
 
   if (pricingView) {
     return (
-      <SubPageLayout title="Pricing">
-        <h1 className="pricing-title">Quiet, honest pricing.</h1>
-        <p className="pricing-sub">One number, monthly, cancel from the account page. Nothing is sold by the lesson.</p>
+      <SubPageLayout
+        title="Pricing"
+        headline="Quiet, honest pricing."
+        subtitle="One number, monthly, cancel from the account page. Nothing is sold by the lesson."
+      >
 
         <section className="tier-grid">
           {TIERS.map((tier) => (

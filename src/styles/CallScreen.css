@@ -58,17 +58,48 @@
 }
 
 .ai-message-container {
-  position: relative;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.message-card {
+  padding: 0.2rem 0;
+}
+
+.message-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.transcript-label {
+  color: var(--ink-mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .replay-button,
 .play-reply-btn,
 .delete-btn,
 .opening-prompt-audio {
-  border: none;
-  background: transparent;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: color-mix(in oklab, var(--ground-2) 96%, transparent);
   color: var(--ink-mute);
   cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.replay-button svg,
+.opening-prompt-audio svg {
+  font-size: 0.72rem;
 }
 
 .tappable-word:hover {
@@ -94,6 +125,7 @@
 
 .mic-button.listening {
   border-color: var(--accent-warm);
+  box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent-warm) 14%, transparent);
 }
 
 .mic-button.processing,
@@ -118,13 +150,16 @@
 .opening-prompt-wrap {
   margin-top: 0.8rem;
   text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
 }
 
 .opening-prompt {
-  margin-top: 0.4rem;
   color: var(--ink-soft);
   font-size: 1.3rem;
   font-family: "Fraunces", Georgia, serif;
+  max-width: 24rem;
 }
 
 .end-call-btn {

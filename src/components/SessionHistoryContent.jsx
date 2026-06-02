@@ -134,22 +134,23 @@ function SessionHistoryContent() {
                 <p className="history-preview">"{session.exchanges?.[0]?.userUtterance || 'Conversation'}"</p>
                 <p className="session-date">
                   {formatDate(session.startTimestamp)}
-                  {session.language ? ` · ${session.language.toUpperCase()}` : ''}
-                  {formatMinutes(session.duration) ? ` · ${formatMinutes(session.duration)} min` : ''}
-                  {session.exchangeCount ? ` · ${session.exchangeCount} turns` : ''}
+                  {session.language ? ` ï¿½ ${session.language.toUpperCase()}` : ''}
+                  {formatMinutes(session.duration) ? ` ï¿½ ${formatMinutes(session.duration)} min` : ''}
+                  {session.exchangeCount ? ` ï¿½ ${session.exchangeCount} turns` : ''}
                 </p>
               </div>
 
-              <button className="reenter-btn" onClick={(event) => handleReenterRoom(session, event)}>Re-enter</button>
-
-              {confirmDeleteId === session.sessionId ? (
-                <div className="inline-confirm">
-                  <button className="confirm-delete-btn" onClick={(event) => handleConfirmDelete(event, session.sessionId)}>Delete</button>
-                  <button className="cancel-delete-btn" onClick={handleCancelDelete}>Cancel</button>
-                </div>
-              ) : (
-                <button className="delete-btn" onClick={(event) => handleDeleteClick(event, session.sessionId)} title="Delete conversation"><FaTrash /></button>
-              )}
+              <div className="history-card-actions">
+                <button className="reenter-btn" onClick={(event) => handleReenterRoom(session, event)}>re-enter &rarr;</button>
+                {confirmDeleteId === session.sessionId ? (
+                  <div className="inline-confirm">
+                    <button className="confirm-delete-btn" onClick={(event) => handleConfirmDelete(event, session.sessionId)}>Delete</button>
+                    <button className="cancel-delete-btn" onClick={handleCancelDelete}>Cancel</button>
+                  </div>
+                ) : (
+                  <button className="delete-btn" onClick={(event) => handleDeleteClick(event, session.sessionId)} title="Delete conversation"><FaTrash /></button>
+                )}
+              </div>
             </div>
           ))}
         </div>

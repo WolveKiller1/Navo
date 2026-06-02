@@ -38,7 +38,7 @@
   padding: 1.1rem;
   cursor: pointer;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 0.6rem;
 }
@@ -71,6 +71,30 @@
   color: var(--ink-soft);
   padding: 0.38rem 0.7rem;
   cursor: pointer;
+}
+
+.history-card-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.history-card-actions .reenter-btn {
+  border: none;
+  padding: 0;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.history-item:hover .history-card-actions .reenter-btn,
+.history-item:focus-within .history-card-actions .reenter-btn {
+  opacity: 0.82;
+  transform: translateY(0);
+}
+
+.history-card-actions .delete-btn {
+  opacity: 0.78;
 }
 
 .detail-header {
@@ -128,12 +152,8 @@
 }
 
 @media (max-width: 760px) {
-  .history-item {
-    grid-template-columns: 1fr auto;
-  }
-
   .inline-confirm {
-    grid-column: 1 / -1;
+    margin-left: auto;
   }
 
   .history-preview {

@@ -54,7 +54,6 @@
 }
 
 .entry-actions,
-.guided-primary-actions,
 .guided-flow-actions {
   display: flex;
   gap: 0.5rem;
@@ -78,15 +77,12 @@
 }
 
 .guided-phrase-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   gap: 0.6rem;
   align-items: center;
 }
 
 .guided-audio-button,
-.nearby-audio-button,
-.nearby-carry,
 .guided-action-button {
   border-radius: 999px;
   border: 1px solid var(--edge);
@@ -122,6 +118,9 @@
 .nearby-copy {
   min-width: 0;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .nearby-jump {
@@ -132,13 +131,101 @@
   cursor: pointer;
 }
 
+.guided-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guided-audio-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.guided-phrase-row .guided-phrase-text {
+  flex: 1;
+}
+
+.icon-only {
+  width: 1.95rem;
+  height: 1.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.icon-only svg {
+  font-size: 0.66rem;
+}
+
+.nearby-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.guided-phrase-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.guided-room-link {
+  border: none;
+  background: transparent;
+  color: var(--accent-warm);
+  padding: 0;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.nearby-carry {
+  border: none;
+  background: transparent;
+  color: var(--ink-mute);
+  padding: 0;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nearby-audio-button {
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.back-to-loop-link {
+  border: none;
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 0.82rem;
+  padding: 0;
+  cursor: pointer;
+}
+
 @media (max-width: 760px) {
-  .guided-phrase-row {
-    grid-template-columns: 1fr;
+  .guided-phrase-row,
+  .nearby-actions {
+    flex-wrap: wrap;
   }
 
   .nearby-item {
-    display: grid;
-    grid-template-columns: auto 1fr;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .nearby-copy {
+    width: 100%;
+  }
+
+  .guided-phrase-footer,
+  .nearby-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }

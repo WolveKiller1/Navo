@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { FaPause, FaPlay } from 'react-icons/fa';
 import { initStorage, getImmersionProfile } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { speak } from '../services/tts';
@@ -75,6 +76,7 @@ function PlaygroundScreen() {
   const [guidedIndex, setGuidedIndex] = useState(0);
   const [isEntryMode, setIsEntryMode] = useState(false);
   const [entryPhrase, setEntryPhrase] = useState(null);
+  const [playingAudioId, setPlayingAudioId] = useState(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -155,6 +157,15 @@ function PlaygroundScreen() {
     navigate('/room', { state: { openingSentence: phraseText } });
   };
 
+  const handlePlayPhrase = async (id, text, language) => {
+    setPlayingAudioId(id);
+    try {
+      await speak(text, toTtsLanguage(language));
+    } finally {
+      setPlayingAudioId((current) => (current === id ? null : current));
+    }
+  };
+
   const getNearbyPathIndexes = () => {
     if (!guidedSequence.length) return [];
     const candidateIndexes = [guidedIndex - 1, guidedIndex + 1, guidedIndex - 2, guidedIndex + 2];
@@ -195,7 +206,6 @@ function PlaygroundScreen() {
             <div className="guided-phrase-card navo-card navo-hairline-top">
               {currentPhrase.icon && <div className="guided-visual-marker">{currentPhrase.icon}</div>}
               <div className="guided-phrase-row">
-                <button className="guided-audio-button" onClick={() => speak(currentPhrase.text, toTtsLanguage(currentPhrase.language))} title="Play phrase">Play</button>
                 <p className="guided-phrase-text">
                   {(() => {
                     const changedIndexes = previousPhrase ? getChangedWordIndexes(previousPhrase.text, currentPhrase.text) : [];
@@ -209,9 +219,21 @@ function PlaygroundScreen() {
 
               {getCompressedMeaning(currentPhrase) && <div className="guided-compressed-meaning">{getCompressedMeaning(currentPhrase)}</div>}
 
-              <div className="guided-primary-actions">
-                <button className="guided-action-button secondary" onClick={() => handleCarryToRoom(currentPhrase.text)}>Carry to Room</button>
+              <div className="guided-inline-actions">
+                <button
+                  className="guided-audio-button"
+                  onClick={() => handlePlayPhrase('main', currentPhrase.text, currentPhrase.language)}
+                  title="Hear it"
+                  aria-label="Hear it"
+                >
+                  {playingAudioId === 'main' ? <FaPause /> : <FaPlay />}
+                  <span>Hear it</span>
+                </button>
                 <button className="guided-action-button" onClick={handleAnotherShape}>Another shape</button>
+              </div>
+
+              <div className="guided-phrase-footer">
+                <button className="guided-room-link" onClick={() => handleCarryToRoom(currentPhrase.text)}>Take to Room &rarr;</button>
               </div>
             </div>
 
@@ -226,14 +248,22 @@ function PlaygroundScreen() {
 
                     return (
                       <div key={`${pathPhrase.text}-${pathIndex}`} className="nearby-item navo-card">
-                        <button className="nearby-audio-button" onClick={() => speak(pathPhrase.text, toTtsLanguage(pathPhrase.language || currentPhrase.language))} title="Play path">Play</button>
                         <div className="nearby-copy">
+                          <button
+                            className="nearby-audio-button icon-only"
+                            onClick={() => handlePlayPhrase(`path-${pathIndex}`, pathPhrase.text, pathPhrase.language || currentPhrase.language)}
+                            title="Hear it"
+                            aria-label="Hear it"
+                          >
+                            {playingAudioId === `path-${pathIndex}` ? <FaPause /> : <FaPlay />}
+                          </button>
                           <button className="nearby-jump" onClick={() => setGuidedIndex(pathIndex)}>
                             {words.map((word, index) => <span key={index} className={changedIndexes.includes(index) ? 'guided-changed-word' : ''}>{word}{index < words.length - 1 ? ' ' : ''}</span>)}
                           </button>
-                          {pathPhrase.scene && <p className="nearby-scene">{pathPhrase.scene}</p>}
                         </div>
-                        <button className="nearby-carry" onClick={() => handleCarryToRoom(pathPhrase.text)}>Carry</button>
+                        <div className="nearby-actions">
+                          <button className="nearby-carry" onClick={() => handleCarryToRoom(pathPhrase.text)}>Carry to Room &rarr;</button>
+                        </div>
                       </div>
                     );
                   })}
@@ -242,8 +272,7 @@ function PlaygroundScreen() {
             )}
 
             <div className="guided-flow-actions">
-              <button className="guided-action-button" onClick={() => navigate('/loop')}>Back to loop</button>
-              <button className="guided-action-button secondary" onClick={() => { sessionStorage.setItem('rylingo_access', 'granted'); navigate('/room'); }}>Enter room</button>
+              <button className="back-to-loop-link" onClick={() => navigate('/loop')}>&larr; Back to loop</button>
             </div>
           </div>
         )}

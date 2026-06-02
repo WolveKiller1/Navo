@@ -14,8 +14,11 @@
 
 .subpage-title {
   margin-top: 0.8rem;
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
-  line-height: 1.05;
+  max-width: 720px;
+  font-size: clamp(1.9rem, 4.2vw, 2.9rem);
+  line-height: 1.12;
+  font-weight: 500;
+  white-space: pre-line;
 }
 
 .subpage-subtitle {

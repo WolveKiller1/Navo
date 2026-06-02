@@ -4,9 +4,11 @@ import '../styles/AboutPage.css';
 
 function AboutPage() {
   return (
-    <SubPageLayout title="About Navo">
-      <h1 className="about-hero">A language is a place.<br /><span>Navo</span> is a quiet room inside it.</h1>
-
+    <SubPageLayout
+      title="About Navo"
+      headline={`A language is a place.
+Navo is a quiet room inside it.`}
+    >
       <section className="about-grid">
         <article className="about-stanza">
           <p className="stanza-label">No lessons</p>

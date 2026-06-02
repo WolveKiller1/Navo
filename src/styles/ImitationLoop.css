@@ -3,6 +3,15 @@
   color: var(--ink);
 }
 
+@keyframes warm-pulse-aura {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent-warm) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent-warm) 0%, transparent);
+  }
+}
+
 .loop-container {
   flex: 1;
   padding: 5rem 0;
@@ -43,6 +52,11 @@
   color: var(--ink);
   font-size: 1.5rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.loop-play-btn.playing {
+  animation: warm-pulse-aura 2s infinite;
 }
 
 .word-clickable:hover {
@@ -64,10 +78,12 @@
   background: color-mix(in oklab, var(--ground-2) 95%, transparent);
   color: var(--ink);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .mic-button.listening {
   border-color: var(--accent-warm);
+  animation: warm-pulse-aura 2s infinite;
 }
 
 .mic-button.processing {
@@ -108,11 +124,26 @@
   padding: 0.6rem 1rem;
   font-size: 0.82rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .action-chip-warm {
   color: var(--accent-warm);
   border-color: color-mix(in oklab, var(--accent-warm) 55%, var(--edge));
+}
+
+.action-link-warm {
+  border: none;
+  background: transparent;
+  color: var(--accent-warm);
+  padding: 0.6rem 1rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .pronunciation-bubble {
