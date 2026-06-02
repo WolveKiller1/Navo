@@ -1,227 +1,262 @@
-# Rylingo MVP
+# Navo
 
-**AI-Powered, Pattern-Based Language Learning Web App**
+Navo is a conversational language learning system built around natural exposure, phrase movement, and immersive voice interaction.
 
-Rylingo is a minimal, working web prototype where users can have a short "call" with an AI that listens, responds, and gently corrects their language usage.
+It is not a traditional language learning app.
 
----
+No lessons.  
+No scores.  
+No streaks.  
+No XP.  
+No grammar drills.  
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- Modern browser (Chrome or Edge recommended for best speech recognition support)
-- Claude API key from [Anthropic](https://console.anthropic.com/)
-
-### Installation
-
-1. **Clone or download this repository**
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   
-   Copy `.env.example` to `.env`:
-   ```bash
-   copy .env.example .env
-   ```
-   
-   Then edit `.env` and add your Claude API key:
-   ```
-   VITE_CLAUDE_API_KEY=your_actual_api_key_here
-   ```
-
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   
-   Navigate to `http://localhost:5173` (or the URL shown in your terminal)
+Navo is designed to feel more like entering a language environment than completing a course.
 
 ---
 
-## 🎯 How to Use
+## Core Idea
 
-1. **Press and hold** the large blue microphone button
-2. **Speak** in the language you're learning
-3. **Release** the button when done speaking
-4. The AI (Rylingo) will:
-   - Transcribe what you said (shown in blue subtitle)
-   - Generate a natural, conversational response with gentle corrections
-   - Speak the response aloud (shown in orange subtitle)
-5. **Continue** the conversation by pressing the mic button again
-6. **End Call** when you're finished
+Most language apps turn learning into tasks.
 
----
+Navo takes a different approach:
 
-## 🛠️ Tech Stack
+- hear phrases
+- speak them
+- move them through nearby patterns
+- carry them into conversation
+- slowly build familiarity through repeated exposure and interaction
 
-- **Frontend Framework**: React 18 + Vite
-- **AI Model**: Claude API (Sonnet 4.5)
-- **Speech-to-Text**: Browser-native Web Speech API (`SpeechRecognition`)
-- **Text-to-Speech**: Browser-native Web Speech API (`SpeechSynthesis`)
-- **HTTP Client**: Axios
-- **Icons**: React Icons
+The goal is not to explicitly “study” the language.
+
+The goal is to live around it long enough for structure, rhythm, and meaning to start becoming familiar.
 
 ---
 
-## 📁 Project Structure
+## Core Environments
 
-```
-rylingo-mvp/
-├── src/
-│   ├── components/
-│   │   └── CallScreen.jsx      # Main UI component
-│   ├── services/
-│   │   ├── conversation.js     # Claude API integration
-│   │   └── tts.js              # Text-to-speech service
-│   ├── styles/
-│   │   └── CallScreen.css      # Component styling
-│   ├── App.jsx                 # Root component
-│   ├── App.css                 # Global styles
-│   └── main.jsx                # Entry point
-├── .env                        # Your API key (gitignored)
-├── .env.example                # Template for environment variables
-├── package.json                # Dependencies
-└── vite.config.js              # Vite configuration
-```
+### Practice Loop
 
----
+Audio-first phrase exposure.
 
-## 🔧 Configuration
+The user hears a phrase, repeats it, reveals the phrase, and can explore its structure further.
 
-### Claude API Settings
+Practice Loop is not a quiz or flashcard system. It is a calm repetition surface for phrase contact.
 
-Located in `src/services/conversation.js`:
+### Pattern Playground
 
-- **Model**: `claude-sonnet-4-20250514` (Sonnet 4.5)
-- **Max Tokens**: `150` (adjustable between 120-180 for testing)
-- **Temperature**: `0.7` (conversational)
-- **Context Limit**: ~1,000 tokens per request (for fast responses)
+A phrase transformation space.
 
-### Speech Settings
+Pattern Playground shows a phrase, compressed meaning, and nearby phrase paths. The user can hear variations, notice changes, and carry a phrase into The Room.
 
-Located in `src/services/tts.js`:
+The goal is pattern perception, not explicit grammar instruction.
 
-- **Speech Rate**: `0.9` (slightly slower for clarity)
-- **Pitch**: `1.0`
-- **Volume**: `1.0`
+### The Room
+
+A voice-first conversational environment.
+
+The Room is where phrases become conversation. It should feel like entering a language space, not talking to a tutor.
+
+The Room avoids correction-heavy behavior and explicit teaching unless absolutely necessary.
+
+### Pattern Map
+
+A future-facing continuity surface.
+
+The Pattern Map is not a skill tree or progress chart. It is intended to represent movement through language: exposure traces, phrase relationships, recurring structures, and pathways the user has lived around.
 
 ---
 
-## ⚠️ Security Notice
+## Current Product Direction
 
-**IMPORTANT:** In this MVP phase, the Claude API key is exposed client-side in the browser. This is acceptable for local development and testing, but **should never be used in production**.
+Navo is moving toward a local-first continuity system.
 
-### For Production Deployment:
+The next major layer is not “more features.” It is memory.
 
-1. **Move API calls to a backend server**
-   - Create a Node.js/Express backend
-   - Store the API key as a server-side environment variable
-   - Make requests from the frontend to your backend, which then calls Claude API
+Planned continuity work includes:
 
-2. **Example backend proxy pattern**:
-   ```
-   Frontend → Your Backend API → Claude API
-   ```
+- local exposure traces
+- phrase movement traces
+- immersion profile storage
+- Pattern Map foundations
+- session continuity
+- later sync/account support
 
-3. **Add rate limiting and authentication** to prevent API key abuse
-
----
-
-## 🌐 Browser Compatibility
-
-| Feature | Chrome | Edge | Safari | Firefox |
-|---------|--------|------|--------|---------|
-| SpeechRecognition | ✅ | ✅ | ⚠️ Partial | ❌ Limited |
-| SpeechSynthesis | ✅ | ✅ | ✅ | ✅ |
-
-**Recommended**: Chrome or Edge for full functionality
+The account system is primarily a continuity system, not a traditional profile/dashboard.
 
 ---
 
-## 🎨 Features
+## Product Principles
 
-✅ **Real-time Speech-to-Text**: Browser-native speech recognition  
-✅ **AI Conversation**: Natural language processing with Claude  
-✅ **Text-to-Speech**: AI responses spoken aloud  
-✅ **Gentle Corrections**: Uses recasting technique (repeats correctly rather than pointing out errors)  
-✅ **Conversation Memory**: Maintains context throughout the session (~1,000 tokens)  
-✅ **Clean UI**: Minimal, calm design with off-white/light blue theme  
-✅ **Session Management**: Start/end calls with conversation reset  
-✅ **Responsive Design**: Works on desktop and mobile devices  
+Navo should avoid:
 
----
+- lessons
+- quizzes
+- scores
+- XP
+- streaks
+- levels
+- skill trees
+- progress bars
+- grammar labels
+- correction-heavy UI
+- school-like onboarding
 
-## 🐛 Troubleshooting
+Navo should prioritize:
 
-### "Your browser doesn't support speech recognition"
-- Use Chrome or Edge browser
-- Ensure you're on HTTPS (or localhost for development)
-
-### "I'm having trouble connecting. Please check your API key"
-- Verify your API key in `.env` file
-- Ensure the key starts with `sk-ant-`
-- Check your Anthropic account has available credits
-
-### Microphone not working
-- Grant microphone permissions when prompted
-- Check browser settings for microphone access
-- Ensure no other app is using the microphone
-
-### No audio from AI responses
-- Check your system volume
-- Ensure browser has permission to play audio
-- Try clicking the page first (some browsers require user interaction)
+- natural conversation
+- audio exposure
+- phrase movement
+- structural familiarity
+- subtle adaptation
+- calm interface design
+- local-first persistence where possible
 
 ---
 
-## 📝 Development Scripts
+## Tech Stack
+
+- React
+- Vite
+- React Router
+- Browser Speech Recognition
+- Browser Speech Synthesis
+- IndexedDB / local storage for local-first data
+- React Icons
+
+---
+
+## Project Structure
+
+```txt
+src/
+  components/
+    LandingPage.jsx
+    ImitationLoop.jsx
+    PlaygroundScreen.jsx
+    CallScreen.jsx
+    AccountPage.jsx
+    SessionsPage.jsx
+    SettingsPage.jsx
+    AboutPage.jsx
+    AccessPage.jsx
+    NavoNav.jsx
+    NavoFooter.jsx
+
+  data/
+    phrasePatterns.js
+    units.js
+
+  services/
+    phraseGenerator.js
+    playgroundSeed.js
+    playgroundSequenceBuilder.js
+    conversation.js
+    moveEngine.js
+    storage.js
+    tts.js
+    wordMeaning.js
+
+  styles/
+    LandingPage.css
+    ImitationLoop.css
+    PlaygroundScreen.css
+    CallScreen.css
+    AccountPage.css
+    SessionHistory.css
+    SettingsPage.css
+    AboutPage.css
+    AccessPage.css
+## Development
+
+### Install dependencies
 
 ```bash
-# Start development server
+npm install
+```
+
+### Run locally
+
+```bash
 npm run dev
+```
 
-# Build for production
+Then open the local URL shown in your terminal, usually:
+
+```txt
+http://localhost:5173
+```
+
+### Build for production
+
+```bash
 npm run build
+```
 
-# Preview production build
+### Preview production build
+
+```bash
 npm run preview
 ```
 
 ---
 
-## 🚧 Future Enhancements
+## Browser Support
 
-- [ ] Backend API proxy for secure API key handling
-- [ ] User authentication and progress tracking
-- [ ] Multiple language support
-- [ ] Voice selection for TTS
-- [ ] Conversation history and analytics
-- [ ] Spaced repetition learning patterns
-- [ ] Mobile app (React Native)
+Navo depends on browser speech APIs.
 
----
+For best results, use:
 
-## 📄 License
+- Chrome
+- Edge
 
-This is an MVP project. Add your license here.
+Speech recognition support may be limited or inconsistent in Safari and Firefox.
 
 ---
 
-## 🙏 Acknowledgments
+## Local-First Notes
 
-- **Claude API** by Anthropic
-- **React** by Meta
-- **Vite** by Evan You
-- **Web Speech API** by W3C
+Navo currently favors local-first behavior where possible.
+
+User-facing data such as sessions, preferences, and future continuity traces should remain understandable, exportable, and deleteable.
+
+Navo should not add tracking or analytics that makes the user feel monitored.
 
 ---
 
-**Built with ❤️ for language learners worldwide**
+## Design Direction
+
+Navo’s interface should feel:
+
+- calm
+- immersive
+- intentional
+- modern
+- quiet but not empty
+
+It should not feel like:
+
+- a classroom
+- a gamified app
+- a productivity dashboard
+- a flashcard tool
+- a chatbot wrapper
+
+---
+
+## Status
+
+Navo is an active prototype.
+
+Current focus:
+
+1. Frontend product shell
+2. Local continuity layer
+3. Immersion profile storage
+4. Pattern Map foundations
+5. Future account/sync layer
+
+---
+
+## License
+
+License not yet specified.
