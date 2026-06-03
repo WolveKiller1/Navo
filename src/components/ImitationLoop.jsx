@@ -7,7 +7,7 @@ import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
 import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from '../services/phraseGenerator';
-import { getUserPreferences, initStorage } from '../services/storage';
+import { getUserPreferences, initStorage, recordExposureTrace } from '../services/storage';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
 import SystemNotice from './SystemNotice';
@@ -99,6 +99,15 @@ function ImitationLoop() {
   }, [activeUnits, currentUnitId]);
 
   useEffect(() => {
+    if (!currentUnit?.text) return;
+    recordExposureTrace({
+      sourceEnvironment: 'practice-loop',
+      text: currentUnit.text,
+      interactionType: 'encountered'
+    });
+  }, [currentUnit?.id, currentUnit?.text]);
+
+  useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI || !browserSupportsSpeechRecognition) {
       setBrowserSupported(false);
@@ -152,6 +161,16 @@ function ImitationLoop() {
         setUserTranscript(finalTranscript);
         setShowSentenceText(true);
         if (!hasEngaged) setHasEngaged(true);
+        recordExposureTrace({
+          sourceEnvironment: 'practice-loop',
+          text: currentUnit.text,
+          interactionType: 'repeated'
+        });
+        recordExposureTrace({
+          sourceEnvironment: 'practice-loop',
+          text: currentUnit.text,
+          interactionType: 'revealed'
+        });
       } else {
         setSystemNotice({ message: 'No speech detected.' });
       }
@@ -174,11 +193,26 @@ function ImitationLoop() {
 
   const toggleSentenceMeaning = () => {
     if (!hasSupportContent) return;
-    setShowSentenceMeaning((prev) => !prev);
+    setShowSentenceMeaning((prev) => {
+      const next = !prev;
+      if (next) {
+        recordExposureTrace({
+          sourceEnvironment: 'practice-loop',
+          text: currentUnit.text,
+          interactionType: 'seen'
+        });
+      }
+      return next;
+    });
     if (!hasEngaged) setHasEngaged(true);
   };
 
   const handleTryAnotherShape = () => {
+    recordExposureTrace({
+      sourceEnvironment: 'practice-loop',
+      text: currentUnit.text,
+      interactionType: 'carried'
+    });
     navigate('/playground', {
       state: {
         guidedMode: true,
@@ -250,6 +284,11 @@ function ImitationLoop() {
   const handlePlayTarget = () => {
     if (isPlayingTarget) return;
     setIsPlayingTarget(true);
+    recordExposureTrace({
+      sourceEnvironment: 'practice-loop',
+      text: currentUnit.text,
+      interactionType: 'heard'
+    });
     
     // Estimate playback duration based on text length
     const estimatedDuration = Math.max(currentUnit.text.length * 50, 1000);

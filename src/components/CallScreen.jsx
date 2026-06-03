@@ -16,7 +16,8 @@ import {
   getLastLanguage, 
   saveLastLanguage,
   getImmersionProfile,
-  saveImmersionProfile
+  saveImmersionProfile,
+  recordExposureTrace
 } from '../services/storage';
 import { analyzeSession, updateProfile, getDefaultProfile, detectStructuralMoves } from '../services/immersionProfile';
 import SystemNotice from './SystemNotice';
@@ -95,6 +96,11 @@ function CallScreen() {
       
       if (location.state?.openingSentence) {
         setCurrentLanguage(activeLanguage);
+        recordExposureTrace({
+          sourceEnvironment: 'room',
+          text: location.state.openingSentence,
+          interactionType: 'carried'
+        });
         
         // Skip welcome screen, start session directly
         setExchangeCount(0);
@@ -408,6 +414,17 @@ function CallScreen() {
         
         // Phase 7: Update learner_last for next turn
         setLearnerLast(transcript);
+
+        recordExposureTrace({
+          sourceEnvironment: 'room',
+          text: transcript,
+          interactionType: 'encountered'
+        });
+        recordExposureTrace({
+          sourceEnvironment: 'room',
+          text: finalMessage,
+          interactionType: 'heard'
+        });
         
         // Write governed exchange to storage (not draft)
         await addExchange(sessionId, transcript, finalMessage);
@@ -512,6 +529,17 @@ function CallScreen() {
       // Track user utterance
       userUtterancesRef.current.push(openingSentence);
       setLearnerLast(openingSentence);
+
+      recordExposureTrace({
+        sourceEnvironment: 'room',
+        text: openingSentence,
+        interactionType: 'encountered'
+      });
+      recordExposureTrace({
+        sourceEnvironment: 'room',
+        text: finalMessage,
+        interactionType: 'heard'
+      });
       
       // Store exchange
       await addExchange(sessionId, openingSentence, finalMessage);

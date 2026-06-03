@@ -1,52 +1,69 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import SubPageLayout from './SubPageLayout';
+import { getLocalAccount } from '../services/storage';
 import '../styles/PatternMapPage.css';
 
-const NODES = [
-  { id: 'a', x: 50, y: 50, label: 'base phrase', r: 8 },
-  { id: 'b', x: 24, y: 31, label: 'shape b' },
-  { id: 'c', x: 77, y: 30, label: 'shape c' },
-  { id: 'd', x: 24, y: 73, label: 'shape d' },
-  { id: 'e', x: 77, y: 72, label: 'shape e' }
-];
-
-const EDGES = [
-  ['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'], ['b', 'd'], ['c', 'e']
-];
-
-function pos(id) {
-  return NODES.find(node => node.id === id);
-}
-
 function PatternMapPage() {
+  const [account, setAccount] = useState(null);
+
+  useEffect(() => {
+    const loadAccount = async () => {
+      const localAccount = await getLocalAccount();
+      setAccount(localAccount);
+    };
+
+    loadAccount();
+  }, []);
+
+  const recentExposure = [...(account?.continuity?.exposureTraces || [])].slice(-4).reverse();
+  const recentMovement = [...(account?.continuity?.movementTraces || [])].slice(-4).reverse();
+
   return (
     <SubPageLayout
       title="Pattern Map"
-      headline="A map of nearby shapes"
-      subtitle="A quiet map of patterns you have moved through."
+      headline="Continuity first, map later"
+      subtitle="Raw traces are gathered here without choosing nodes, edges, territories, or unlocks."
     >
       <section className="pattern-map-wrap navo-card navo-hairline-top">
-        <svg viewBox="0 0 100 100" className="pattern-map-svg">
-          {EDGES.map(([a, b]) => {
-            const p1 = pos(a);
-            const p2 = pos(b);
-            return (
-              <line
-                key={`${a}-${b}`}
-                x1={p1.x}
-                y1={p1.y}
-                x2={p2.x}
-                y2={p2.y}
-              />
-            );
-          })}
-          {NODES.map((node) => (
-            <g key={node.id}>
-              <circle cx={node.x} cy={node.y} r={node.r || 3.2} />
-              <text x={node.x} y={node.y + 8}>{node.label}</text>
-            </g>
-          ))}
-        </svg>
+        <div className="pattern-map-copy-block">
+          <p className="pattern-map-kicker">Reserved boundary</p>
+          <h2>patternMapReserved</h2>
+          <p>
+            This local account already owns a future-facing storage boundary, but it does not impose
+            graph structure or visual topology yet.
+          </p>
+        </div>
+
+        <div className="pattern-map-copy-block">
+          <p className="pattern-map-kicker">Local continuity</p>
+          <h2>
+            {(account?.continuity?.exposureTraces || []).length} nearby phrases ·{' '}
+            {(account?.continuity?.movementTraces || []).length} movements
+          </h2>
+          <p>These traces stay local for now and can later attach to account auth and sync.</p>
+        </div>
+
+        <div className="pattern-map-copy-block">
+          <p className="pattern-map-kicker">Recently nearby</p>
+          {recentExposure.length > 0 ? (
+            recentExposure.map((trace) => (
+              <p key={trace.id} className="pattern-map-line">"{trace.text}"</p>
+            ))
+          ) : (
+            <p className="pattern-map-line">No nearby phrases yet.</p>
+          )}
+        </div>
+
+        <div className="pattern-map-copy-block">
+          <p className="pattern-map-kicker">Recent movements</p>
+          {recentMovement.length > 0 ? (
+            recentMovement.map((trace) => (
+              <p key={trace.id} className="pattern-map-line">{trace.fromText} → {trace.toText}</p>
+            ))
+          ) : (
+            <p className="pattern-map-line">No movements yet.</p>
+          )}
+        </div>
       </section>
     </SubPageLayout>
   );
