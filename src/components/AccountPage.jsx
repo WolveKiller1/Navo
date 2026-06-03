@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { exportSessionsAsJSON, deleteAllSessions, deleteAllData, getUserPreferences, getAllSessions } from '../services/storage';
+import {
+  exportSessionsAsJSON,
+  deleteAllSessions,
+  deleteAllData,
+  getLocalAccount,
+  getAllSessions,
+  buildContinuityPreview
+} from '../services/storage';
 import ConfirmationDialog from './ConfirmationDialog';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
@@ -11,42 +18,39 @@ const LANGUAGE_META = {
   pt: { name: 'Portuguese' }
 };
 
-function formatTotalMinutes(totalDurationMs, fallbackTurns) {
-  if (totalDurationMs > 0) return Math.max(1, Math.round(totalDurationMs / 60000));
-  if (fallbackTurns > 0) return Math.max(1, Math.round(fallbackTurns * 0.6));
-  return 0;
-}
-
 function AccountPage() {
-  const [preferences, setPreferences] = useState(null);
-  const [stats, setStats] = useState({ sessionCount: 0, turns: 0, minutes: 0, latestLine: null, languages: [] });
+  const [account, setAccount] = useState(null);
+  const [stats, setStats] = useState({
+    continuityPreview: null,
+    recentExposure: [],
+    recentMovement: [],
+    languages: []
+  });
   const [errorMessage, setErrorMessage] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmDialogConfig, setConfirmDialogConfig] = useState({ action: null, title: '', body: '', confirmText: 'Confirm', isDangerous: false });
 
+  const loadAccount = async () => {
+    const localAccount = await getLocalAccount();
+    const sessions = await getAllSessions();
+    const ordered = [...sessions].sort((a, b) => b.startTimestamp - a.startTimestamp);
+    const continuityPreview = buildContinuityPreview(localAccount);
+
+    const languageSet = new Set(ordered.map((session) => session.language).filter(Boolean));
+    if (localAccount.languageSettings.activeLanguage) {
+      languageSet.add(localAccount.languageSettings.activeLanguage);
+    }
+
+    setAccount(localAccount);
+    setStats({
+      continuityPreview,
+      recentExposure: continuityPreview.recentNearby,
+      recentMovement: continuityPreview.recentMovement,
+      languages: Array.from(languageSet)
+    });
+  };
+
   useEffect(() => {
-    const loadAccount = async () => {
-      const prefs = await getUserPreferences();
-      const sessions = await getAllSessions();
-      const ordered = [...sessions].sort((a, b) => b.startTimestamp - a.startTimestamp);
-
-      const totalDuration = ordered.reduce((sum, session) => sum + (session.duration || 0), 0);
-      const totalTurns = ordered.reduce((sum, session) => sum + (session.exchangeCount || session.exchanges?.length || 0), 0);
-      const minutes = formatTotalMinutes(totalDuration, totalTurns);
-
-      const languageSet = new Set(ordered.map((session) => session.language).filter(Boolean));
-      if (prefs.activeLanguage) languageSet.add(prefs.activeLanguage);
-
-      setPreferences(prefs);
-      setStats({
-        sessionCount: ordered.length,
-        turns: totalTurns,
-        minutes,
-        latestLine: ordered[0]?.exchanges?.[0]?.userUtterance || null,
-        languages: Array.from(languageSet)
-      });
-    };
-
     loadAccount();
   }, []);
 
@@ -75,6 +79,8 @@ function AccountPage() {
       if (!result.success) {
         setErrorMessage(result.error);
         clearError();
+      } else {
+        loadAccount();
       }
       return;
     }
@@ -84,14 +90,20 @@ function AccountPage() {
       if (!result.success) {
         setErrorMessage(result.error);
         clearError();
+      } else {
+        loadAccount();
       }
     }
   };
 
-  if (!preferences) return null;
+  if (!account) return null;
 
-  const activeLanguage = preferences.activeLanguage || 'en';
+  const activeLanguage = account.languageSettings.activeLanguage || 'en';
   const knownLanguages = ['en', 'pt'];
+  const continuityPreview = stats.continuityPreview || buildContinuityPreview(account);
+  const continuityNote = continuityPreview.hasContinuity
+    ? 'Recent language and movement stay close without becoming a dashboard.'
+    : 'Continuity will gather quietly as you move through phrases and rooms.';
 
   return (
     <>
@@ -100,34 +112,34 @@ function AccountPage() {
 
         <main className="account-main navo-container navo-container--normal">
           <section className="account-profile-row">
-            <div className="account-avatar">N</div>
+            <div className="account-avatar">{(LANGUAGE_META[activeLanguage]?.name || 'N').slice(0, 1)}</div>
             <div>
-              <p className="account-name">Navo Preview User</p>
-              <p className="account-sub">Local profile - no cloud account connected</p>
+              <p className="account-name">Local account</p>
+              <p className="account-sub">{account.id} - this device only</p>
             </div>
           </section>
 
-          <p className="account-eyebrow">Quiet traces</p>
-          <section className="account-traces-grid">
-            <article className="trace-card navo-card navo-hairline-top">
-              <p className="trace-label">Time in the room</p>
-              <p className="trace-value">{stats.minutes > 0 ? `${stats.minutes} min` : 'No time yet'}</p>
-              <p className="trace-note">Across a few quiet sessions.</p>
+          <p className="account-eyebrow">Continuity</p>
+          <section className="account-summary-grid">
+            <article className="summary-card navo-card navo-hairline-top">
+              <p className="summary-label">Language</p>
+              <p className="summary-title">{LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase()}</p>
+              <p className="summary-note">Held as the active environment in this local account.</p>
             </article>
-            <article className="trace-card navo-card navo-hairline-top">
-              <p className="trace-label">Conversation turns</p>
-              <p className="trace-value">{stats.turns || 0}</p>
-              <p className="trace-note">Observed exchanges, not a score.</p>
+            <article className="summary-card navo-card navo-hairline-top">
+              <p className="summary-label">Voice and pace</p>
+              <p className="summary-title">{account.voiceSettings?.voiceFeel || 'calm'}</p>
+              <p className="summary-note">Phrase spacing: {account.voiceSettings?.phraseSpacing || 'balanced'}.</p>
             </article>
-            <article className="trace-card navo-card navo-hairline-top">
-              <p className="trace-label">Current language</p>
-              <p className="trace-value">{LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase()}</p>
-              <p className="trace-note">Active in your local preferences.</p>
+            <article className="summary-card navo-card navo-hairline-top">
+              <p className="summary-label">Local continuity</p>
+              <p className="summary-title">{continuityPreview.hasContinuity ? 'Quietly present' : 'Still forming'}</p>
+              <p className="summary-note">{continuityNote}</p>
             </article>
           </section>
 
           <section className="account-language-wrap">
-            <h2>Languages</h2>
+            <h2>Environment</h2>
             <div className="language-list">
               {knownLanguages.map((langCode) => {
                 const lang = LANGUAGE_META[langCode];
@@ -138,7 +150,13 @@ function AccountPage() {
                   <div key={langCode} className="language-row">
                     <div>
                       <p className="language-name">{lang.name}</p>
-                      <p className="language-note">{isActive ? 'Active now' : seenInSessions ? 'Seen in your traces' : 'Available in this build'}</p>
+                      <p className="language-note">
+                        {isActive
+                          ? 'Active in your local account'
+                          : seenInSessions
+                            ? 'Seen in local continuity'
+                            : 'Available in this build'}
+                      </p>
                     </div>
                     {isActive ? (
                       <span className="language-active-pill"><span className="navo-dot" /> Active</span>
@@ -153,37 +171,68 @@ function AccountPage() {
 
           <section className="account-links-grid">
             <Link to="/sessions" className="account-link-card navo-card navo-hairline-top">
-              <p className="account-link-kicker">Archive</p>
-              <p className="account-link-title">Past sessions</p>
+              <p className="account-link-kicker">Continuity</p>
+              <p className="account-link-title">Session traces</p>
               <p className="account-link-body">Re-enter rooms you have already been in.</p>
             </Link>
             <Link to="/settings" className="account-link-card navo-card navo-hairline-top">
-              <p className="account-link-kicker">Atmosphere</p>
+              <p className="account-link-kicker">Environment</p>
               <p className="account-link-title">Settings</p>
-              <p className="account-link-body">Tune language and room behavior.</p>
+              <p className="account-link-body">Language, voice, spacing, and room behavior.</p>
             </Link>
           </section>
 
-          {stats.latestLine && (
-            <section className="account-latest navo-card navo-hairline-top">
-              <p className="account-latest-label">Latest carried line</p>
-              <p className="account-latest-line">"{stats.latestLine}"</p>
-            </section>
-          )}
+          <section className="continuity-panel navo-card navo-hairline-top">
+            <div className="continuity-panel-head">
+              <p className="account-latest-label">Recently nearby</p>
+              <p className="continuity-panel-note">Unique phrases the language has left close at hand.</p>
+            </div>
+            {stats.recentExposure.length > 0 ? (
+              <div className="nearby-chip-wrap">
+                {stats.recentExposure.map((trace) => (
+                  <span key={trace.id} className="nearby-chip">“{trace.text}”</span>
+                ))}
+              </div>
+            ) : (
+              <p className="account-empty-copy">No nearby phrases yet. They will collect here as the language starts to linger.</p>
+            )}
+          </section>
+
+          <section className="continuity-panel navo-card navo-hairline-top">
+            <div className="continuity-panel-head">
+              <p className="account-latest-label">Recent movement</p>
+              <p className="continuity-panel-note">Meaningful shifts that were carried, shaped, or settled.</p>
+            </div>
+            {stats.recentMovement.length > 0 ? (
+              <div className="movement-list">
+                {stats.recentMovement.map((trace) => (
+                  <div key={trace.id} className="movement-row">
+                    <p className="movement-line">
+                      <span>{trace.fromText}</span>
+                      <span className="movement-arrow">→</span>
+                      <span>{trace.toText}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="account-empty-copy">No meaningful movement yet. Carried and reshaped phrases will settle here.</p>
+            )}
+          </section>
 
           {errorMessage && <div className="settings-error">{errorMessage}</div>}
 
           <section className="account-data-panel navo-card navo-hairline-top">
-            <h2>Local data</h2>
-            <p>Data stays on this device unless you export it.</p>
+            <h2>Local continuity</h2>
+            <p>Your local account owns language settings, voice settings, immersion profile, and continuity traces.</p>
             <div className="data-controls">
-              <button className="data-btn" onClick={() => queueConfirm('export', 'Export conversations?', 'Your conversations will be downloaded as a JSON file.', 'Export', false)}>Export conversations</button>
+              <button className="data-btn" onClick={() => queueConfirm('export', 'Export local account?', 'Your local account, continuity traces, and conversations will be downloaded as a JSON file.', 'Export', false)}>Export local account</button>
               <button className="data-btn" onClick={() => queueConfirm('deleteSessions', 'Delete all conversations?', 'This permanently removes all local conversations. This cannot be undone.', 'Delete', true)}>Delete all conversations</button>
-              <button className="data-btn data-btn-danger" onClick={() => queueConfirm('deleteData', 'Delete all data?', 'This removes all local conversations and settings. This cannot be undone.', 'Delete', true)}>Delete all data</button>
+              <button className="data-btn data-btn-danger" onClick={() => queueConfirm('deleteData', 'Delete local account data?', 'This removes your local account, continuity traces, conversations, and settings from this device. This cannot be undone.', 'Delete', true)}>Delete local account data</button>
             </div>
           </section>
 
-          <p className="account-preview-note">Preview - no real account is signed in.</p>
+          <p className="account-preview-note">Local account only - no cloud account connected.</p>
         </main>
 
         <NavoFooter />

@@ -1,10 +1,10 @@
-.account-page {
+﻿.account-page {
   width: 100%;
 }
 
 .account-main {
   flex: 1;
-  padding: 2rem 0 3rem;
+  padding: 2.2rem 0 3.5rem;
 }
 
 .account-profile-row {
@@ -32,8 +32,12 @@
 
 .account-sub,
 .account-preview-note,
-.trace-note,
-.language-note {
+.summary-note,
+.language-note,
+.account-link-body,
+.account-data-panel p,
+.continuity-panel-note,
+.account-empty-copy {
   color: var(--ink-mute);
 }
 
@@ -45,21 +49,21 @@
   font-size: 0.72rem;
 }
 
-.account-traces-grid {
-  margin-top: 0.7rem;
+.account-summary-grid {
+  margin-top: 0.8rem;
   display: grid;
-  gap: 0.7rem;
+  gap: 0.8rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.trace-card,
+.summary-card,
 .account-link-card,
-.account-latest,
-.account-data-panel {
+.account-data-panel,
+.continuity-panel {
   padding: 1.2rem;
 }
 
-.trace-label,
+.summary-label,
 .account-link-kicker,
 .account-latest-label {
   color: var(--ink-mute);
@@ -68,17 +72,31 @@
   font-size: 0.68rem;
 }
 
-.trace-value {
+.summary-title,
+.language-name,
+.account-link-title,
+.movement-line {
   margin-top: 0.45rem;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 2rem;
+}
+
+.summary-title {
+  font-size: 1.7rem;
+}
+
+.summary-note,
+.continuity-panel-note,
+.account-link-body,
+.account-data-panel p {
+  margin-top: 0.35rem;
+  line-height: 1.5;
 }
 
 .account-language-wrap,
 .account-links-grid,
-.account-latest,
-.account-data-panel {
-  margin-top: 1.5rem;
+.account-data-panel,
+.continuity-panel {
+  margin-top: 1.6rem;
 }
 
 .account-language-wrap h2,
@@ -87,7 +105,7 @@
 }
 
 .language-list {
-  margin-top: 0.7rem;
+  margin-top: 0.75rem;
   border: 1px solid var(--edge);
   border-radius: var(--radius);
   overflow: hidden;
@@ -107,14 +125,7 @@
   border-bottom: none;
 }
 
-.language-name,
-.account-link-title,
-.account-latest-line {
-  font-family: "Fraunces", Georgia, serif;
-}
-
 .language-active-pill,
-.data-btn,
 .language-action-link {
   border-radius: 999px;
   border: 1px solid var(--edge);
@@ -127,7 +138,7 @@
 .account-links-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: 0.8rem;
 }
 
 .account-link-card {
@@ -135,15 +146,65 @@
   color: inherit;
 }
 
-.account-link-body,
-.account-data-panel p {
-  margin-top: 0.35rem;
-  color: var(--ink-soft);
+.continuity-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.account-latest-line {
-  margin-top: 0.45rem;
-  font-size: 1.35rem;
+.nearby-chip-wrap {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.nearby-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent-warm) 22%, var(--edge));
+  background: color-mix(in oklab, var(--ground-2) 86%, transparent);
+  color: var(--ink-soft);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+.movement-list {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.movement-row {
+  padding: 0.9rem 1rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--edge);
+  background: color-mix(in oklab, var(--ground-2) 92%, transparent);
+}
+
+.movement-line {
+  margin: 0;
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.movement-arrow {
+  color: var(--accent-warm);
+  opacity: 0.9;
+}
+
+.account-empty-copy {
+  margin-top: 1rem;
+  max-width: 40rem;
+  line-height: 1.6;
 }
 
 .settings-error {
@@ -156,24 +217,39 @@
 }
 
 .data-controls {
-  margin-top: 0.85rem;
+  margin-top: 1rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 
 .data-btn {
   cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--ink-mute);
+  padding: 0.35rem 0.8rem;
+  text-decoration: none;
+  font-size: 0.9rem;
 }
 
 .data-btn-danger {
-  color: #e7a5a5;
-  border-color: rgba(180, 44, 44, 0.35);
+  color: #d9a1a1;
+  border-color: rgba(180, 44, 44, 0.28);
+}
+
+.account-preview-note {
+  margin-top: 1.1rem;
 }
 
 @media (max-width: 900px) {
-  .account-traces-grid,
+  .account-summary-grid,
   .account-links-grid {
     grid-template-columns: 1fr;
+  }
+
+  .movement-line {
+    flex-wrap: wrap;
   }
 }

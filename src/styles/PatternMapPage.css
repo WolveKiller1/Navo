@@ -1,24 +1,36 @@
 .pattern-map-wrap {
   padding: 1rem;
+  display: grid;
+  gap: 1rem;
 }
 
-.pattern-map-svg {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+.pattern-map-copy-block {
+  padding: 1rem;
+  border: 1px solid var(--edge);
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--ground-2) 92%, transparent);
 }
 
-.pattern-map-svg line {
-  stroke: color-mix(in oklab, var(--accent-warm) 50%, var(--edge));
-  stroke-width: 0.3;
+.pattern-map-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
 }
 
-.pattern-map-svg circle {
-  fill: var(--accent-warm);
-}
-
-.pattern-map-svg text {
-  fill: var(--ink-mute);
-  text-anchor: middle;
-  font-size: 2.4px;
+.pattern-map-copy-block h2 {
+  margin: 0 0 0.6rem;
   font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  color: var(--ink);
+}
+
+.pattern-map-copy-block p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.pattern-map-line + .pattern-map-line {
+  margin-top: 0.4rem;
 }

@@ -6,9 +6,6 @@ import '../styles/SettingsPage.css';
 
 function SettingsPage() {
   const [preferences, setPreferences] = useState(null);
-  const [voice, setVoice] = useState('calm');
-  const [spacing, setSpacing] = useState('balanced');
-  const [softHaptics, setSoftHaptics] = useState(false);
 
   useEffect(() => {
     const loadPreferences = async () => {
@@ -89,39 +86,39 @@ function SettingsPage() {
           <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Voice feel</p>
-              <p className="settings-row-sub">Frontend placeholder. Backend voice selection is not wired yet.</p>
+              <p className="settings-row-sub">Stored in your local account for the Room.</p>
             </div>
             <div className="settings-choice-group">
-              <button className={`settings-choice ${voice === 'calm' ? 'active' : ''}`} onClick={() => setVoice('calm')}>Calm</button>
-              <button className={`settings-choice ${voice === 'warm' ? 'active' : ''}`} onClick={() => setVoice('warm')}>Warm</button>
-              <button className={`settings-choice ${voice === 'bright' ? 'active' : ''}`} onClick={() => setVoice('bright')}>Bright</button>
+              <button className={`settings-choice ${preferences.voiceFeel === 'calm' ? 'active' : ''}`} onClick={() => updatePreference('voiceFeel', 'calm')}>Calm</button>
+              <button className={`settings-choice ${preferences.voiceFeel === 'warm' ? 'active' : ''}`} onClick={() => updatePreference('voiceFeel', 'warm')}>Warm</button>
+              <button className={`settings-choice ${preferences.voiceFeel === 'bright' ? 'active' : ''}`} onClick={() => updatePreference('voiceFeel', 'bright')}>Bright</button>
             </div>
           </article>
 
           <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Phrase spacing</p>
-              <p className="settings-row-sub">Frontend placeholder for pacing presets.</p>
+              <p className="settings-row-sub">How much air rests between phrases.</p>
             </div>
             <div className="settings-choice-group">
-              <button className={`settings-choice ${spacing === 'close' ? 'active' : ''}`} onClick={() => setSpacing('close')}>Closer</button>
-              <button className={`settings-choice ${spacing === 'balanced' ? 'active' : ''}`} onClick={() => setSpacing('balanced')}>Balanced</button>
-              <button className={`settings-choice ${spacing === 'slow' ? 'active' : ''}`} onClick={() => setSpacing('slow')}>Slower</button>
+              <button className={`settings-choice ${preferences.phraseSpacing === 'close' ? 'active' : ''}`} onClick={() => updatePreference('phraseSpacing', 'close')}>Closer</button>
+              <button className={`settings-choice ${preferences.phraseSpacing === 'balanced' ? 'active' : ''}`} onClick={() => updatePreference('phraseSpacing', 'balanced')}>Balanced</button>
+              <button className={`settings-choice ${preferences.phraseSpacing === 'slow' ? 'active' : ''}`} onClick={() => updatePreference('phraseSpacing', 'slow')}>Slower</button>
             </div>
           </article>
 
           <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Soft haptics</p>
-              <p className="settings-row-sub">Frontend placeholder for tactile feedback.</p>
+              <p className="settings-row-sub">Stored with your local immersion profile.</p>
             </div>
-            <button className={`settings-toggle ${softHaptics ? 'on' : ''}`} onClick={() => setSoftHaptics((v) => !v)} aria-pressed={softHaptics}>
+            <button className={`settings-toggle ${preferences.softHaptics ? 'on' : ''}`} onClick={() => updatePreference('softHaptics', !preferences.softHaptics)} aria-pressed={preferences.softHaptics}>
               <span className="settings-toggle-knob" />
             </button>
           </article>
         </section>
 
-        <p className="settings-footnote">Preview - settings are local-only.</p>
+        <p className="settings-footnote">Stored inside your local account on this device.</p>
       </main>
 
       <NavoFooter />

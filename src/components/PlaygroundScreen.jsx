@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaPause, FaPlay } from 'react-icons/fa';
-import { initStorage, getImmersionProfile } from '../services/storage';
+import { initStorage, getImmersionProfile, recordMovementTrace } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { speak } from '../services/tts';
 import { buildPlaygroundSequence } from '../services/playgroundSequenceBuilder';
@@ -139,6 +139,13 @@ function PlaygroundScreen() {
     const currentPhrase = guidedSequence[guidedIndex];
     const lang = currentPhrase?.language || 'en';
     const seed = generatePlaygroundSeed(currentPhrase?.patternId || null, lang);
+    recordMovementTrace({
+      sourceEnvironment: 'pattern-playground',
+      fromText: currentPhrase.text,
+      toText: seed.text,
+      pressureLabel: seed.patternId || seed.scene || null,
+      interactionType: 'transformed'
+    });
     setGuidedSequence(buildPlaygroundSequence({
       guidedMode: true,
       seedSentence: seed.text,
@@ -153,6 +160,13 @@ function PlaygroundScreen() {
   };
 
   const handleCarryToRoom = (phraseText) => {
+    recordMovementTrace({
+      sourceEnvironment: 'pattern-playground',
+      fromText: currentPhrase?.text || phraseText,
+      toText: phraseText,
+      pressureLabel: currentPhrase?.patternId || currentPhrase?.scene || null,
+      interactionType: 'carried'
+    });
     sessionStorage.setItem('rylingo_access', 'granted');
     navigate('/room', { state: { openingSentence: phraseText } });
   };
@@ -178,6 +192,23 @@ function PlaygroundScreen() {
 
   const currentPhrase = guidedSequence[guidedIndex];
   const previousPhrase = guidedIndex > 0 ? guidedSequence[guidedIndex - 1] : null;
+
+  useEffect(() => {
+    if (!currentPhrase?.text || !guidedSequence.length) return;
+
+    getNearbyPathIndexes().forEach((pathIndex) => {
+      const pathPhrase = guidedSequence[pathIndex];
+      if (!pathPhrase?.text) return;
+
+      recordMovementTrace({
+        sourceEnvironment: 'pattern-playground',
+        fromText: currentPhrase.text,
+        toText: pathPhrase.text,
+        pressureLabel: pathPhrase.patternId || pathPhrase.scene || null,
+        interactionType: 'nearby-path'
+      });
+    });
+  }, [guidedIndex, guidedSequence, currentPhrase?.text]);
 
   return (
     <div className="playground-screen navo-shell">
@@ -257,7 +288,16 @@ function PlaygroundScreen() {
                           >
                             {playingAudioId === `path-${pathIndex}` ? <FaPause /> : <FaPlay />}
                           </button>
-                          <button className="nearby-jump" onClick={() => setGuidedIndex(pathIndex)}>
+                          <button className="nearby-jump" onClick={() => {
+                            recordMovementTrace({
+                              sourceEnvironment: 'pattern-playground',
+                              fromText: currentPhrase.text,
+                              toText: pathPhrase.text,
+                              pressureLabel: pathPhrase.patternId || pathPhrase.scene || null,
+                              interactionType: 'stabilized'
+                            });
+                            setGuidedIndex(pathIndex);
+                          }}>
                             {words.map((word, index) => <span key={index} className={changedIndexes.includes(index) ? 'guided-changed-word' : ''}>{word}{index < words.length - 1 ? ' ' : ''}</span>)}
                           </button>
                         </div>

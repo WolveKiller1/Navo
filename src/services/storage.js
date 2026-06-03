@@ -4,14 +4,318 @@
  * Silent failure on all operations
  */
 
+import { getDefaultProfile } from './immersionProfile';
+
 const DB_NAME = 'RylingoStorage';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const SESSIONS_STORE = 'sessions';
 const SETTINGS_STORE = 'settings';
 const PROFILE_STORE = 'immersionProfile';
+const ACCOUNT_STORE = 'account';
+
+const LOCAL_ACCOUNT_KEY = 'rylingo_localAccount';
+const LOCAL_SESSIONS_KEY = 'rylingo_sessions';
+const LOCAL_LAST_LANGUAGE_KEY = 'rylingo_lastLanguage';
+const LOCAL_PROFILE_KEY = 'rylingo_immersionProfile';
+const LOCAL_PREFERENCES_KEY = 'rylingo_userPreferences';
+const ACCOUNT_VERSION = 0;
+const MAX_EXPOSURE_TRACES = 600;
+const MAX_MOVEMENT_TRACES = 600;
 
 let db = null;
 let useLocalStorage = false;
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function createStableAccountId() {
+  try {
+    return `navo_account_${crypto.randomUUID()}`;
+  } catch {
+    return `navo_account_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function buildDefaultAccount(seed = {}) {
+  const createdAt = seed.createdAt || nowIso();
+  const learningProfile = seed.learningProfile || getDefaultProfile();
+  const activeLanguage = seed.activeLanguage || seed.lastLanguage || 'en';
+
+  return {
+    key: 'current',
+    version: ACCOUNT_VERSION,
+    id: seed.id || createStableAccountId(),
+    kind: 'local',
+    createdAt,
+    updatedAt: seed.updatedAt || createdAt,
+    languageSettings: {
+      activeLanguage,
+      lastLanguage: seed.lastLanguage || activeLanguage,
+      availableLanguages: ['en', 'pt']
+    },
+    voiceSettings: {
+      voiceFeel: seed.voiceFeel || 'calm',
+      phraseSpacing: seed.phraseSpacing || 'balanced'
+    },
+    immersionProfile: {
+      theme: seed.theme || 'dark',
+      showHeardSpeech: seed.showHeardSpeech ?? true,
+      softHaptics: seed.softHaptics ?? false,
+      learningProfile
+    },
+    continuity: {
+      exposureTraces: Array.isArray(seed.exposureTraces) ? seed.exposureTraces : [],
+      movementTraces: Array.isArray(seed.movementTraces) ? seed.movementTraces : [],
+      patternMapReserved: seed.patternMapReserved && typeof seed.patternMapReserved === 'object'
+        ? seed.patternMapReserved
+        : {}
+    }
+  };
+}
+
+function normalizeAccount(account) {
+  if (!account || typeof account !== 'object') return null;
+
+  return buildDefaultAccount({
+    ...account,
+    id: typeof account.id === 'string' ? account.id : undefined,
+    createdAt: typeof account.createdAt === 'string' ? account.createdAt : undefined,
+    updatedAt: typeof account.updatedAt === 'string' ? account.updatedAt : undefined,
+    activeLanguage: account.languageSettings?.activeLanguage,
+    lastLanguage: account.languageSettings?.lastLanguage,
+    voiceFeel: account.voiceSettings?.voiceFeel,
+    phraseSpacing: account.voiceSettings?.phraseSpacing,
+    theme: account.immersionProfile?.theme,
+    showHeardSpeech: account.immersionProfile?.showHeardSpeech,
+    softHaptics: account.immersionProfile?.softHaptics,
+    learningProfile: account.immersionProfile?.learningProfile,
+    exposureTraces: account.continuity?.exposureTraces,
+    movementTraces: account.continuity?.movementTraces,
+    patternMapReserved: account.continuity?.patternMapReserved
+  });
+}
+
+function toPreferences(account) {
+  return {
+    activeLanguage: account.languageSettings.activeLanguage,
+    theme: account.immersionProfile.theme,
+    showHeardSpeech: account.immersionProfile.showHeardSpeech,
+    voiceFeel: account.voiceSettings.voiceFeel,
+    phraseSpacing: account.voiceSettings.phraseSpacing,
+    softHaptics: account.immersionProfile.softHaptics
+  };
+}
+
+function mergePreferencesIntoAccount(account, preferences = {}) {
+  return normalizeAccount({
+    ...account,
+    updatedAt: nowIso(),
+    languageSettings: {
+      ...account.languageSettings,
+      activeLanguage: preferences.activeLanguage || account.languageSettings.activeLanguage,
+      lastLanguage:
+        preferences.lastLanguage ||
+        preferences.activeLanguage ||
+        account.languageSettings.lastLanguage
+    },
+    voiceSettings: {
+      ...account.voiceSettings,
+      voiceFeel: preferences.voiceFeel || account.voiceSettings.voiceFeel,
+      phraseSpacing: preferences.phraseSpacing || account.voiceSettings.phraseSpacing
+    },
+    immersionProfile: {
+      ...account.immersionProfile,
+      theme: preferences.theme || account.immersionProfile.theme,
+      showHeardSpeech:
+        typeof preferences.showHeardSpeech === 'boolean'
+          ? preferences.showHeardSpeech
+          : account.immersionProfile.showHeardSpeech,
+      softHaptics:
+        typeof preferences.softHaptics === 'boolean'
+          ? preferences.softHaptics
+          : account.immersionProfile.softHaptics
+    }
+  });
+}
+
+function createTraceId(prefix) {
+  try {
+    return `${prefix}_${crypto.randomUUID()}`;
+  } catch {
+    return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function normalizeTraceText(text) {
+  return String(text || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function limitTraces(items, max) {
+  return items.slice(-max);
+}
+
+function isMeaningfulTraceText(text) {
+  const normalized = normalizeTraceText(text);
+  if (!normalized) return false;
+
+  const roomRepairPrefixes = [
+    'i heard',
+    'can you repeat',
+    'could you repeat',
+    'say that again',
+    'i did not catch',
+    "i didn't catch",
+    'what did you say',
+    'sorry, i',
+    'sorry i'
+  ];
+
+  return !roomRepairPrefixes.some((prefix) => normalized.startsWith(prefix));
+}
+
+function getMovementPriority(interactionType) {
+  switch (interactionType) {
+    case 'carried':
+      return 4;
+    case 'transformed':
+      return 3;
+    case 'stabilized':
+      return 2;
+    case 'redirected':
+      return 1;
+    case 'nearby-path':
+    default:
+      return 0;
+  }
+}
+
+async function readLegacyPreferences() {
+  try {
+    if (useLocalStorage || !db) {
+      const stored = localStorage.getItem(LOCAL_PREFERENCES_KEY);
+      return stored ? JSON.parse(stored) : null;
+    }
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([SETTINGS_STORE], 'readonly');
+      const store = transaction.objectStore(SETTINGS_STORE);
+      const request = store.get('userPreferences');
+      request.onsuccess = () => resolve(request.result?.value || null);
+      request.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function readLegacyLastLanguage() {
+  try {
+    if (useLocalStorage || !db) {
+      return localStorage.getItem(LOCAL_LAST_LANGUAGE_KEY);
+    }
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([SETTINGS_STORE], 'readonly');
+      const store = transaction.objectStore(SETTINGS_STORE);
+      const request = store.get('lastLanguage');
+      request.onsuccess = () => resolve(request.result?.value || null);
+      request.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function readLegacyProfile() {
+  try {
+    if (useLocalStorage || !db) {
+      const stored = localStorage.getItem(LOCAL_PROFILE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    }
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([PROFILE_STORE], 'readonly');
+      const store = transaction.objectStore(PROFILE_STORE);
+      const request = store.get('current');
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function readStoredAccount() {
+  try {
+    if (useLocalStorage || !db) {
+      const stored = localStorage.getItem(LOCAL_ACCOUNT_KEY);
+      return stored ? normalizeAccount(JSON.parse(stored)) : null;
+    }
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([ACCOUNT_STORE], 'readonly');
+      const store = transaction.objectStore(ACCOUNT_STORE);
+      const request = store.get('current');
+      request.onsuccess = () => resolve(normalizeAccount(request.result));
+      request.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function writeStoredAccount(account) {
+  const normalized = normalizeAccount(account);
+  if (!normalized) return null;
+
+  try {
+    if (useLocalStorage || !db) {
+      localStorage.setItem(LOCAL_ACCOUNT_KEY, JSON.stringify(normalized));
+      return normalized;
+    }
+
+    return new Promise((resolve) => {
+      const transaction = db.transaction([ACCOUNT_STORE], 'readwrite');
+      const store = transaction.objectStore(ACCOUNT_STORE);
+      const request = store.put(normalized);
+      request.onsuccess = () => resolve(normalized);
+      request.onerror = () => resolve(normalized);
+    });
+  } catch {
+    return normalized;
+  }
+}
+
+async function loadOrCreateLocalAccount() {
+  const stored = await readStoredAccount();
+  if (stored) return stored;
+
+  const legacyPreferences = await readLegacyPreferences();
+  const legacyLastLanguage = await readLegacyLastLanguage();
+  const legacyProfile = await readLegacyProfile();
+
+  const created = buildDefaultAccount({
+    activeLanguage: legacyPreferences?.activeLanguage || legacyLastLanguage || 'en',
+    lastLanguage: legacyLastLanguage || legacyPreferences?.activeLanguage || 'en',
+    theme: legacyPreferences?.theme,
+    showHeardSpeech: legacyPreferences?.showHeardSpeech,
+    voiceFeel: legacyPreferences?.voiceFeel,
+    phraseSpacing: legacyPreferences?.phraseSpacing,
+    softHaptics: legacyPreferences?.softHaptics,
+    learningProfile: legacyProfile || getDefaultProfile()
+  });
+
+  return writeStoredAccount(created);
+}
+
+async function updateLocalAccount(mutator) {
+  const current = await loadOrCreateLocalAccount();
+  const next = normalizeAccount(mutator(current));
+  if (!next) return current;
+  next.updatedAt = nowIso();
+  return writeStoredAccount(next);
+}
 
 /**
  * Initialize storage (IndexedDB or localStorage fallback)
@@ -50,6 +354,10 @@ export async function initStorage() {
         if (!database.objectStoreNames.contains(PROFILE_STORE)) {
           database.createObjectStore(PROFILE_STORE, { keyPath: 'key' });
         }
+
+        if (!database.objectStoreNames.contains(ACCOUNT_STORE)) {
+          database.createObjectStore(ACCOUNT_STORE, { keyPath: 'key' });
+        }
       };
     });
   } catch (error) {
@@ -61,9 +369,11 @@ export async function initStorage() {
  * Create new session record
  */
 export async function createSession(language = null) {
+  const account = await loadOrCreateLocalAccount();
   const sessionId = crypto.randomUUID();
   const session = {
     sessionId,
+    accountId: account.id,
     startTimestamp: Date.now(),
     endTimestamp: null,
     duration: null,
@@ -183,21 +493,8 @@ export async function closeSession(sessionId) {
  */
 export async function getLastLanguage() {
   try {
-    if (useLocalStorage) {
-      return localStorage.getItem('rylingo_lastLanguage');
-    } else if (db) {
-      return new Promise((resolve) => {
-        const transaction = db.transaction([SETTINGS_STORE], 'readonly');
-        const store = transaction.objectStore(SETTINGS_STORE);
-        const request = store.get('lastLanguage');
-        
-        request.onsuccess = () => {
-          resolve(request.result?.value || null);
-        };
-        
-        request.onerror = () => resolve(null);
-      });
-    }
+    const account = await loadOrCreateLocalAccount();
+    return account.languageSettings.lastLanguage || account.languageSettings.activeLanguage || null;
   } catch (error) {
     return null;
   }
@@ -208,17 +505,13 @@ export async function getLastLanguage() {
  */
 export async function saveLastLanguage(language) {
   try {
-    if (useLocalStorage) {
-      if (language) {
-        localStorage.setItem('rylingo_lastLanguage', language);
-      } else {
-        localStorage.removeItem('rylingo_lastLanguage');
+    await updateLocalAccount((account) => ({
+      ...account,
+      languageSettings: {
+        ...account.languageSettings,
+        lastLanguage: language || account.languageSettings.activeLanguage
       }
-    } else if (db) {
-      const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
-      const store = transaction.objectStore(SETTINGS_STORE);
-      store.put({ key: 'lastLanguage', value: language });
-    }
+    }));
   } catch (error) {
     // Silent failure
   }
@@ -232,27 +525,15 @@ export async function getUserPreferences() {
   const defaults = {
     activeLanguage: 'en',
     theme: 'dark',
-    showHeardSpeech: true
+    showHeardSpeech: true,
+    voiceFeel: 'calm',
+    phraseSpacing: 'balanced',
+    softHaptics: false
   };
 
   try {
-    if (useLocalStorage) {
-      const stored = localStorage.getItem('rylingo_userPreferences');
-      return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
-    } else if (db) {
-      return new Promise((resolve) => {
-        const transaction = db.transaction([SETTINGS_STORE], 'readonly');
-        const store = transaction.objectStore(SETTINGS_STORE);
-        const request = store.get('userPreferences');
-        
-        request.onsuccess = () => {
-          const stored = request.result?.value;
-          resolve(stored ? { ...defaults, ...stored } : defaults);
-        };
-        
-        request.onerror = () => resolve(defaults);
-      });
-    }
+    const account = await loadOrCreateLocalAccount();
+    return { ...defaults, ...toPreferences(account) };
   } catch (error) {
     return defaults;
   }
@@ -263,13 +544,7 @@ export async function getUserPreferences() {
  */
 export async function saveUserPreferences(preferences) {
   try {
-    if (useLocalStorage) {
-      localStorage.setItem('rylingo_userPreferences', JSON.stringify(preferences));
-    } else if (db) {
-      const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
-      const store = transaction.objectStore(SETTINGS_STORE);
-      store.put({ key: 'userPreferences', value: preferences });
-    }
+    await updateLocalAccount((account) => mergePreferencesIntoAccount(account, preferences));
   } catch (error) {
     // Silent failure
   }
@@ -302,22 +577,8 @@ export async function getAllSessions() {
  */
 export async function getImmersionProfile() {
   try {
-    if (useLocalStorage) {
-      const stored = localStorage.getItem('rylingo_immersionProfile');
-      return stored ? JSON.parse(stored) : null;
-    } else if (db) {
-      return new Promise((resolve) => {
-        const transaction = db.transaction([PROFILE_STORE], 'readonly');
-        const store = transaction.objectStore(PROFILE_STORE);
-        const request = store.get('current');
-        
-        request.onsuccess = () => {
-          resolve(request.result || null);
-        };
-        
-        request.onerror = () => resolve(null);
-      });
-    }
+    const account = await loadOrCreateLocalAccount();
+    return account.immersionProfile.learningProfile || null;
   } catch (error) {
     return null;
   }
@@ -328,16 +589,193 @@ export async function getImmersionProfile() {
  */
 export async function saveImmersionProfile(profile) {
   try {
-    if (useLocalStorage) {
-      localStorage.setItem('rylingo_immersionProfile', JSON.stringify(profile));
-    } else if (db) {
-      const transaction = db.transaction([PROFILE_STORE], 'readwrite');
-      const store = transaction.objectStore(PROFILE_STORE);
-      store.put(profile);
-    }
+    await updateLocalAccount((account) => ({
+      ...account,
+      immersionProfile: {
+        ...account.immersionProfile,
+        learningProfile: profile || getDefaultProfile()
+      }
+    }));
   } catch (error) {
     // Silent failure
   }
+}
+
+export async function getLocalAccount() {
+  try {
+    return await loadOrCreateLocalAccount();
+  } catch {
+    return buildDefaultAccount();
+  }
+}
+
+export function buildContinuityPreview(account, options = {}) {
+  const maxPhrases = options.maxPhrases || 6;
+  const maxMovements = options.maxMovements || 4;
+  const exposureTraces = Array.isArray(account?.continuity?.exposureTraces)
+    ? account.continuity.exposureTraces
+    : [];
+  const movementTraces = Array.isArray(account?.continuity?.movementTraces)
+    ? account.continuity.movementTraces
+    : [];
+
+  const recentNearby = [];
+  const seenPhraseKeys = new Set();
+
+  for (let index = exposureTraces.length - 1; index >= 0; index -= 1) {
+    const trace = exposureTraces[index];
+    const text = typeof trace?.text === 'string' ? trace.text.trim() : '';
+    const normalized = trace?.normalizedText || normalizeTraceText(text);
+
+    if (!text || !normalized || seenPhraseKeys.has(normalized) || !isMeaningfulTraceText(text)) {
+      continue;
+    }
+
+    seenPhraseKeys.add(normalized);
+    recentNearby.push({
+      id: trace.id,
+      text,
+      normalizedText: normalized,
+      sourceEnvironment: trace.sourceEnvironment,
+      interactionType: trace.interactionType,
+      updatedAt: trace.updatedAt || trace.createdAt || null
+    });
+
+    if (recentNearby.length >= maxPhrases) break;
+  }
+
+  const movementByPair = new Map();
+  for (let index = movementTraces.length - 1; index >= 0; index -= 1) {
+    const trace = movementTraces[index];
+    const fromText = typeof trace?.fromText === 'string' ? trace.fromText.trim() : '';
+    const toText = typeof trace?.toText === 'string' ? trace.toText.trim() : '';
+    const normalizedFrom = normalizeTraceText(fromText);
+    const normalizedTo = normalizeTraceText(toText);
+
+    if (!fromText || !toText || !normalizedFrom || !normalizedTo) continue;
+    if (normalizedFrom === normalizedTo) continue;
+
+    const pairKey = `${normalizedFrom}→${normalizedTo}`;
+    const nextPriority = getMovementPriority(trace.interactionType);
+    const existing = movementByPair.get(pairKey);
+
+    if (!existing) {
+      movementByPair.set(pairKey, {
+        id: trace.id,
+        fromText,
+        toText,
+        interactionType: trace.interactionType,
+        sourceEnvironment: trace.sourceEnvironment,
+        pressureLabel: trace.pressureLabel || null,
+        updatedAt: trace.updatedAt || trace.createdAt || null,
+        priority: nextPriority
+      });
+      continue;
+    }
+
+    if (nextPriority > existing.priority) {
+      movementByPair.set(pairKey, {
+        ...existing,
+        id: trace.id,
+        fromText,
+        toText,
+        interactionType: trace.interactionType,
+        sourceEnvironment: trace.sourceEnvironment,
+        pressureLabel: trace.pressureLabel || null,
+        updatedAt: trace.updatedAt || trace.createdAt || null,
+        priority: nextPriority
+      });
+    }
+  }
+
+  const recentMovement = Array.from(movementByPair.values())
+    .filter((trace) => trace.priority > 0)
+    .sort((a, b) => {
+      const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      if (b.priority !== a.priority) return b.priority - a.priority;
+      return bTime - aTime;
+    })
+    .slice(0, maxMovements)
+    .map(({ priority, ...trace }) => trace);
+
+  return {
+    recentNearby,
+    recentMovement,
+    nearbyPhraseCount: recentNearby.length,
+    movementCount: recentMovement.length,
+    hasContinuity: recentNearby.length > 0 || recentMovement.length > 0
+  };
+}
+
+export async function recordExposureTrace({
+  sourceEnvironment,
+  text,
+  normalizedText = null,
+  interactionType = 'encountered'
+}) {
+  if (!text || !sourceEnvironment) return null;
+
+  const timestamp = nowIso();
+
+  return updateLocalAccount((account) => ({
+    ...account,
+    continuity: {
+      ...account.continuity,
+      exposureTraces: limitTraces(
+        [
+          ...account.continuity.exposureTraces,
+          {
+            id: createTraceId('exposure'),
+            accountId: account.id,
+            sourceEnvironment,
+            text,
+            normalizedText: normalizedText || normalizeTraceText(text),
+            interactionType,
+            createdAt: timestamp,
+            updatedAt: timestamp
+          }
+        ],
+        MAX_EXPOSURE_TRACES
+      )
+    }
+  }));
+}
+
+export async function recordMovementTrace({
+  sourceEnvironment,
+  fromText,
+  toText,
+  pressureLabel = null,
+  interactionType = 'nearby-path'
+}) {
+  if (!sourceEnvironment || !fromText || !toText) return null;
+
+  const timestamp = nowIso();
+
+  return updateLocalAccount((account) => ({
+    ...account,
+    continuity: {
+      ...account.continuity,
+      movementTraces: limitTraces(
+        [
+          ...account.continuity.movementTraces,
+          {
+            id: createTraceId('movement'),
+            accountId: account.id,
+            sourceEnvironment,
+            fromText,
+            toText,
+            pressureLabel,
+            interactionType,
+            createdAt: timestamp,
+            updatedAt: timestamp
+          }
+        ],
+        MAX_MOVEMENT_TRACES
+      )
+    }
+  }));
 }
 
 /**
@@ -347,15 +785,15 @@ export async function saveImmersionProfile(profile) {
 export async function exportSessionsAsJSON() {
   try {
     const sessions = await getAllSessions();
-    const profile = await getImmersionProfile();
+    const account = await getLocalAccount();
     
-    if (!sessions || sessions.length === 0) {
-      return { success: false, error: 'No conversations to export.' };
+    if ((!sessions || sessions.length === 0) && (!account?.continuity?.exposureTraces?.length) && (!account?.continuity?.movementTraces?.length)) {
+      return { success: false, error: 'No local continuity to export.' };
     }
     
     const exportData = {
-      sessions: sessions,
-      immersionProfile: profile,
+      localAccount: account,
+      sessions,
       exportTimestamp: Date.now()
     };
     
@@ -364,7 +802,7 @@ export async function exportSessionsAsJSON() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `rylingo-conversations-${Date.now()}.json`;
+    link.download = `navo-local-account-${Date.now()}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -439,43 +877,54 @@ export async function deleteAllSessions() {
 export async function deleteAllData() {
   try {
     if (useLocalStorage) {
-      localStorage.removeItem('rylingo_sessions');
-      localStorage.removeItem('rylingo_lastLanguage');
-      localStorage.removeItem('rylingo_immersionProfile');
+      localStorage.removeItem(LOCAL_SESSIONS_KEY);
+      localStorage.removeItem(LOCAL_LAST_LANGUAGE_KEY);
+      localStorage.removeItem(LOCAL_PROFILE_KEY);
+      localStorage.removeItem(LOCAL_PREFERENCES_KEY);
+      localStorage.removeItem(LOCAL_ACCOUNT_KEY);
       return { success: true };
     } else if (db) {
       return new Promise((resolve) => {
-        const transaction = db.transaction([SESSIONS_STORE, SETTINGS_STORE, PROFILE_STORE], 'readwrite');
+        const transaction = db.transaction([SESSIONS_STORE, SETTINGS_STORE, PROFILE_STORE, ACCOUNT_STORE], 'readwrite');
         const sessionsStore = transaction.objectStore(SESSIONS_STORE);
         const settingsStore = transaction.objectStore(SETTINGS_STORE);
         const profileStore = transaction.objectStore(PROFILE_STORE);
+        const accountStore = transaction.objectStore(ACCOUNT_STORE);
         
         const clearSessions = sessionsStore.clear();
         const clearSettings = settingsStore.clear();
         const clearProfile = profileStore.clear();
+        const clearAccount = accountStore.clear();
         
         let sessionsCleared = false;
         let settingsCleared = false;
         let profileCleared = false;
+        let accountCleared = false;
         
         clearSessions.onsuccess = () => {
           sessionsCleared = true;
-          if (settingsCleared && profileCleared) resolve({ success: true });
+          if (settingsCleared && profileCleared && accountCleared) resolve({ success: true });
         };
         
         clearSettings.onsuccess = () => {
           settingsCleared = true;
-          if (sessionsCleared && profileCleared) resolve({ success: true });
+          if (sessionsCleared && profileCleared && accountCleared) resolve({ success: true });
         };
         
         clearProfile.onsuccess = () => {
           profileCleared = true;
-          if (sessionsCleared && settingsCleared) resolve({ success: true });
+          if (sessionsCleared && settingsCleared && accountCleared) resolve({ success: true });
+        };
+
+        clearAccount.onsuccess = () => {
+          accountCleared = true;
+          if (sessionsCleared && settingsCleared && profileCleared) resolve({ success: true });
         };
         
         clearSessions.onerror = () => resolve({ success: false, error: 'Delete failed. Try again.' });
         clearSettings.onerror = () => resolve({ success: false, error: 'Delete failed. Try again.' });
         clearProfile.onerror = () => resolve({ success: false, error: 'Delete failed. Try again.' });
+        clearAccount.onerror = () => resolve({ success: false, error: 'Delete failed. Try again.' });
       });
     }
     return { success: false, error: 'Storage not initialized.' };
