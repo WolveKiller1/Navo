@@ -155,6 +155,41 @@ function limitTraces(items, max) {
   return items.slice(-max);
 }
 
+function isMeaningfulTraceText(text) {
+  const normalized = normalizeTraceText(text);
+  if (!normalized) return false;
+
+  const roomRepairPrefixes = [
+    'i heard',
+    'can you repeat',
+    'could you repeat',
+    'say that again',
+    'i did not catch',
+    "i didn't catch",
+    'what did you say',
+    'sorry, i',
+    'sorry i'
+  ];
+
+  return !roomRepairPrefixes.some((prefix) => normalized.startsWith(prefix));
+}
+
+function getMovementPriority(interactionType) {
+  switch (interactionType) {
+    case 'carried':
+      return 4;
+    case 'transformed':
+      return 3;
+    case 'stabilized':
+      return 2;
+    case 'redirected':
+      return 1;
+    case 'nearby-path':
+    default:
+      return 0;
+  }
+}
+
 async function readLegacyPreferences() {
   try {
     if (useLocalStorage || !db) {
@@ -572,6 +607,105 @@ export async function getLocalAccount() {
   } catch {
     return buildDefaultAccount();
   }
+}
+
+export function buildContinuityPreview(account, options = {}) {
+  const maxPhrases = options.maxPhrases || 6;
+  const maxMovements = options.maxMovements || 4;
+  const exposureTraces = Array.isArray(account?.continuity?.exposureTraces)
+    ? account.continuity.exposureTraces
+    : [];
+  const movementTraces = Array.isArray(account?.continuity?.movementTraces)
+    ? account.continuity.movementTraces
+    : [];
+
+  const recentNearby = [];
+  const seenPhraseKeys = new Set();
+
+  for (let index = exposureTraces.length - 1; index >= 0; index -= 1) {
+    const trace = exposureTraces[index];
+    const text = typeof trace?.text === 'string' ? trace.text.trim() : '';
+    const normalized = trace?.normalizedText || normalizeTraceText(text);
+
+    if (!text || !normalized || seenPhraseKeys.has(normalized) || !isMeaningfulTraceText(text)) {
+      continue;
+    }
+
+    seenPhraseKeys.add(normalized);
+    recentNearby.push({
+      id: trace.id,
+      text,
+      normalizedText: normalized,
+      sourceEnvironment: trace.sourceEnvironment,
+      interactionType: trace.interactionType,
+      updatedAt: trace.updatedAt || trace.createdAt || null
+    });
+
+    if (recentNearby.length >= maxPhrases) break;
+  }
+
+  const movementByPair = new Map();
+  for (let index = movementTraces.length - 1; index >= 0; index -= 1) {
+    const trace = movementTraces[index];
+    const fromText = typeof trace?.fromText === 'string' ? trace.fromText.trim() : '';
+    const toText = typeof trace?.toText === 'string' ? trace.toText.trim() : '';
+    const normalizedFrom = normalizeTraceText(fromText);
+    const normalizedTo = normalizeTraceText(toText);
+
+    if (!fromText || !toText || !normalizedFrom || !normalizedTo) continue;
+    if (normalizedFrom === normalizedTo) continue;
+
+    const pairKey = `${normalizedFrom}→${normalizedTo}`;
+    const nextPriority = getMovementPriority(trace.interactionType);
+    const existing = movementByPair.get(pairKey);
+
+    if (!existing) {
+      movementByPair.set(pairKey, {
+        id: trace.id,
+        fromText,
+        toText,
+        interactionType: trace.interactionType,
+        sourceEnvironment: trace.sourceEnvironment,
+        pressureLabel: trace.pressureLabel || null,
+        updatedAt: trace.updatedAt || trace.createdAt || null,
+        priority: nextPriority
+      });
+      continue;
+    }
+
+    if (nextPriority > existing.priority) {
+      movementByPair.set(pairKey, {
+        ...existing,
+        id: trace.id,
+        fromText,
+        toText,
+        interactionType: trace.interactionType,
+        sourceEnvironment: trace.sourceEnvironment,
+        pressureLabel: trace.pressureLabel || null,
+        updatedAt: trace.updatedAt || trace.createdAt || null,
+        priority: nextPriority
+      });
+    }
+  }
+
+  const recentMovement = Array.from(movementByPair.values())
+    .filter((trace) => trace.priority > 0)
+    .sort((a, b) => {
+      const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      if (b.priority !== a.priority) return b.priority - a.priority;
+      return bTime - aTime;
+    })
+    .slice(0, maxMovements)
+    .map(({ priority, ...trace }) => trace);
+
+  return {
+    recentNearby,
+    recentMovement,
+    nearbyPhraseCount: recentNearby.length,
+    movementCount: recentMovement.length,
+    hasContinuity: recentNearby.length > 0 || recentMovement.length > 0
+  };
 }
 
 export async function recordExposureTrace({
