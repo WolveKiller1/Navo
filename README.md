@@ -118,6 +118,7 @@ Navo should prioritize:
 - React
 - Vite
 - React Router
+- Supabase Auth + Postgres JSON persistence
 - Browser Speech Recognition
 - Browser Speech Synthesis
 - IndexedDB / local storage for local-first data
@@ -174,6 +175,14 @@ src/
 npm install
 ```
 
+### Configure Supabase for Account System v1
+
+1. Copy `.env.example` to `.env`.
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+3. Run the SQL in `supabase/navo-account-system-v1.sql` inside your Supabase project.
+
+If the Supabase environment variables are missing, Navo still runs locally and the account UI stays in local-only mode.
+
 ### Run locally
 
 ```bash
@@ -220,6 +229,28 @@ Navo currently favors local-first behavior where possible.
 User-facing data such as sessions, preferences, and future continuity traces should remain understandable, exportable, and deleteable.
 
 Navo should not add tracking or analytics that makes the user feel monitored.
+
+### Account System v1 privacy boundary
+
+Supabase-backed Navo Accounts persist:
+
+- account identity
+- language settings
+- voice settings
+- immersion profile
+- exposure traces
+- movement traces
+- basic account metadata
+
+Supabase-backed Navo Accounts do not persist:
+
+- full Room conversation transcripts
+- full session exchange bodies
+- private conversation archive
+- audio
+- voice biomarker or prosody data
+
+Room conversations remain local to the device in Account System v1.
 
 ---
 

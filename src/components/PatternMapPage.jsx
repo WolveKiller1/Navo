@@ -29,18 +29,18 @@ function PatternMapPage() {
           <p className="pattern-map-kicker">Reserved boundary</p>
           <h2>patternMapReserved</h2>
           <p>
-            This local account already owns a future-facing storage boundary, but it does not impose
+            This account continuity already owns a future-facing storage boundary, but it does not impose
             graph structure or visual topology yet.
           </p>
         </div>
 
         <div className="pattern-map-copy-block">
-          <p className="pattern-map-kicker">Local continuity</p>
+          <p className="pattern-map-kicker">Continuity</p>
           <h2>
             {(account?.continuity?.exposureTraces || []).length} nearby phrases ·{' '}
             {(account?.continuity?.movementTraces || []).length} movements
           </h2>
-          <p>These traces stay local for now and can later attach to account auth and sync.</p>
+          <p>These traces belong to account continuity. Room transcripts still remain local-only.</p>
         </div>
 
         <div className="pattern-map-copy-block">

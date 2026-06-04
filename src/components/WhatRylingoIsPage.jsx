@@ -15,7 +15,7 @@ function WhatRylingoIsPage() {
           <ul>
             <li>A real-time speaking space with short responses.</li>
             <li>Pattern exposure through imitation and variation.</li>
-            <li>Session traces saved locally on this device.</li>
+            <li>Room sessions remain saved locally on this device.</li>
           </ul>
         </article>
 
@@ -32,8 +32,9 @@ function WhatRylingoIsPage() {
       <section className="what-card navo-card navo-hairline-top">
         <h2>Data and privacy</h2>
         <ul>
-          <li>Conversations stay local unless you export them.</li>
+          <li>Room conversations stay local unless you export them.</li>
           <li>Microphone audio is not stored.</li>
+          <li>Core environment continuity can attach to a Supabase-backed Navo Account.</li>
           <li>You can delete individual sessions or wipe all local data.</li>
         </ul>
       </section>

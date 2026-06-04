@@ -24,6 +24,7 @@ const MAX_MOVEMENT_TRACES = 600;
 
 let db = null;
 let useLocalStorage = false;
+const accountListeners = new Set();
 
 function nowIso() {
   return new Date().toISOString();
@@ -37,16 +38,40 @@ function createStableAccountId() {
   }
 }
 
+function normalizeCloudAccount(cloud) {
+  if (!cloud || typeof cloud !== 'object') return null;
+  if (typeof cloud.userId !== 'string' || !cloud.userId.trim()) return null;
+
+  return {
+    provider: 'supabase',
+    userId: cloud.userId.trim(),
+    email: typeof cloud.email === 'string' ? cloud.email.trim() : '',
+    attachedAt: typeof cloud.attachedAt === 'string' ? cloud.attachedAt : nowIso(),
+    lastSyncedAt: typeof cloud.lastSyncedAt === 'string' ? cloud.lastSyncedAt : null
+  };
+}
+
+function emitAccountChange(account, metadata = {}) {
+  accountListeners.forEach((listener) => {
+    try {
+      listener(account, metadata);
+    } catch {
+      // Silent failure
+    }
+  });
+}
+
 function buildDefaultAccount(seed = {}) {
   const createdAt = seed.createdAt || nowIso();
   const learningProfile = seed.learningProfile || getDefaultProfile();
   const activeLanguage = seed.activeLanguage || seed.lastLanguage || 'en';
+  const cloud = normalizeCloudAccount(seed.cloud);
 
   return {
     key: 'current',
     version: ACCOUNT_VERSION,
     id: seed.id || createStableAccountId(),
-    kind: 'local',
+    kind: cloud ? 'cloud-linked' : 'local',
     createdAt,
     updatedAt: seed.updatedAt || createdAt,
     languageSettings: {
@@ -70,7 +95,8 @@ function buildDefaultAccount(seed = {}) {
       patternMapReserved: seed.patternMapReserved && typeof seed.patternMapReserved === 'object'
         ? seed.patternMapReserved
         : {}
-    }
+    },
+    cloud
   };
 }
 
@@ -92,7 +118,48 @@ function normalizeAccount(account) {
     learningProfile: account.immersionProfile?.learningProfile,
     exposureTraces: account.continuity?.exposureTraces,
     movementTraces: account.continuity?.movementTraces,
-    patternMapReserved: account.continuity?.patternMapReserved
+    patternMapReserved: account.continuity?.patternMapReserved,
+    cloud: account.cloud
+  });
+}
+
+function buildCloudContinuityPayload(account) {
+  const normalized = normalizeAccount(account);
+  if (!normalized) return null;
+
+  return {
+    version: 1,
+    accountId: normalized.id,
+    createdAt: normalized.createdAt,
+    updatedAt: normalized.updatedAt,
+    kind: 'navo-account',
+    languageSettings: normalized.languageSettings,
+    voiceSettings: normalized.voiceSettings,
+    immersionProfile: normalized.immersionProfile,
+    continuity: {
+      exposureTraces: normalized.continuity?.exposureTraces || [],
+      movementTraces: normalized.continuity?.movementTraces || [],
+      patternMapReserved: normalized.continuity?.patternMapReserved || {}
+    },
+    metadata: {
+      localKind: normalized.kind || 'local'
+    }
+  };
+}
+
+function buildAccountFromCloudPayload(payload, cloud = null) {
+  if (!payload || typeof payload !== 'object') return null;
+
+  return normalizeAccount({
+    id: payload.accountId,
+    createdAt: payload.createdAt,
+    updatedAt: payload.updatedAt,
+    kind: cloud ? 'cloud-linked' : 'local',
+    languageSettings: payload.languageSettings,
+    voiceSettings: payload.voiceSettings,
+    immersionProfile: payload.immersionProfile,
+    continuity: payload.continuity,
+    cloud
   });
 }
 
@@ -265,13 +332,16 @@ async function readStoredAccount() {
   }
 }
 
-async function writeStoredAccount(account) {
+async function writeStoredAccount(account, options = {}) {
   const normalized = normalizeAccount(account);
   if (!normalized) return null;
 
   try {
     if (useLocalStorage || !db) {
       localStorage.setItem(LOCAL_ACCOUNT_KEY, JSON.stringify(normalized));
+      if (options.notify !== false) {
+        emitAccountChange(normalized, options.metadata || {});
+      }
       return normalized;
     }
 
@@ -279,7 +349,12 @@ async function writeStoredAccount(account) {
       const transaction = db.transaction([ACCOUNT_STORE], 'readwrite');
       const store = transaction.objectStore(ACCOUNT_STORE);
       const request = store.put(normalized);
-      request.onsuccess = () => resolve(normalized);
+      request.onsuccess = () => {
+        if (options.notify !== false) {
+          emitAccountChange(normalized, options.metadata || {});
+        }
+        resolve(normalized);
+      };
       request.onerror = () => resolve(normalized);
     });
   } catch {
@@ -306,15 +381,19 @@ async function loadOrCreateLocalAccount() {
     learningProfile: legacyProfile || getDefaultProfile()
   });
 
-  return writeStoredAccount(created);
+  return writeStoredAccount(created, { metadata: { source: 'local-bootstrap' } });
 }
 
-async function updateLocalAccount(mutator) {
+async function updateLocalAccount(mutator, options = {}) {
   const current = await loadOrCreateLocalAccount();
   const next = normalizeAccount(mutator(current));
   if (!next) return current;
   next.updatedAt = nowIso();
-  return writeStoredAccount(next);
+  return writeStoredAccount(next, {
+    metadata: {
+      source: options.source || 'local-update'
+    }
+  });
 }
 
 /**
@@ -607,6 +686,60 @@ export async function getLocalAccount() {
   } catch {
     return buildDefaultAccount();
   }
+}
+
+export function subscribeToLocalAccount(listener) {
+  accountListeners.add(listener);
+  return () => accountListeners.delete(listener);
+}
+
+export async function replaceLocalAccount(account, options = {}) {
+  const nextAccount = normalizeAccount(account);
+  if (!nextAccount) {
+    return loadOrCreateLocalAccount();
+  }
+
+  nextAccount.updatedAt = options.keepUpdatedAt ? nextAccount.updatedAt : nowIso();
+
+  return writeStoredAccount(nextAccount, {
+    metadata: {
+      source: options.source || 'local-replace'
+    }
+  });
+}
+
+export async function attachLocalAccountToCloud(cloud) {
+  return updateLocalAccount(
+    (account) => ({
+      ...account,
+      kind: cloud?.userId ? 'cloud-linked' : 'local',
+      cloud: normalizeCloudAccount({
+        ...account.cloud,
+        ...cloud,
+        attachedAt: account.cloud?.attachedAt || nowIso()
+      })
+    }),
+    { source: 'cloud-link' }
+  );
+}
+
+export async function detachLocalAccountFromCloud() {
+  return updateLocalAccount(
+    (account) => ({
+      ...account,
+      kind: 'local',
+      cloud: null
+    }),
+    { source: 'cloud-detach' }
+  );
+}
+
+export function getCloudContinuityPayload(account) {
+  return buildCloudContinuityPayload(account);
+}
+
+export function buildLocalAccountFromCloud(payload, cloud) {
+  return buildAccountFromCloudPayload(payload, normalizeCloudAccount(cloud));
 }
 
 export function buildContinuityPreview(account, options = {}) {
