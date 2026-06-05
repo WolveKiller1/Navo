@@ -59,7 +59,8 @@
 .summary-card,
 .account-link-card,
 .account-data-panel,
-.continuity-panel {
+.continuity-panel,
+.account-auth-panel {
   padding: 1.2rem;
 }
 
@@ -87,7 +88,8 @@
 .summary-note,
 .continuity-panel-note,
 .account-link-body,
-.account-data-panel p {
+.account-data-panel p,
+.account-auth-copy p {
   margin-top: 0.35rem;
   line-height: 1.5;
 }
@@ -95,13 +97,101 @@
 .account-language-wrap,
 .account-links-grid,
 .account-data-panel,
-.continuity-panel {
+.continuity-panel,
+.account-auth-panel {
   margin-top: 1.6rem;
 }
 
 .account-language-wrap h2,
-.account-data-panel h2 {
+.account-data-panel h2,
+.account-auth-copy h2 {
   font-size: 2rem;
+}
+
+.account-auth-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.account-privacy-line {
+  color: var(--ink-soft);
+}
+
+.account-cloud-status {
+  color: var(--ink-mute);
+}
+
+.account-auth-actions,
+.account-auth-form-wrap {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-mode-toggle {
+  display: inline-flex;
+  padding: 0.18rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: color-mix(in oklab, var(--ground-2) 88%, transparent);
+}
+
+.auth-mode-btn,
+.account-auth-submit,
+.account-field input {
+  font: inherit;
+}
+
+.auth-mode-btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-mute);
+  padding: 0.45rem 0.85rem;
+}
+
+.auth-mode-btn.active {
+  background: var(--accent-warm-soft);
+  color: var(--accent-warm);
+}
+
+.account-auth-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.account-field {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--ink-mute);
+  font-size: 0.95rem;
+}
+
+.account-field input {
+  width: 100%;
+  border-radius: calc(var(--radius) - 4px);
+  border: 1px solid var(--edge);
+  background: color-mix(in oklab, var(--ground-2) 92%, transparent);
+  color: var(--ink-soft);
+  padding: 0.78rem 0.9rem;
+}
+
+.account-field input:disabled,
+.account-auth-submit:disabled,
+.data-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.account-auth-submit {
+  cursor: pointer;
+  border: 1px solid color-mix(in oklab, var(--accent-warm) 24%, var(--edge));
+  border-radius: 999px;
+  background: var(--accent-warm-soft);
+  color: var(--accent-warm);
+  padding: 0.75rem 1rem;
 }
 
 .language-list {
@@ -245,7 +335,8 @@
 
 @media (max-width: 900px) {
   .account-summary-grid,
-  .account-links-grid {
+  .account-links-grid,
+  .account-auth-panel {
     grid-template-columns: 1fr;
   }
 

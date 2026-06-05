@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { getUserPreferences, initStorage } from './services/storage'
+import { initAccountSystem } from './services/accountSync'
 import LandingPage from './components/LandingPage'
 import CallScreen from './components/CallScreen'
 import PlaygroundScreen from './components/PlaygroundScreen'
@@ -29,6 +30,7 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       await initStorage();
+      await initAccountSystem();
       const preferences = await getUserPreferences();
       const theme = preferences.theme || 'dark';
       if (theme === 'light') {

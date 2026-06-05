@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { getUserPreferences, saveUserPreferences } from '../services/storage';
+import { useAccountSystem } from '../hooks/useAccountSystem';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
 import '../styles/SettingsPage.css';
 
 function SettingsPage() {
+  const accountSystem = useAccountSystem();
   const [preferences, setPreferences] = useState(null);
 
   useEffect(() => {
@@ -86,7 +88,11 @@ function SettingsPage() {
           <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Voice feel</p>
-              <p className="settings-row-sub">Stored in your local account for the Room.</p>
+              <p className="settings-row-sub">
+                {accountSystem.isAuthenticated
+                  ? 'Stored in your local working copy and Navo Account for the Room.'
+                  : 'Stored in your local account for the Room.'}
+              </p>
             </div>
             <div className="settings-choice-group">
               <button className={`settings-choice ${preferences.voiceFeel === 'calm' ? 'active' : ''}`} onClick={() => updatePreference('voiceFeel', 'calm')}>Calm</button>
@@ -110,7 +116,11 @@ function SettingsPage() {
           <article className="settings-row navo-card">
             <div>
               <p className="settings-row-title">Soft haptics</p>
-              <p className="settings-row-sub">Stored with your local immersion profile.</p>
+              <p className="settings-row-sub">
+                {accountSystem.isAuthenticated
+                  ? 'Stored with your local immersion profile and cloud continuity.'
+                  : 'Stored with your local immersion profile.'}
+              </p>
             </div>
             <button className={`settings-toggle ${preferences.softHaptics ? 'on' : ''}`} onClick={() => updatePreference('softHaptics', !preferences.softHaptics)} aria-pressed={preferences.softHaptics}>
               <span className="settings-toggle-knob" />
@@ -118,7 +128,11 @@ function SettingsPage() {
           </article>
         </section>
 
-        <p className="settings-footnote">Stored inside your local account on this device.</p>
+        <p className="settings-footnote">
+          {accountSystem.isAuthenticated
+            ? 'Saved into the local working copy on this device and mirrored to your Navo Account.'
+            : 'Stored inside your local account on this device.'}
+        </p>
       </main>
 
       <NavoFooter />

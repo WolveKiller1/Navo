@@ -3,6 +3,19 @@
   gap: 0.8rem;
 }
 
+.history-toolbar {
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.history-toolbar-copy {
+  color: var(--ink-mute);
+  line-height: 1.5;
+}
+
 .history-error {
   background: rgba(180, 44, 44, 0.16);
   border: 1px solid rgba(180, 44, 44, 0.35);
@@ -152,6 +165,11 @@
 }
 
 @media (max-width: 760px) {
+  .history-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .inline-confirm {
     margin-left: auto;
   }

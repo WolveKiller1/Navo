@@ -99,7 +99,10 @@ function CallScreen() {
         recordExposureTrace({
           sourceEnvironment: 'room',
           text: location.state.openingSentence,
-          interactionType: 'carried'
+          interactionType: 'carried',
+          language: activeLanguage,
+          counts: { exchangeIndex: 0 },
+          density: 1
         });
         
         // Skip welcome screen, start session directly
@@ -418,12 +421,18 @@ function CallScreen() {
         recordExposureTrace({
           sourceEnvironment: 'room',
           text: transcript,
-          interactionType: 'encountered'
+          interactionType: 'encountered',
+          language: currentLanguage,
+          counts: { exchangeIndex: exchangeCount + 1 },
+          density: 1
         });
         recordExposureTrace({
           sourceEnvironment: 'room',
           text: finalMessage,
-          interactionType: 'heard'
+          interactionType: 'heard',
+          language: currentLanguage,
+          counts: { exchangeIndex: exchangeCount + 1 },
+          density: 1
         });
         
         // Write governed exchange to storage (not draft)
@@ -533,12 +542,18 @@ function CallScreen() {
       recordExposureTrace({
         sourceEnvironment: 'room',
         text: openingSentence,
-        interactionType: 'encountered'
+        interactionType: 'encountered',
+        language: currentLanguage,
+        counts: { exchangeIndex: exchangeCount + 1 },
+        density: 1
       });
       recordExposureTrace({
         sourceEnvironment: 'room',
         text: finalMessage,
-        interactionType: 'heard'
+        interactionType: 'heard',
+        language: currentLanguage,
+        counts: { exchangeIndex: exchangeCount + 1 },
+        density: 1
       });
       
       // Store exchange

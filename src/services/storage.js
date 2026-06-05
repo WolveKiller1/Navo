@@ -21,9 +21,26 @@ const LOCAL_PREFERENCES_KEY = 'rylingo_userPreferences';
 const ACCOUNT_VERSION = 0;
 const MAX_EXPOSURE_TRACES = 600;
 const MAX_MOVEMENT_TRACES = 600;
+const CLOUD_EXCLUDED_KEYS = new Set([
+  'sessions',
+  'exchanges',
+  'transcript',
+  'transcripts',
+  'conversation',
+  'conversations',
+  'messages',
+  'userutterance',
+  'rylingoreply',
+  'aitext',
+  'usertext',
+  'fulltext',
+  'sessionhistory',
+  'roomhistory'
+]);
 
 let db = null;
 let useLocalStorage = false;
+const accountListeners = new Set();
 
 function nowIso() {
   return new Date().toISOString();
@@ -37,16 +54,150 @@ function createStableAccountId() {
   }
 }
 
+function normalizeCloudAccount(cloud) {
+  if (!cloud || typeof cloud !== 'object') return null;
+  if (typeof cloud.userId !== 'string' || !cloud.userId.trim()) return null;
+
+  return {
+    provider: 'supabase',
+    userId: cloud.userId.trim(),
+    email: typeof cloud.email === 'string' ? cloud.email.trim() : '',
+    attachedAt: typeof cloud.attachedAt === 'string' ? cloud.attachedAt : nowIso(),
+    lastSyncedAt: typeof cloud.lastSyncedAt === 'string' ? cloud.lastSyncedAt : null
+  };
+}
+
+function isCloudExcludedKey(key) {
+  return CLOUD_EXCLUDED_KEYS.has(String(key || '').trim().toLowerCase());
+}
+
+function sanitizeCloudValue(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizeCloudValue(item))
+      .filter((item) => item !== undefined);
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const sanitized = {};
+
+  Object.entries(value).forEach(([key, nestedValue]) => {
+    if (isCloudExcludedKey(key)) {
+      return;
+    }
+
+    const nextValue = sanitizeCloudValue(nestedValue);
+    if (nextValue !== undefined) {
+      sanitized[key] = nextValue;
+    }
+  });
+
+  return sanitized;
+}
+
+function buildLocalSessionSummary(account) {
+  return {
+    exposureTraceCount: Array.isArray(account?.continuity?.exposureTraces)
+      ? account.continuity.exposureTraces.length
+      : 0,
+    movementTraceCount: Array.isArray(account?.continuity?.movementTraces)
+      ? account.continuity.movementTraces.length
+      : 0,
+    roomConversationsStoredLocally: true,
+    roomTranscriptsInCloud: false
+  };
+}
+
+function deriveRoomExposureTraceForCloud(trace) {
+  if (!trace || typeof trace !== 'object') return null;
+
+  return sanitizeCloudValue({
+    sourceEnvironment: 'room',
+    traceKind: 'derived',
+    language: trace.language || null,
+    interactionType: trace.interactionType || 'encountered',
+    structureFamily: trace.structureFamily || null,
+    functionHint: trace.functionHint || null,
+    patternHint: trace.patternHint || null,
+    movementHint: trace.movementHint || null,
+    createdAt: trace.createdAt || null,
+    updatedAt: trace.updatedAt || null,
+    counts: trace.counts || null,
+    density: trace.density || null
+  });
+}
+
+function deriveRoomMovementTraceForCloud(trace) {
+  if (!trace || typeof trace !== 'object') return null;
+
+  return sanitizeCloudValue({
+    sourceEnvironment: 'room',
+    traceKind: 'derived',
+    language: trace.language || null,
+    interactionType: trace.interactionType || 'nearby-path',
+    structureFamily: trace.structureFamily || null,
+    functionHint: trace.functionHint || null,
+    patternHint: trace.patternHint || null,
+    movementHint: trace.movementHint || null,
+    createdAt: trace.createdAt || null,
+    updatedAt: trace.updatedAt || null,
+    counts: trace.counts || null,
+    density: trace.density || null
+  });
+}
+
+function prepareExposureTracesForCloud(traces) {
+  if (!Array.isArray(traces)) return [];
+
+  return traces
+    .map((trace) => {
+      if (trace?.sourceEnvironment === 'room') {
+        return deriveRoomExposureTraceForCloud(trace);
+      }
+
+      return sanitizeCloudValue(trace);
+    })
+    .filter(Boolean);
+}
+
+function prepareMovementTracesForCloud(traces) {
+  if (!Array.isArray(traces)) return [];
+
+  return traces
+    .map((trace) => {
+      if (trace?.sourceEnvironment === 'room') {
+        return deriveRoomMovementTraceForCloud(trace);
+      }
+
+      return sanitizeCloudValue(trace);
+    })
+    .filter(Boolean);
+}
+
+function emitAccountChange(account, metadata = {}) {
+  accountListeners.forEach((listener) => {
+    try {
+      listener(account, metadata);
+    } catch {
+      // Silent failure
+    }
+  });
+}
+
 function buildDefaultAccount(seed = {}) {
   const createdAt = seed.createdAt || nowIso();
   const learningProfile = seed.learningProfile || getDefaultProfile();
   const activeLanguage = seed.activeLanguage || seed.lastLanguage || 'en';
+  const cloud = normalizeCloudAccount(seed.cloud);
 
   return {
     key: 'current',
     version: ACCOUNT_VERSION,
     id: seed.id || createStableAccountId(),
-    kind: 'local',
+    kind: cloud ? 'cloud-linked' : 'local',
     createdAt,
     updatedAt: seed.updatedAt || createdAt,
     languageSettings: {
@@ -70,7 +221,8 @@ function buildDefaultAccount(seed = {}) {
       patternMapReserved: seed.patternMapReserved && typeof seed.patternMapReserved === 'object'
         ? seed.patternMapReserved
         : {}
-    }
+    },
+    cloud
   };
 }
 
@@ -92,7 +244,51 @@ function normalizeAccount(account) {
     learningProfile: account.immersionProfile?.learningProfile,
     exposureTraces: account.continuity?.exposureTraces,
     movementTraces: account.continuity?.movementTraces,
-    patternMapReserved: account.continuity?.patternMapReserved
+    patternMapReserved: account.continuity?.patternMapReserved,
+    cloud: account.cloud
+  });
+}
+
+function buildCloudContinuityPayload(account) {
+  const normalized = normalizeAccount(account);
+  if (!normalized) return null;
+
+  const payload = {
+    version: 1,
+    accountId: normalized.id,
+    createdAt: normalized.createdAt,
+    updatedAt: normalized.updatedAt,
+    kind: 'navo-account',
+    languageSettings: normalized.languageSettings,
+    voiceSettings: normalized.voiceSettings,
+    immersionProfile: normalized.immersionProfile,
+    continuity: {
+      exposureTraces: prepareExposureTracesForCloud(normalized.continuity?.exposureTraces),
+      movementTraces: prepareMovementTracesForCloud(normalized.continuity?.movementTraces),
+      patternMapReserved: normalized.continuity?.patternMapReserved || {}
+    },
+    metadata: {
+      localKind: normalized.kind || 'local',
+      sessionSummary: buildLocalSessionSummary(normalized)
+    }
+  };
+
+  return sanitizeCloudValue(payload);
+}
+
+function buildAccountFromCloudPayload(payload, cloud = null) {
+  if (!payload || typeof payload !== 'object') return null;
+
+  return normalizeAccount({
+    id: payload.accountId,
+    createdAt: payload.createdAt,
+    updatedAt: payload.updatedAt,
+    kind: cloud ? 'cloud-linked' : 'local',
+    languageSettings: payload.languageSettings,
+    voiceSettings: payload.voiceSettings,
+    immersionProfile: payload.immersionProfile,
+    continuity: payload.continuity,
+    cloud
   });
 }
 
@@ -265,13 +461,16 @@ async function readStoredAccount() {
   }
 }
 
-async function writeStoredAccount(account) {
+async function writeStoredAccount(account, options = {}) {
   const normalized = normalizeAccount(account);
   if (!normalized) return null;
 
   try {
     if (useLocalStorage || !db) {
       localStorage.setItem(LOCAL_ACCOUNT_KEY, JSON.stringify(normalized));
+      if (options.notify !== false) {
+        emitAccountChange(normalized, options.metadata || {});
+      }
       return normalized;
     }
 
@@ -279,7 +478,12 @@ async function writeStoredAccount(account) {
       const transaction = db.transaction([ACCOUNT_STORE], 'readwrite');
       const store = transaction.objectStore(ACCOUNT_STORE);
       const request = store.put(normalized);
-      request.onsuccess = () => resolve(normalized);
+      request.onsuccess = () => {
+        if (options.notify !== false) {
+          emitAccountChange(normalized, options.metadata || {});
+        }
+        resolve(normalized);
+      };
       request.onerror = () => resolve(normalized);
     });
   } catch {
@@ -306,15 +510,19 @@ async function loadOrCreateLocalAccount() {
     learningProfile: legacyProfile || getDefaultProfile()
   });
 
-  return writeStoredAccount(created);
+  return writeStoredAccount(created, { metadata: { source: 'local-bootstrap' } });
 }
 
-async function updateLocalAccount(mutator) {
+async function updateLocalAccount(mutator, options = {}) {
   const current = await loadOrCreateLocalAccount();
   const next = normalizeAccount(mutator(current));
   if (!next) return current;
   next.updatedAt = nowIso();
-  return writeStoredAccount(next);
+  return writeStoredAccount(next, {
+    metadata: {
+      source: options.source || 'local-update'
+    }
+  });
 }
 
 /**
@@ -609,6 +817,60 @@ export async function getLocalAccount() {
   }
 }
 
+export function subscribeToLocalAccount(listener) {
+  accountListeners.add(listener);
+  return () => accountListeners.delete(listener);
+}
+
+export async function replaceLocalAccount(account, options = {}) {
+  const nextAccount = normalizeAccount(account);
+  if (!nextAccount) {
+    return loadOrCreateLocalAccount();
+  }
+
+  nextAccount.updatedAt = options.keepUpdatedAt ? nextAccount.updatedAt : nowIso();
+
+  return writeStoredAccount(nextAccount, {
+    metadata: {
+      source: options.source || 'local-replace'
+    }
+  });
+}
+
+export async function attachLocalAccountToCloud(cloud) {
+  return updateLocalAccount(
+    (account) => ({
+      ...account,
+      kind: cloud?.userId ? 'cloud-linked' : 'local',
+      cloud: normalizeCloudAccount({
+        ...account.cloud,
+        ...cloud,
+        attachedAt: account.cloud?.attachedAt || nowIso()
+      })
+    }),
+    { source: 'cloud-link' }
+  );
+}
+
+export async function detachLocalAccountFromCloud() {
+  return updateLocalAccount(
+    (account) => ({
+      ...account,
+      kind: 'local',
+      cloud: null
+    }),
+    { source: 'cloud-detach' }
+  );
+}
+
+export function getCloudContinuityPayload(account) {
+  return buildCloudContinuityPayload(account);
+}
+
+export function buildLocalAccountFromCloud(payload, cloud) {
+  return buildAccountFromCloudPayload(payload, normalizeCloudAccount(cloud));
+}
+
 export function buildContinuityPreview(account, options = {}) {
   const maxPhrases = options.maxPhrases || 6;
   const maxMovements = options.maxMovements || 4;
@@ -626,6 +888,10 @@ export function buildContinuityPreview(account, options = {}) {
     const trace = exposureTraces[index];
     const text = typeof trace?.text === 'string' ? trace.text.trim() : '';
     const normalized = trace?.normalizedText || normalizeTraceText(text);
+
+    if (trace?.sourceEnvironment === 'room') {
+      continue;
+    }
 
     if (!text || !normalized || seenPhraseKeys.has(normalized) || !isMeaningfulTraceText(text)) {
       continue;
@@ -712,7 +978,14 @@ export async function recordExposureTrace({
   sourceEnvironment,
   text,
   normalizedText = null,
-  interactionType = 'encountered'
+  interactionType = 'encountered',
+  language = null,
+  structureFamily = null,
+  functionHint = null,
+  patternHint = null,
+  movementHint = null,
+  counts = null,
+  density = null
 }) {
   if (!text || !sourceEnvironment) return null;
 
@@ -731,7 +1004,14 @@ export async function recordExposureTrace({
             sourceEnvironment,
             text,
             normalizedText: normalizedText || normalizeTraceText(text),
+            language,
             interactionType,
+            structureFamily,
+            functionHint,
+            patternHint,
+            movementHint,
+            counts,
+            density,
             createdAt: timestamp,
             updatedAt: timestamp
           }
@@ -747,7 +1027,14 @@ export async function recordMovementTrace({
   fromText,
   toText,
   pressureLabel = null,
-  interactionType = 'nearby-path'
+  interactionType = 'nearby-path',
+  language = null,
+  structureFamily = null,
+  functionHint = null,
+  patternHint = null,
+  movementHint = null,
+  counts = null,
+  density = null
 }) {
   if (!sourceEnvironment || !fromText || !toText) return null;
 
@@ -767,7 +1054,14 @@ export async function recordMovementTrace({
             fromText,
             toText,
             pressureLabel,
+            language,
             interactionType,
+            structureFamily,
+            functionHint,
+            patternHint,
+            movementHint,
+            counts,
+            density,
             createdAt: timestamp,
             updatedAt: timestamp
           }
@@ -794,7 +1088,12 @@ export async function exportSessionsAsJSON() {
     const exportData = {
       localAccount: account,
       sessions,
-      exportTimestamp: Date.now()
+      exportTimestamp: Date.now(),
+      privacyBoundary: {
+        roomConversationsStoredLocally: true,
+        roomConversationsUploadedToCloud: false,
+        exportIncludesLocalConversationData: true
+      }
     };
     
     const jsonString = JSON.stringify(exportData, null, 2);
