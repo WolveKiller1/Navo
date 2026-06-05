@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaPlay, FaTrash } from 'react-icons/fa';
-import { getAllSessions, deleteSession } from '../services/storage';
+import { getAllSessions, deleteSession, exportSessionsAsJSON } from '../services/storage';
 import { speak } from '../services/tts';
 import '../styles/SessionHistory.css';
 
@@ -51,13 +51,42 @@ function SessionHistoryContent() {
     setConfirmDeleteId(null);
   };
 
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const handleExport = async () => {
+    setErrorMessage('');
+    const result = await exportSessionsAsJSON();
+
+    if (!result.success) {
+      setErrorMessage(result.error);
+      clearError();
+    }
   };
+
+  const formatDate = (timestamp) => (
+    new Date(timestamp).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  );
 
   const formatMinutes = (duration) => {
     if (!duration || duration <= 0) return null;
     return Math.max(1, Math.round(duration / 60000));
+  };
+
+  const formatSessionMeta = (session) => {
+    const parts = [formatDate(session.startTimestamp)];
+
+    if (session.language) {
+      parts.push(session.language.toUpperCase());
+    }
+
+    const minutes = formatMinutes(session.duration);
+    if (minutes) {
+      parts.push(`${minutes} min`);
+    }
+
+    if (session.exchangeCount) {
+      parts.push(`${session.exchangeCount} turns`);
+    }
+
+    return parts.join(' - ');
   };
 
   const handlePlayReply = (replyText) => speak(replyText);
@@ -82,6 +111,11 @@ function SessionHistoryContent() {
       <div className="session-history-content">
         {errorMessage && <div className="history-error">{errorMessage}</div>}
 
+        <div className="history-toolbar navo-card navo-hairline-top">
+          <p className="history-toolbar-copy">Stored on this device. Export keeps the conversation local to you.</p>
+          <button className="detail-reenter-btn" onClick={handleExport}>Export conversation data</button>
+        </div>
+
         <div className="detail-header navo-card navo-hairline-top">
           <button className="detail-back-btn" onClick={() => setSelectedSessionId(null)}><FaArrowLeft /></button>
           <span className="detail-date">{formatDate(session.startTimestamp)}</span>
@@ -92,7 +126,7 @@ function SessionHistoryContent() {
               <button className="cancel-delete-btn" onClick={handleCancelDelete}>Cancel</button>
             </div>
           ) : (
-            <button className="delete-btn" onClick={(event) => handleDeleteClick(event, session.sessionId)} title="Delete conversation"><FaTrash /></button>
+            <button className="delete-btn" onClick={(event) => handleDeleteClick(event, session.sessionId)} title="Delete local conversation"><FaTrash /></button>
           )}
         </div>
 
@@ -119,11 +153,16 @@ function SessionHistoryContent() {
     <div className="session-history-content">
       {errorMessage && <div className="history-error">{errorMessage}</div>}
 
+      <div className="history-toolbar navo-card navo-hairline-top">
+        <p className="history-toolbar-copy">Local rooms are stored on this device. Export keeps the conversation data local to you.</p>
+        <button className="detail-reenter-btn" onClick={handleExport}>Export conversation data</button>
+      </div>
+
       {sessions.length === 0 ? (
         <div className="history-empty navo-card navo-hairline-top">
           <span className="navo-dot" />
-          <p className="history-empty-title">No rooms yet.</p>
-          <p className="history-empty-copy">When you step into the Room, the conversation will rest here, quietly.</p>
+          <p className="history-empty-title">No local rooms yet.</p>
+          <p className="history-empty-copy">When you step into the Room, the conversation will rest here on this device.</p>
           <button className="detail-reenter-btn" onClick={(event) => handleReenterRoom({ language: 'en', exchanges: [] }, event)}>Open the Room</button>
         </div>
       ) : (
@@ -132,23 +171,18 @@ function SessionHistoryContent() {
             <div key={session.sessionId} className="history-item navo-card navo-hairline-top navo-reveal" style={{ animationDelay: `${index * 60}ms` }} onClick={() => setSelectedSessionId(session.sessionId)}>
               <div className="history-copy">
                 <p className="history-preview">"{session.exchanges?.[0]?.userUtterance || 'Conversation'}"</p>
-                <p className="session-date">
-                  {formatDate(session.startTimestamp)}
-                  {session.language ? ` � ${session.language.toUpperCase()}` : ''}
-                  {formatMinutes(session.duration) ? ` � ${formatMinutes(session.duration)} min` : ''}
-                  {session.exchangeCount ? ` � ${session.exchangeCount} turns` : ''}
-                </p>
+                <p className="session-date">{formatSessionMeta(session)}</p>
               </div>
 
               <div className="history-card-actions">
-                <button className="reenter-btn" onClick={(event) => handleReenterRoom(session, event)}>re-enter &rarr;</button>
+                <button className="reenter-btn" onClick={(event) => handleReenterRoom(session, event)}>Re-enter</button>
                 {confirmDeleteId === session.sessionId ? (
                   <div className="inline-confirm">
                     <button className="confirm-delete-btn" onClick={(event) => handleConfirmDelete(event, session.sessionId)}>Delete</button>
                     <button className="cancel-delete-btn" onClick={handleCancelDelete}>Cancel</button>
                   </div>
                 ) : (
-                  <button className="delete-btn" onClick={(event) => handleDeleteClick(event, session.sessionId)} title="Delete conversation"><FaTrash /></button>
+                  <button className="delete-btn" onClick={(event) => handleDeleteClick(event, session.sessionId)} title="Delete local conversation"><FaTrash /></button>
                 )}
               </div>
             </div>

@@ -43,9 +43,9 @@ function formatTimestamp(timestamp) {
 function getCloudStatusCopy(accountSystem) {
   switch (accountSystem.saveStatus) {
     case 'syncing':
-      return 'Loading your Navo Account environment…';
+      return 'Loading your Navo Account environment...';
     case 'saving':
-      return 'Saving core environment continuity to Supabase…';
+      return 'Saving core environment continuity to Supabase...';
     case 'saved':
       return accountSystem.lastSyncedAt
         ? `Core environment saved ${formatTimestamp(accountSystem.lastSyncedAt)}.`
@@ -209,8 +209,8 @@ function AccountPage() {
               <p className="account-name">{accountLabel}</p>
               <p className="account-sub">
                 {accountSystem.isAuthenticated
-                  ? `${accountSystem.email} · local working copy + Supabase continuity`
-                  : `${account.id} · this device only`}
+                  ? `${accountSystem.email} - local working copy + Supabase continuity`
+                  : `${account.id} - this device only`}
               </p>
             </div>
           </section>
@@ -244,10 +244,11 @@ function AccountPage() {
               <h2>{accountSystem.isAuthenticated ? 'Core environment attached' : 'Keep this environment across devices'}</h2>
               <p>
                 {accountSystem.isAuthenticated
-                  ? 'Language settings, voice settings, immersion profile, exposure traces, and movement traces can follow this account.'
+                  ? 'Core environment continuity can be saved to this Navo Account through settings, safe immersion profile fields, exposure traces, and movement traces.'
                   : 'Signed out is still fully local-first. This device keeps the working copy until you connect a Navo Account.'}
               </p>
               <p className="account-privacy-line">Room conversations stay on this device.</p>
+              <p className="account-privacy-line">Conversation data can be exported locally whenever you want it.</p>
               <p className="account-cloud-status">{cloudStatusCopy}</p>
             </div>
 
@@ -306,7 +307,7 @@ function AccountPage() {
                     disabled={!accountSystem.cloudConfigured || accountSystem.pendingAuth || !email.trim() || !password.trim()}
                   >
                     {accountSystem.pendingAuth
-                      ? 'Working…'
+                      ? 'Working...'
                       : authMode === 'create'
                         ? 'Create Navo Account'
                         : 'Sign in'}
@@ -355,9 +356,9 @@ function AccountPage() {
 
           <section className="account-links-grid">
             <Link to="/sessions" className="account-link-card navo-card navo-hairline-top">
-              <p className="account-link-kicker">Continuity</p>
-              <p className="account-link-title">Session traces</p>
-              <p className="account-link-body">Re-enter rooms you have already been in.</p>
+              <p className="account-link-kicker">Local rooms</p>
+              <p className="account-link-title">Past Sessions</p>
+              <p className="account-link-body">Re-enter local rooms and export conversation data from this device.</p>
             </Link>
             <Link to="/settings" className="account-link-card navo-card navo-hairline-top">
               <p className="account-link-kicker">Environment</p>
@@ -369,12 +370,12 @@ function AccountPage() {
           <section className="continuity-panel navo-card navo-hairline-top">
             <div className="continuity-panel-head">
               <p className="account-latest-label">Recently nearby</p>
-              <p className="continuity-panel-note">Unique phrases the language has left close at hand.</p>
+              <p className="continuity-panel-note">Practice Loop and Playground phrases stay visible here. Room influence stays abstract.</p>
             </div>
             {stats.recentExposure.length > 0 ? (
               <div className="nearby-chip-wrap">
                 {stats.recentExposure.map((trace) => (
-                  <span key={trace.id} className="nearby-chip">“{trace.text}”</span>
+                  <span key={trace.id} className="nearby-chip">"{trace.text}"</span>
                 ))}
               </div>
             ) : (
@@ -393,7 +394,7 @@ function AccountPage() {
                   <div key={trace.id} className="movement-row">
                     <p className="movement-line">
                       <span>{trace.fromText}</span>
-                      <span className="movement-arrow">→</span>
+                      <span className="movement-arrow">-&gt;</span>
                       <span>{trace.toText}</span>
                     </p>
                   </div>
@@ -416,14 +417,14 @@ function AccountPage() {
                 onClick={() =>
                   queueConfirm(
                     'export',
-                    'Export local account?',
-                    'Your local account, continuity traces, and conversations will be downloaded as a JSON file.',
+                    'Export conversation data?',
+                    'Your local account, continuity traces, and local Room conversations will be downloaded as a JSON file.',
                     'Export',
                     false
                   )
                 }
               >
-                Export local account
+                Export conversation data
               </button>
               <button
                 className="data-btn"
@@ -458,7 +459,7 @@ function AccountPage() {
 
           <p className="account-preview-note">
             {accountSystem.isAuthenticated
-              ? 'Cloud continuity covers account identity, settings, immersion profile, exposure traces, and movement traces.'
+              ? 'Core environment continuity is saved to your Navo Account. Room conversations and verbatim Room traces remain local-only.'
               : 'Signed out remains local-first. Connect a Navo Account only if you want this environment to follow you.'}
           </p>
         </main>

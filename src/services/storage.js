@@ -21,6 +21,22 @@ const LOCAL_PREFERENCES_KEY = 'rylingo_userPreferences';
 const ACCOUNT_VERSION = 0;
 const MAX_EXPOSURE_TRACES = 600;
 const MAX_MOVEMENT_TRACES = 600;
+const CLOUD_EXCLUDED_KEYS = new Set([
+  'sessions',
+  'exchanges',
+  'transcript',
+  'transcripts',
+  'conversation',
+  'conversations',
+  'messages',
+  'userutterance',
+  'rylingoreply',
+  'aitext',
+  'usertext',
+  'fulltext',
+  'sessionhistory',
+  'roomhistory'
+]);
 
 let db = null;
 let useLocalStorage = false;
@@ -49,6 +65,116 @@ function normalizeCloudAccount(cloud) {
     attachedAt: typeof cloud.attachedAt === 'string' ? cloud.attachedAt : nowIso(),
     lastSyncedAt: typeof cloud.lastSyncedAt === 'string' ? cloud.lastSyncedAt : null
   };
+}
+
+function isCloudExcludedKey(key) {
+  return CLOUD_EXCLUDED_KEYS.has(String(key || '').trim().toLowerCase());
+}
+
+function sanitizeCloudValue(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizeCloudValue(item))
+      .filter((item) => item !== undefined);
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const sanitized = {};
+
+  Object.entries(value).forEach(([key, nestedValue]) => {
+    if (isCloudExcludedKey(key)) {
+      return;
+    }
+
+    const nextValue = sanitizeCloudValue(nestedValue);
+    if (nextValue !== undefined) {
+      sanitized[key] = nextValue;
+    }
+  });
+
+  return sanitized;
+}
+
+function buildLocalSessionSummary(account) {
+  return {
+    exposureTraceCount: Array.isArray(account?.continuity?.exposureTraces)
+      ? account.continuity.exposureTraces.length
+      : 0,
+    movementTraceCount: Array.isArray(account?.continuity?.movementTraces)
+      ? account.continuity.movementTraces.length
+      : 0,
+    roomConversationsStoredLocally: true,
+    roomTranscriptsInCloud: false
+  };
+}
+
+function deriveRoomExposureTraceForCloud(trace) {
+  if (!trace || typeof trace !== 'object') return null;
+
+  return sanitizeCloudValue({
+    sourceEnvironment: 'room',
+    traceKind: 'derived',
+    language: trace.language || null,
+    interactionType: trace.interactionType || 'encountered',
+    structureFamily: trace.structureFamily || null,
+    functionHint: trace.functionHint || null,
+    patternHint: trace.patternHint || null,
+    movementHint: trace.movementHint || null,
+    createdAt: trace.createdAt || null,
+    updatedAt: trace.updatedAt || null,
+    counts: trace.counts || null,
+    density: trace.density || null
+  });
+}
+
+function deriveRoomMovementTraceForCloud(trace) {
+  if (!trace || typeof trace !== 'object') return null;
+
+  return sanitizeCloudValue({
+    sourceEnvironment: 'room',
+    traceKind: 'derived',
+    language: trace.language || null,
+    interactionType: trace.interactionType || 'nearby-path',
+    structureFamily: trace.structureFamily || null,
+    functionHint: trace.functionHint || null,
+    patternHint: trace.patternHint || null,
+    movementHint: trace.movementHint || null,
+    createdAt: trace.createdAt || null,
+    updatedAt: trace.updatedAt || null,
+    counts: trace.counts || null,
+    density: trace.density || null
+  });
+}
+
+function prepareExposureTracesForCloud(traces) {
+  if (!Array.isArray(traces)) return [];
+
+  return traces
+    .map((trace) => {
+      if (trace?.sourceEnvironment === 'room') {
+        return deriveRoomExposureTraceForCloud(trace);
+      }
+
+      return sanitizeCloudValue(trace);
+    })
+    .filter(Boolean);
+}
+
+function prepareMovementTracesForCloud(traces) {
+  if (!Array.isArray(traces)) return [];
+
+  return traces
+    .map((trace) => {
+      if (trace?.sourceEnvironment === 'room') {
+        return deriveRoomMovementTraceForCloud(trace);
+      }
+
+      return sanitizeCloudValue(trace);
+    })
+    .filter(Boolean);
 }
 
 function emitAccountChange(account, metadata = {}) {
@@ -127,7 +253,7 @@ function buildCloudContinuityPayload(account) {
   const normalized = normalizeAccount(account);
   if (!normalized) return null;
 
-  return {
+  const payload = {
     version: 1,
     accountId: normalized.id,
     createdAt: normalized.createdAt,
@@ -137,14 +263,17 @@ function buildCloudContinuityPayload(account) {
     voiceSettings: normalized.voiceSettings,
     immersionProfile: normalized.immersionProfile,
     continuity: {
-      exposureTraces: normalized.continuity?.exposureTraces || [],
-      movementTraces: normalized.continuity?.movementTraces || [],
+      exposureTraces: prepareExposureTracesForCloud(normalized.continuity?.exposureTraces),
+      movementTraces: prepareMovementTracesForCloud(normalized.continuity?.movementTraces),
       patternMapReserved: normalized.continuity?.patternMapReserved || {}
     },
     metadata: {
-      localKind: normalized.kind || 'local'
+      localKind: normalized.kind || 'local',
+      sessionSummary: buildLocalSessionSummary(normalized)
     }
   };
+
+  return sanitizeCloudValue(payload);
 }
 
 function buildAccountFromCloudPayload(payload, cloud = null) {
@@ -760,6 +889,10 @@ export function buildContinuityPreview(account, options = {}) {
     const text = typeof trace?.text === 'string' ? trace.text.trim() : '';
     const normalized = trace?.normalizedText || normalizeTraceText(text);
 
+    if (trace?.sourceEnvironment === 'room') {
+      continue;
+    }
+
     if (!text || !normalized || seenPhraseKeys.has(normalized) || !isMeaningfulTraceText(text)) {
       continue;
     }
@@ -845,7 +978,14 @@ export async function recordExposureTrace({
   sourceEnvironment,
   text,
   normalizedText = null,
-  interactionType = 'encountered'
+  interactionType = 'encountered',
+  language = null,
+  structureFamily = null,
+  functionHint = null,
+  patternHint = null,
+  movementHint = null,
+  counts = null,
+  density = null
 }) {
   if (!text || !sourceEnvironment) return null;
 
@@ -864,7 +1004,14 @@ export async function recordExposureTrace({
             sourceEnvironment,
             text,
             normalizedText: normalizedText || normalizeTraceText(text),
+            language,
             interactionType,
+            structureFamily,
+            functionHint,
+            patternHint,
+            movementHint,
+            counts,
+            density,
             createdAt: timestamp,
             updatedAt: timestamp
           }
@@ -880,7 +1027,14 @@ export async function recordMovementTrace({
   fromText,
   toText,
   pressureLabel = null,
-  interactionType = 'nearby-path'
+  interactionType = 'nearby-path',
+  language = null,
+  structureFamily = null,
+  functionHint = null,
+  patternHint = null,
+  movementHint = null,
+  counts = null,
+  density = null
 }) {
   if (!sourceEnvironment || !fromText || !toText) return null;
 
@@ -900,7 +1054,14 @@ export async function recordMovementTrace({
             fromText,
             toText,
             pressureLabel,
+            language,
             interactionType,
+            structureFamily,
+            functionHint,
+            patternHint,
+            movementHint,
+            counts,
+            density,
             createdAt: timestamp,
             updatedAt: timestamp
           }
@@ -927,7 +1088,12 @@ export async function exportSessionsAsJSON() {
     const exportData = {
       localAccount: account,
       sessions,
-      exportTimestamp: Date.now()
+      exportTimestamp: Date.now(),
+      privacyBoundary: {
+        roomConversationsStoredLocally: true,
+        roomConversationsUploadedToCloud: false,
+        exportIncludesLocalConversationData: true
+      }
     };
     
     const jsonString = JSON.stringify(exportData, null, 2);

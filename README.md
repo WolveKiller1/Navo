@@ -251,6 +251,8 @@ Supabase-backed Navo Accounts do not persist:
 - voice biomarker or prosody data
 
 Room conversations remain local to the device in Account System v1.
+Conversation data can still be exported locally from the device.
+Verbatim Room trace text also remains local-only; cloud continuity keeps only derived non-verbatim Room signals.
 
 ---
 
