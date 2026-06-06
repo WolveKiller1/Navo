@@ -18,7 +18,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHistory, FaUser } from 'react-icons/fa';
-import { initStorage, getImmersionProfile } from '../services/storage';
+import { initStorage } from '../services/storage';
+import { getImmersionProfile } from '../services/accountService';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { generateVariations } from '../services/variationEngine';
 import { stabilizeGrammar } from '../services/stabilizeGrammar';

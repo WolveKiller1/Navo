@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getUserPreferences, saveUserPreferences } from '../services/storage';
+import { getUserPreferences, saveUserPreferences } from '../services/accountService';
 import { useAccountSystem } from '../hooks/useAccountSystem';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';

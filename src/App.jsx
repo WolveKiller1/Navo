@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { getUserPreferences, initStorage } from './services/storage'
+import { initStorage } from './services/storage'
+import { getUserPreferences } from './services/accountService'
 import { initAccountSystem } from './services/accountSync'
 import LandingPage from './components/LandingPage'
 import CallScreen from './components/CallScreen'

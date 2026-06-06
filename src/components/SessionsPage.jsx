@@ -11,8 +11,8 @@ function SessionsPage() {
       <main className="subpage-content navo-container navo-container--normal">
         <header className="subpage-header navo-reveal">
           <span className="navo-pill"><span className="navo-dot" /> Local rooms</span>
-          <h1 className="subpage-title">Rooms you've been in.</h1>
-          <p className="subpage-subtitle">Stored on this device. Re-enter a room or export conversation data locally.</p>
+          <h1 className="subpage-title">Recent conversations.</h1>
+          <p className="subpage-subtitle">Stored on this device. Re-enter a room nearby or export conversation data locally.</p>
         </header>
         <SessionHistoryContent />
       </main>

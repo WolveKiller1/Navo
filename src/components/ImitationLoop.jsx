@@ -7,7 +7,12 @@ import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
 import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from '../services/phraseGenerator';
-import { getUserPreferences, initStorage, recordExposureTrace } from '../services/storage';
+import { getUserPreferences } from '../services/accountService';
+import {
+  getRecurringPracticeLoopPhraseTexts,
+  recordExposureTrace
+} from '../services/continuityService';
+import { initStorage } from '../services/storage';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
 import SystemNotice from './SystemNotice';
@@ -68,6 +73,16 @@ function ImitationLoop() {
   const currentUnit = activeUnits.find((u) => u.id === currentUnitId) || activeUnits[0] || {};
   const hasSupportContent = currentUnit && currentUnit.words && currentUnit.meaning;
 
+  const findRecurringUnit = async () => {
+    const recurringTexts = await getRecurringPracticeLoopPhraseTexts(activeLanguage, { max: 8 });
+    if (!recurringTexts.length || Math.random() > 0.28) return null;
+
+    const recurringSet = new Set(recurringTexts.map((text) => text.trim().toLowerCase()));
+    const availableUnits = activeUnits.filter((unit) => !recentUnitIds.includes(unit.id));
+
+    return availableUnits.find((unit) => recurringSet.has(String(unit.text || '').trim().toLowerCase())) || null;
+  };
+
   useEffect(() => {
     const loadLanguagePreference = async () => {
       await initStorage();
@@ -103,7 +118,8 @@ function ImitationLoop() {
     recordExposureTrace({
       sourceEnvironment: 'practice-loop',
       text: currentUnit.text,
-      interactionType: 'encountered'
+      interactionType: 'encountered',
+      language: currentUnit.language || activeLanguage
     });
   }, [currentUnit?.id, currentUnit?.text]);
 
@@ -164,12 +180,14 @@ function ImitationLoop() {
         recordExposureTrace({
           sourceEnvironment: 'practice-loop',
           text: currentUnit.text,
-          interactionType: 'repeated'
+          interactionType: 'repeated',
+          language: currentUnit.language || activeLanguage
         });
         recordExposureTrace({
           sourceEnvironment: 'practice-loop',
           text: currentUnit.text,
-          interactionType: 'revealed'
+          interactionType: 'revealed',
+          language: currentUnit.language || activeLanguage
         });
       } else {
         setSystemNotice({ message: 'No speech detected.' });
@@ -178,7 +196,7 @@ function ImitationLoop() {
     }, 1200);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setUserTranscript('');
     resetTranscript();
     setShowSentenceMeaning(false);
@@ -186,7 +204,8 @@ function ImitationLoop() {
     setShowSentenceText(false);
     setHasEngaged(false);
 
-    const nextUnit = selectRandomUnit(activeUnits, recentUnitIds);
+    const recurringUnit = await findRecurringUnit();
+    const nextUnit = recurringUnit || selectRandomUnit(activeUnits, recentUnitIds);
     setCurrentUnitId(nextUnit.id);
     setRecentUnitIds((prev) => [...prev, nextUnit.id].slice(-4));
   };
@@ -199,7 +218,8 @@ function ImitationLoop() {
         recordExposureTrace({
           sourceEnvironment: 'practice-loop',
           text: currentUnit.text,
-          interactionType: 'seen'
+          interactionType: 'seen',
+          language: currentUnit.language || activeLanguage
         });
       }
       return next;
@@ -211,7 +231,8 @@ function ImitationLoop() {
     recordExposureTrace({
       sourceEnvironment: 'practice-loop',
       text: currentUnit.text,
-      interactionType: 'carried'
+      interactionType: 'carried',
+      language: currentUnit.language || activeLanguage
     });
     navigate('/playground', {
       state: {
@@ -287,7 +308,8 @@ function ImitationLoop() {
     recordExposureTrace({
       sourceEnvironment: 'practice-loop',
       text: currentUnit.text,
-      interactionType: 'heard'
+      interactionType: 'heard',
+      language: currentUnit.language || activeLanguage
     });
     
     // Estimate playback duration based on text length

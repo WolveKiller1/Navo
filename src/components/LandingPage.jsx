@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { getUserPreferences, initStorage } from '../services/storage'
+import { initStorage } from '../services/storage'
+import { getUserPreferences } from '../services/accountService'
 import NavoNav from './NavoNav'
 import NavoFooter from './NavoFooter'
 import '../styles/LandingPage.css'

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getDefaultProfile, buildPromptWithProfile } from './immersionProfile';
-import { getImmersionProfile, saveImmersionProfile } from './storage';
+import { getImmersionProfile, saveImmersionProfile } from './accountService';
 
 // Claude API key and URL, which will be implemented later when instructed
 //const CLAUDE_API_KEY = import.meta.env.VITE_CLAUDE_API_KEY;
@@ -236,7 +236,9 @@ Now stabilize this learner attempt:`;
         //}
       //}
     //);
-    const openingSegment = openingContext ? `Opening context: ${openingContext}\n\n` : '';
+    const openingSegment = openingContext
+      ? `Private return context for grounding only. Do not mention this context unless the learner does.\n${openingContext}\n\n`
+      : '';
 
     const response = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',

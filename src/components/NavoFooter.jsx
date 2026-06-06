@@ -1,4 +1,4 @@
- import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 function NavoFooter() {
@@ -24,7 +24,7 @@ function NavoFooter() {
           <FooterLink to="/settings">Settings</FooterLink>
         </div>
       </div>
-      <p className="navo-footer-meta">� Navo - preview build</p>
+      <p className="navo-footer-meta">Navo - preview build</p>
     </footer>
   );
 }

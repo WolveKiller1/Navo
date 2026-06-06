@@ -41,22 +41,14 @@
   color: var(--ink-mute);
 }
 
-.account-eyebrow {
-  margin-top: 2rem;
-  color: var(--ink-mute);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.72rem;
-}
-
-.account-summary-grid {
+.account-state-strip {
   margin-top: 0.8rem;
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.summary-card,
+.account-state-card,
 .account-link-card,
 .account-data-panel,
 .continuity-panel,
@@ -73,16 +65,15 @@
   font-size: 0.68rem;
 }
 
-.summary-title,
-.language-name,
+.account-state-line,
 .account-link-title,
 .movement-line {
   margin-top: 0.45rem;
   font-family: "Fraunces", Georgia, serif;
 }
 
-.summary-title {
-  font-size: 1.7rem;
+.account-state-line {
+  font-size: 1.55rem;
 }
 
 .summary-note,
@@ -94,7 +85,6 @@
   line-height: 1.5;
 }
 
-.account-language-wrap,
 .account-links-grid,
 .account-data-panel,
 .continuity-panel,
@@ -102,7 +92,6 @@
   margin-top: 1.6rem;
 }
 
-.account-language-wrap h2,
 .account-data-panel h2,
 .account-auth-copy h2 {
   font-size: 2rem;
@@ -194,37 +183,6 @@
   padding: 0.75rem 1rem;
 }
 
-.language-list {
-  margin-top: 0.75rem;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.language-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-  padding: 1rem;
-  border-bottom: 1px solid var(--edge);
-  background: color-mix(in oklab, var(--ground-2) 90%, transparent);
-}
-
-.language-row:last-child {
-  border-bottom: none;
-}
-
-.language-active-pill,
-.language-action-link {
-  border-radius: 999px;
-  border: 1px solid var(--edge);
-  background: transparent;
-  color: var(--ink-soft);
-  padding: 0.35rem 0.7rem;
-  text-decoration: none;
-}
-
 .account-links-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -313,6 +271,12 @@
   gap: 0.5rem;
 }
 
+.account-boundary-notes {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
 .data-btn {
   cursor: pointer;
   border-radius: 999px;
@@ -334,7 +298,7 @@
 }
 
 @media (max-width: 900px) {
-  .account-summary-grid,
+  .account-state-strip,
   .account-links-grid,
   .account-auth-panel {
     grid-template-columns: 1fr;
