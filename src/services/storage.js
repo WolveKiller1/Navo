@@ -5,6 +5,7 @@
  */
 
 import { getDefaultProfile } from './immersionProfile';
+import { isReusableSentence } from './sentenceUtils';
 
 const DB_NAME = 'RylingoStorage';
 const DB_VERSION = 3;
@@ -21,6 +22,8 @@ const LOCAL_PREFERENCES_KEY = 'rylingo_userPreferences';
 const ACCOUNT_VERSION = 0;
 const MAX_EXPOSURE_TRACES = 600;
 const MAX_MOVEMENT_TRACES = 600;
+const MAX_CLOUD_EXPOSURE_TRACES = 220;
+const MAX_CLOUD_MOVEMENT_TRACES = 220;
 const CLOUD_EXCLUDED_KEYS = new Set([
   'sessions',
   'exchanges',
@@ -152,7 +155,7 @@ function deriveRoomMovementTraceForCloud(trace) {
 function prepareExposureTracesForCloud(traces) {
   if (!Array.isArray(traces)) return [];
 
-  return traces
+  return limitCloudTraces(dedupeCloudTraces(traces
     .map((trace) => {
       if (trace?.sourceEnvironment === 'room') {
         return deriveRoomExposureTraceForCloud(trace);
@@ -160,13 +163,13 @@ function prepareExposureTracesForCloud(traces) {
 
       return sanitizeCloudValue(trace);
     })
-    .filter(Boolean);
+    .filter(Boolean)), MAX_CLOUD_EXPOSURE_TRACES);
 }
 
 function prepareMovementTracesForCloud(traces) {
   if (!Array.isArray(traces)) return [];
 
-  return traces
+  return limitCloudTraces(dedupeCloudTraces(traces
     .map((trace) => {
       if (trace?.sourceEnvironment === 'room') {
         return deriveRoomMovementTraceForCloud(trace);
@@ -174,7 +177,7 @@ function prepareMovementTracesForCloud(traces) {
 
       return sanitizeCloudValue(trace);
     })
-    .filter(Boolean);
+    .filter(Boolean)), MAX_CLOUD_MOVEMENT_TRACES);
 }
 
 function emitAccountChange(account, metadata = {}) {
@@ -351,6 +354,10 @@ function limitTraces(items, max) {
   return items.slice(-max);
 }
 
+function limitCloudTraces(items, max) {
+  return items.slice(-max);
+}
+
 function isMeaningfulTraceText(text) {
   const normalized = normalizeTraceText(text);
   if (!normalized) return false;
@@ -489,6 +496,111 @@ async function writeStoredAccount(account, options = {}) {
   } catch {
     return normalized;
   }
+}
+
+function cleanSessionText(text) {
+  return String(text || '').trim().replace(/\s+/g, ' ');
+}
+
+function trimPreviewText(text, maxLength = 84) {
+  const cleaned = cleanSessionText(text);
+  if (!cleaned) return '';
+  if (cleaned.length <= maxLength) return cleaned;
+  return `${cleaned.slice(0, maxLength - 1).trim()}...`;
+}
+
+function collectTraceTexts(traces, options = {}) {
+  const max = options.max || 6;
+  const sourceEnvironment = options.sourceEnvironment || null;
+  const interactionTypes = Array.isArray(options.interactionTypes) ? options.interactionTypes : null;
+  const language = options.language || null;
+  const seen = new Set();
+  const collected = [];
+
+  for (let index = traces.length - 1; index >= 0; index -= 1) {
+    const trace = traces[index];
+    if (sourceEnvironment && trace?.sourceEnvironment !== sourceEnvironment) continue;
+    if (interactionTypes && !interactionTypes.includes(trace?.interactionType)) continue;
+    if (language && trace?.language && trace.language !== language) continue;
+
+    const text = cleanSessionText(trace?.text);
+    const normalized = trace?.normalizedText || normalizeTraceText(text);
+
+    if (!text || !normalized || seen.has(normalized) || !isMeaningfulTraceText(text)) {
+      continue;
+    }
+
+    seen.add(normalized);
+    collected.push(text);
+    if (collected.length >= max) break;
+  }
+
+  return collected;
+}
+
+function dedupeCloudTraces(traces) {
+  const deduped = new Map();
+
+  traces.forEach((trace) => {
+    const key = JSON.stringify(trace);
+    deduped.set(key, trace);
+  });
+
+  return Array.from(deduped.values());
+}
+
+function isMeaningfulExchange(exchange) {
+  const userText = cleanSessionText(exchange?.userUtterance);
+  const aiText = cleanSessionText(exchange?.rylingoReply);
+
+  if (isReusableSentence(userText) || isReusableSentence(aiText)) {
+    return true;
+  }
+
+  return userText.length >= 8 || aiText.length >= 8;
+}
+
+function getSessionPreviewCandidates(session) {
+  if (!Array.isArray(session?.exchanges)) return [];
+
+  const candidates = [];
+  const seen = new Set();
+
+  session.exchanges.forEach((exchange) => {
+    [exchange?.userUtterance, exchange?.rylingoReply].forEach((text) => {
+      const cleaned = cleanSessionText(text);
+      const normalized = normalizeTraceText(cleaned);
+      if (!cleaned || !normalized || seen.has(normalized) || !isReusableSentence(cleaned)) {
+        return;
+      }
+
+      seen.add(normalized);
+      candidates.push(cleaned);
+    });
+  });
+
+  return candidates;
+}
+
+function deriveReentrySummary(session, nearbyPhrases, openingSentence) {
+  const languageLabel = session?.language === 'pt' ? 'Portuguese' : 'English';
+  const parts = [`Returning near a previous local room in ${languageLabel}.`];
+
+  if (nearbyPhrases.length > 0) {
+    parts.push(`Nearby phrases: ${nearbyPhrases.join(' | ')}.`);
+  }
+
+  if (openingSentence) {
+    parts.push(`A familiar sentence nearby: ${openingSentence}.`);
+  }
+
+  if (session?.exchangeCount) {
+    parts.push(`Keep the exchange brief and natural. Do not mention memory, history, or summaries unless the learner does.`);
+  } else {
+    parts.push('Do not mention memory, history, or summaries unless the learner does.');
+  }
+
+  return parts.join(' ');
 }
 
 async function loadOrCreateLocalAccount() {
@@ -817,6 +929,54 @@ export async function getLocalAccount() {
   }
 }
 
+export function isMeaningfulSession(session) {
+  if (!session || !Array.isArray(session.exchanges) || session.exchanges.length === 0) {
+    return false;
+  }
+
+  return session.exchanges.some(isMeaningfulExchange);
+}
+
+export async function getMeaningfulSessions() {
+  const sessions = await getAllSessions();
+  return sessions.filter(isMeaningfulSession);
+}
+
+export function buildSessionNearbyPhrases(session, options = {}) {
+  const max = options.max || 3;
+  const phrases = getSessionPreviewCandidates(session)
+    .slice(0, max)
+    .map((text) => trimPreviewText(text, 54));
+
+  return phrases;
+}
+
+export function buildSessionPreviewText(session) {
+  const [firstPhrase] = buildSessionNearbyPhrases(session, { max: 1 });
+  if (firstPhrase) return firstPhrase;
+
+  const fallback = cleanSessionText(session?.exchanges?.[0]?.userUtterance || session?.exchanges?.[0]?.rylingoReply);
+  return fallback ? trimPreviewText(fallback, 64) : 'Conversation';
+}
+
+export function buildSessionReentryState(session) {
+  const nearbyPhrases = buildSessionNearbyPhrases(session, { max: 3 });
+  const reusableUserSentence = Array.isArray(session?.exchanges)
+    ? [...session.exchanges]
+      .reverse()
+      .map((exchange) => cleanSessionText(exchange?.userUtterance))
+      .find((text) => isReusableSentence(text))
+    : '';
+  const openingSentence = reusableUserSentence || nearbyPhrases[0] || '';
+
+  return {
+    language: session?.language || 'en',
+    openingSentence: openingSentence || undefined,
+    openingContext: deriveReentrySummary(session, nearbyPhrases, openingSentence),
+    nearbyPhrases
+  };
+}
+
 export function subscribeToLocalAccount(listener) {
   accountListeners.add(listener);
   return () => accountListeners.delete(listener);
@@ -921,7 +1081,7 @@ export function buildContinuityPreview(account, options = {}) {
     if (!fromText || !toText || !normalizedFrom || !normalizedTo) continue;
     if (normalizedFrom === normalizedTo) continue;
 
-    const pairKey = `${normalizedFrom}→${normalizedTo}`;
+    const pairKey = `${normalizedFrom}->${normalizedTo}`;
     const nextPriority = getMovementPriority(trace.interactionType);
     const existing = movementByPair.get(pairKey);
 
@@ -972,6 +1132,44 @@ export function buildContinuityPreview(account, options = {}) {
     movementCount: recentMovement.length,
     hasContinuity: recentNearby.length > 0 || recentMovement.length > 0
   };
+}
+
+export async function getRecurringPracticeLoopPhraseTexts(language, options = {}) {
+  const account = await getLocalAccount();
+  const max = options.max || 6;
+
+  return collectTraceTexts(account?.continuity?.exposureTraces || [], {
+    max,
+    sourceEnvironment: 'practice-loop',
+    language
+  });
+}
+
+export async function getRecurringPlaygroundSeedTexts(language, options = {}) {
+  const account = await getLocalAccount();
+  const max = options.max || 6;
+  const seen = new Set();
+  const recurring = [];
+  const movementTraces = Array.isArray(account?.continuity?.movementTraces)
+    ? account.continuity.movementTraces
+    : [];
+
+  for (let index = movementTraces.length - 1; index >= 0; index -= 1) {
+    const trace = movementTraces[index];
+    if (trace?.sourceEnvironment !== 'pattern-playground') continue;
+    if (!['carried', 'transformed', 'stabilized'].includes(trace?.interactionType)) continue;
+    if (language && trace?.language && trace.language !== language) continue;
+
+    const text = cleanSessionText(trace?.toText || trace?.fromText);
+    const normalized = normalizeTraceText(text);
+    if (!text || !normalized || seen.has(normalized)) continue;
+
+    seen.add(normalized);
+    recurring.push(trimPreviewText(text, 72));
+    if (recurring.length >= max) break;
+  }
+
+  return recurring;
 }
 
 export async function recordExposureTrace({

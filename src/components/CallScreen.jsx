@@ -93,6 +93,9 @@ function CallScreen() {
       await initStorage();
       const lastLanguage = await getLastLanguage();
       const activeLanguage = location.state?.language || lastLanguage || 'en';
+      if (location.state?.openingContext) {
+        setOpeningContext(location.state.openingContext);
+      }
       
       if (location.state?.openingSentence) {
         setCurrentLanguage(activeLanguage);

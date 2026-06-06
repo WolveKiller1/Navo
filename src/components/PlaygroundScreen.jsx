@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaPause, FaPlay } from 'react-icons/fa';
-import { initStorage, getImmersionProfile, recordMovementTrace } from '../services/storage';
+import {
+  getImmersionProfile,
+  getRecurringPlaygroundSeedTexts,
+  initStorage,
+  recordMovementTrace
+} from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { speak } from '../services/tts';
 import { buildPlaygroundSequence } from '../services/playgroundSequenceBuilder';
@@ -78,6 +83,22 @@ function PlaygroundScreen() {
   const [entryPhrase, setEntryPhrase] = useState(null);
   const [playingAudioId, setPlayingAudioId] = useState(null);
 
+  const buildRecurringEntryPhrase = async (language) => {
+    const recurringTexts = await getRecurringPlaygroundSeedTexts(language, { max: 6 });
+    if (!recurringTexts.length || Math.random() > 0.34) return null;
+
+    const familiarText = recurringTexts[0];
+    return {
+      text: familiarText,
+      meaning: null,
+      icon: '~',
+      scene: 'A familiar shape nearby',
+      patternId: null,
+      contextVariations: null,
+      language
+    };
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       await initStorage();
@@ -97,9 +118,13 @@ function PlaygroundScreen() {
 
     if (location.state?.entryMode) {
       const lang = location.state?.language || 'en';
-      setEntryPhrase(generatePlaygroundSeed(null, lang));
-      setIsEntryMode(true);
-      window.history.replaceState({}, document.title);
+      const loadEntryPhrase = async () => {
+        const recurringPhrase = await buildRecurringEntryPhrase(lang);
+        setEntryPhrase(recurringPhrase || generatePlaygroundSeed(null, lang));
+        setIsEntryMode(true);
+        window.history.replaceState({}, document.title);
+      };
+      void loadEntryPhrase();
       return;
     }
 
@@ -129,9 +154,10 @@ function PlaygroundScreen() {
     setIsEntryMode(false);
   };
 
-  const handleAnotherSeed = () => {
+  const handleAnotherSeed = async () => {
     const lang = entryPhrase?.language || 'en';
-    setEntryPhrase(generatePlaygroundSeed(entryPhrase?.patternId || null, lang));
+    const recurringPhrase = await buildRecurringEntryPhrase(lang);
+    setEntryPhrase(recurringPhrase || generatePlaygroundSeed(entryPhrase?.patternId || null, lang));
   };
 
   const handleAnotherShape = () => {
@@ -144,7 +170,8 @@ function PlaygroundScreen() {
       fromText: currentPhrase.text,
       toText: seed.text,
       pressureLabel: seed.patternId || seed.scene || null,
-      interactionType: 'transformed'
+      interactionType: 'transformed',
+      language: lang
     });
     setGuidedSequence(buildPlaygroundSequence({
       guidedMode: true,
@@ -165,7 +192,8 @@ function PlaygroundScreen() {
       fromText: currentPhrase?.text || phraseText,
       toText: phraseText,
       pressureLabel: currentPhrase?.patternId || currentPhrase?.scene || null,
-      interactionType: 'carried'
+      interactionType: 'carried',
+      language: currentPhrase?.language || 'en'
     });
     sessionStorage.setItem('rylingo_access', 'granted');
     navigate('/room', { state: { openingSentence: phraseText } });
@@ -205,7 +233,8 @@ function PlaygroundScreen() {
         fromText: currentPhrase.text,
         toText: pathPhrase.text,
         pressureLabel: pathPhrase.patternId || pathPhrase.scene || null,
-        interactionType: 'nearby-path'
+        interactionType: 'nearby-path',
+        language: currentPhrase?.language || 'en'
       });
     });
   }, [guidedIndex, guidedSequence, currentPhrase?.text]);
@@ -294,7 +323,8 @@ function PlaygroundScreen() {
                               fromText: currentPhrase.text,
                               toText: pathPhrase.text,
                               pressureLabel: pathPhrase.patternId || pathPhrase.scene || null,
-                              interactionType: 'stabilized'
+                              interactionType: 'stabilized',
+                              language: currentPhrase?.language || 'en'
                             });
                             setGuidedIndex(pathIndex);
                           }}>

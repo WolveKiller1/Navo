@@ -29,8 +29,5 @@
 .pattern-map-copy-block p {
   margin: 0;
   color: var(--ink-soft);
-}
-
-.pattern-map-line + .pattern-map-line {
-  margin-top: 0.4rem;
+  line-height: 1.6;
 }

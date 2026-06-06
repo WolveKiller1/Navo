@@ -67,6 +67,10 @@
   color: var(--ink);
 }
 
+.history-chip-wrap {
+  margin-top: 0.85rem;
+}
+
 .session-date {
   margin-top: 0.35rem;
   color: var(--ink-mute);
@@ -110,6 +114,10 @@
   opacity: 0.78;
 }
 
+.history-secondary-btn {
+  opacity: 0.76;
+}
+
 .detail-header {
   padding: 0.7rem;
   display: flex;
@@ -124,6 +132,41 @@
 .detail-transcript {
   display: grid;
   gap: 0.6rem;
+}
+
+.conversation-phrases {
+  padding: 0.95rem 1rem;
+}
+
+.conversation-phrases-label {
+  color: var(--ink-mute);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+
+.conversation-chip-wrap {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.conversation-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.45rem 0.78rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent-warm) 18%, var(--edge));
+  background: color-mix(in oklab, var(--ground-2) 88%, transparent);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.history-chip {
+  font-size: 0.82rem;
 }
 
 .transcript-exchange {

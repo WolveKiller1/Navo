@@ -4,7 +4,6 @@ import {
   deleteAllData,
   deleteAllSessions,
   exportSessionsAsJSON,
-  getAllSessions,
   getLocalAccount,
   buildContinuityPreview
 } from '../services/storage';
@@ -66,8 +65,7 @@ function AccountPage() {
   const [stats, setStats] = useState({
     continuityPreview: null,
     recentExposure: [],
-    recentMovement: [],
-    languages: []
+    recentMovement: []
   });
   const [localMessage, setLocalMessage] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -84,21 +82,13 @@ function AccountPage() {
 
   const loadAccount = async () => {
     const localAccount = await getLocalAccount();
-    const sessions = await getAllSessions();
-    const ordered = [...sessions].sort((a, b) => b.startTimestamp - a.startTimestamp);
     const continuityPreview = buildContinuityPreview(localAccount);
-
-    const languageSet = new Set(ordered.map((session) => session.language).filter(Boolean));
-    if (localAccount.languageSettings.activeLanguage) {
-      languageSet.add(localAccount.languageSettings.activeLanguage);
-    }
 
     setAccount(localAccount);
     setStats({
       continuityPreview,
       recentExposure: continuityPreview.recentNearby,
-      recentMovement: continuityPreview.recentMovement,
-      languages: Array.from(languageSet)
+      recentMovement: continuityPreview.recentMovement
     });
   };
 
@@ -188,7 +178,6 @@ function AccountPage() {
   if (!account) return null;
 
   const activeLanguage = account.languageSettings.activeLanguage || 'en';
-  const knownLanguages = ['en', 'pt'];
   const continuityPreview = stats.continuityPreview || buildContinuityPreview(account);
   const continuityNote = continuityPreview.hasContinuity
     ? 'Recent language and movement stay close without becoming a dashboard.'
@@ -196,6 +185,9 @@ function AccountPage() {
   const cloudStatusCopy = getCloudStatusCopy(accountSystem);
   const authMessage = accountSystem.errorMessage || accountSystem.notice;
   const accountLabel = accountSystem.isAuthenticated ? 'Navo Account' : 'Local account';
+  const activeLanguageName = LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase();
+  const voiceFeel = account.voiceSettings?.voiceFeel || 'calm';
+  const phraseSpacing = account.voiceSettings?.phraseSpacing || 'balanced';
 
   return (
     <>
@@ -215,26 +207,20 @@ function AccountPage() {
             </div>
           </section>
 
-          <p className="account-eyebrow">Continuity</p>
-          <section className="account-summary-grid">
-            <article className="summary-card navo-card navo-hairline-top">
-              <p className="summary-label">Language</p>
-              <p className="summary-title">{LANGUAGE_META[activeLanguage]?.name || activeLanguage.toUpperCase()}</p>
+          <section className="account-state-strip">
+            <article className="account-state-card navo-card navo-hairline-top">
+              <p className="summary-label">Active environment</p>
+              <p className="account-state-line">{activeLanguageName}</p>
               <p className="summary-note">
                 {accountSystem.isAuthenticated
-                  ? 'Held in your local working copy and attached to this Navo Account.'
-                  : 'Held as the active environment in this local account.'}
+                  ? 'This device keeps the working copy and can attach its core environment to your Navo Account.'
+                  : 'This device currently holds the full working copy.'}
               </p>
             </article>
-            <article className="summary-card navo-card navo-hairline-top">
+            <article className="account-state-card navo-card navo-hairline-top">
               <p className="summary-label">Voice and pace</p>
-              <p className="summary-title">{account.voiceSettings?.voiceFeel || 'calm'}</p>
-              <p className="summary-note">Phrase spacing: {account.voiceSettings?.phraseSpacing || 'balanced'}.</p>
-            </article>
-            <article className="summary-card navo-card navo-hairline-top">
-              <p className="summary-label">Environment memory</p>
-              <p className="summary-title">{continuityPreview.hasContinuity ? 'Quietly present' : 'Still forming'}</p>
-              <p className="summary-note">{continuityNote}</p>
+              <p className="account-state-line">{voiceFeel}</p>
+              <p className="summary-note">Phrase spacing: {phraseSpacing}. {continuityNote}</p>
             </article>
           </section>
 
@@ -321,44 +307,11 @@ function AccountPage() {
             <div className="settings-error">{localMessage || authMessage}</div>
           )}
 
-          <section className="account-language-wrap">
-            <h2>Environment</h2>
-            <div className="language-list">
-              {knownLanguages.map((langCode) => {
-                const lang = LANGUAGE_META[langCode];
-                const isActive = activeLanguage === langCode;
-                const seenInSessions = stats.languages.includes(langCode);
-
-                return (
-                  <div key={langCode} className="language-row">
-                    <div>
-                      <p className="language-name">{lang.name}</p>
-                      <p className="language-note">
-                        {isActive
-                          ? accountSystem.isAuthenticated
-                            ? 'Active in your local working copy and Navo Account'
-                            : 'Active in your local account'
-                          : seenInSessions
-                            ? 'Seen in local continuity'
-                            : 'Available in this build'}
-                      </p>
-                    </div>
-                    {isActive ? (
-                      <span className="language-active-pill"><span className="navo-dot" /> Active</span>
-                    ) : (
-                      <Link to="/settings" className="language-action-link">Set active</Link>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
           <section className="account-links-grid">
             <Link to="/sessions" className="account-link-card navo-card navo-hairline-top">
               <p className="account-link-kicker">Local rooms</p>
-              <p className="account-link-title">Past Sessions</p>
-              <p className="account-link-body">Re-enter local rooms and export conversation data from this device.</p>
+              <p className="account-link-title">Recent conversations</p>
+              <p className="account-link-body">Re-enter a local room nearby and keep conversation export on this device.</p>
             </Link>
             <Link to="/settings" className="account-link-card navo-card navo-hairline-top">
               <p className="account-link-kicker">Environment</p>
@@ -411,6 +364,10 @@ function AccountPage() {
               Export and deletion here remain local to this device. Full Room transcripts and session exchange bodies
               are not saved to Supabase in Account System v1.
             </p>
+            <div className="account-boundary-notes">
+              <p>Sign out disconnects this Navo Account session. It does not delete your local rooms or this device copy.</p>
+              <p>Delete local account data removes settings, continuity, and local rooms from this device.</p>
+            </div>
             <div className="data-controls">
               <button
                 className="data-btn"
@@ -452,7 +409,7 @@ function AccountPage() {
                   )
                 }
               >
-                Delete local account data
+                Delete this device copy
               </button>
             </div>
           </section>

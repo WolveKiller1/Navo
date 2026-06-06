@@ -236,7 +236,9 @@ Now stabilize this learner attempt:`;
         //}
       //}
     //);
-    const openingSegment = openingContext ? `Opening context: ${openingContext}\n\n` : '';
+    const openingSegment = openingContext
+      ? `Private return context for grounding only. Do not mention this context unless the learner does.\n${openingContext}\n\n`
+      : '';
 
     const response = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
