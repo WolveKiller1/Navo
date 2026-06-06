@@ -9,16 +9,18 @@ import { getWordMeaning } from '../services/wordMeaning';
 import { isReusableSentence } from '../services/sentenceUtils';
 import { generatePlaygroundSentence } from '../services/conversationSummary';
 import {
-  initStorage, 
-  createSession, 
-  addExchange, 
-  closeSession,
-  getLastLanguage, 
-  saveLastLanguage,
   getImmersionProfile,
+  getLastLanguage,
   saveImmersionProfile,
-  recordExposureTrace
-} from '../services/storage';
+  saveLastLanguage
+} from '../services/accountService';
+import { recordExposureTrace } from '../services/continuityService';
+import {
+  createSession,
+  addExchange,
+  closeSession,
+} from '../services/sessionService';
+import { initStorage } from '../services/storage';
 import { analyzeSession, updateProfile, getDefaultProfile, detectStructuralMoves } from '../services/immersionProfile';
 import SystemNotice from './SystemNotice';
 import MeaningBubble from './MeaningBubble';

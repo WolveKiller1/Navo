@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getDefaultProfile, buildPromptWithProfile } from './immersionProfile';
-import { getImmersionProfile, saveImmersionProfile } from './storage';
+import { getImmersionProfile, saveImmersionProfile } from './accountService';
 
 // Claude API key and URL, which will be implemented later when instructed
 //const CLAUDE_API_KEY = import.meta.env.VITE_CLAUDE_API_KEY;

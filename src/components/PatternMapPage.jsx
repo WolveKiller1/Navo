@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import SubPageLayout from './SubPageLayout';
-import { getLocalAccount } from '../services/storage';
+import { getLocalAccount } from '../services/accountService';
 import '../styles/PatternMapPage.css';
 
 function PatternMapPage() {

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaPause, FaPlay } from 'react-icons/fa';
+import { getImmersionProfile } from '../services/accountService';
 import {
-  getImmersionProfile,
   getRecurringPlaygroundSeedTexts,
-  initStorage,
   recordMovementTrace
-} from '../services/storage';
+} from '../services/continuityService';
+import { initStorage } from '../services/storage';
 import { getDefaultProfile } from '../services/immersionProfile';
 import { speak } from '../services/tts';
 import { buildPlaygroundSequence } from '../services/playgroundSequenceBuilder';

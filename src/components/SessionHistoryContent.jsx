@@ -8,7 +8,7 @@ import {
   deleteSession,
   exportSessionsAsJSON,
   getMeaningfulSessions
-} from '../services/storage';
+} from '../services/sessionService';
 import { speak } from '../services/tts';
 import '../styles/SessionHistory.css';
 

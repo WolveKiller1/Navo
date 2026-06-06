@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaArrowLeft, FaPlay, FaTrash } from 'react-icons/fa';
-import { getAllSessions, deleteSession } from '../services/storage';
+import { getAllSessions, deleteSession } from '../services/sessionService';
 import { speak } from '../services/tts';
 
 function SessionHistory({ onClose }) {

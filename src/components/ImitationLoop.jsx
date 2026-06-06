@@ -7,12 +7,12 @@ import { initializeTTS, speak } from '../services/tts';
 import { IMITATION_UNITS_EN, IMITATION_UNITS_PT } from '../data/units';
 import { PHRASE_PATTERNS_PT, PHRASE_PATTERNS_EN } from '../data/phrasePatterns';
 import { generateAllPhrases } from '../services/phraseGenerator';
+import { getUserPreferences } from '../services/accountService';
 import {
   getRecurringPracticeLoopPhraseTexts,
-  getUserPreferences,
-  initStorage,
   recordExposureTrace
-} from '../services/storage';
+} from '../services/continuityService';
+import { initStorage } from '../services/storage';
 import NavoNav from './NavoNav';
 import NavoFooter from './NavoFooter';
 import SystemNotice from './SystemNotice';

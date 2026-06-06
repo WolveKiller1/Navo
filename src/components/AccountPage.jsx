@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  deleteAllData,
-  deleteAllSessions,
-  exportSessionsAsJSON,
-  getLocalAccount,
-  buildContinuityPreview
-} from '../services/storage';
+  deleteLocalAccountData,
+  getLocalAccount
+} from '../services/accountService';
+import { buildContinuityPreview } from '../services/continuityService';
+import { deleteAllSessions, exportSessionsAsJSON } from '../services/sessionService';
 import {
   saveCloudContinuityNow,
   signInWithEmail,
@@ -133,7 +132,7 @@ function AccountPage() {
     }
 
     if (confirmDialogConfig.action === 'deleteData') {
-      const result = await deleteAllData();
+      const result = await deleteLocalAccountData();
       if (!result.success) {
         setLocalMessage(result.error);
         clearLocalMessage();

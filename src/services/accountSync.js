@@ -2,11 +2,11 @@ import {
   attachLocalAccountToCloud,
   buildLocalAccountFromCloud,
   detachLocalAccountFromCloud,
-  getCloudContinuityPayload,
   getLocalAccount,
   replaceLocalAccount,
   subscribeToLocalAccount
-} from './storage';
+} from './accountService';
+import { getCloudContinuityPayload } from './continuityService';
 import { getSupabaseClient, hasSupabaseConfig } from './supabaseClient';
 
 const CONTINUITY_TABLE = 'navo_account_continuity';
