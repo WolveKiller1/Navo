@@ -342,6 +342,55 @@ flowchart LR
 
 ---
 
+## Circulation Model
+
+Circulation describes how Navo keeps patterns, context, and momentum moving between surfaces so the product feels like one environment instead of separate features.
+
+This model is also a product compass, not a strict implementation diagram.
+
+```mermaid
+flowchart TB
+  ENV["Navo Environment"]
+
+  subgraph CORE["Core Circulation Loop"]
+    PL["Practice Loop<br/>input + speech contact"]
+    PG["Pattern Playground<br/>variation"]
+    ROOM["The Room<br/>use"]
+    ADAPT["Adaptation<br/>adjustment"]
+
+    PL --> PG
+    PG --> ROOM
+    ROOM --> ADAPT
+    ADAPT --> PL
+  end
+
+  subgraph OUTPUTS["Long-Term Outputs"]
+    MAP["Pattern Map<br/>visible traces"]
+    INTUIT["Intuition<br/>subconscious use"]
+  end
+
+  subgraph REGULATORS["Regulators"]
+    CONF["Confidence"]
+    ZPD["ZPD"]
+    PRON["Pronunciation support"]
+  end
+
+  ENV --> CORE
+  CORE --> MAP
+  CORE --> INTUIT
+
+  CONF -.-> ROOM
+  ZPD -.-> ROOM
+  PRON -.-> PL
+  PRON -.-> ROOM
+
+  ADAPT -.-> CONF
+  ADAPT -.-> ZPD
+```
+
+---
+
 ## License
 
 License not yet specified.
+
