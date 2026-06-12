@@ -167,6 +167,8 @@ src/
     SettingsPage.css
     AboutPage.css
     AccessPage.css
+```
+
 ## Development
 
 ### Install dependencies
