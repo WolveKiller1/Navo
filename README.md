@@ -286,7 +286,59 @@ Current focus:
 2. Local continuity layer
 3. Immersion profile storage
 4. Pattern Map foundations
-5. Future account/sync layer
+5. Account-owned continuity and sync
+
+---
+
+## Product Model
+
+Navo is organized around a language environment rather than lessons, levels, or scores.
+
+This model is a product compass, not a strict implementation diagram.
+
+```mermaid
+flowchart LR
+  ENV["Navo Environment<br/>Purpose: natural language acquisition"]
+
+  SOUL["Soul<br/>Patterns"]
+  HEART["Heart<br/>Conversation Engine"]
+  CIRC["Circulation / Logic<br/>How everything functions together"]
+  NERVE["Nervous System<br/>Adaptation"]
+  VIS["Visualization<br/>Pattern Map"]
+  EXP["Expression<br/>Pronunciation"]
+
+  ENV --> SOUL
+  ENV --> HEART
+  ENV --> CIRC
+  ENV --> NERVE
+  ENV --> VIS
+  ENV --> EXP
+
+  SOUL --> S1["Patterns grow"]
+  SOUL --> S2["Patterns connect"]
+  SOUL --> S3["Patterns settle into intuition"]
+
+  HEART --> H1["Recognize user intent"]
+  HEART --> H2["Recast without judgment"]
+  HEART --> H3["Protect confidence"]
+  HEART --> H4["Keep user in ZPD"]
+
+  CIRC --> C1["Move context between surfaces"]
+  CIRC --> C2["Keep momentum alive"]
+  CIRC --> C3["Connect pattern exposure, use, and return"]
+
+  NERVE --> N1["Notice context"]
+  NERVE --> N2["Adjust difficulty"]
+  NERVE --> N3["Shape what appears next"]
+
+  VIS --> V1["Show accumulated pattern movement"]
+  VIS --> V2["Reveal connections"]
+  VIS --> V3["Avoid scores or mastery dashboards"]
+
+  EXP --> E1["Support spoken form"]
+  EXP --> E2["Slow down when needed"]
+  EXP --> E3["Help confidence through sound"]
+```
 
 ---
 
