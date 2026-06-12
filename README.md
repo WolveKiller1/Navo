@@ -167,6 +167,8 @@ src/
     SettingsPage.css
     AboutPage.css
     AccessPage.css
+```
+
 ## Development
 
 ### Install dependencies
@@ -338,6 +340,47 @@ flowchart LR
   EXP --> E1["Support spoken form"]
   EXP --> E2["Slow down when needed"]
   EXP --> E3["Help confidence through sound"]
+```
+
+---
+
+## Circulation Model
+
+Circulation describes how Navo keeps patterns, context, and momentum moving between surfaces so the product feels like one environment instead of separate features.
+
+This model is also a product compass, not a strict implementation diagram.
+
+```mermaid
+flowchart LR
+  ENV["Navo Environment"]
+
+  PL["Practice Loop"]
+  PG["Pattern Playground"]
+  ROOM["The Room"]
+  MAP["Pattern Map"]
+  ADAPT["Adaptation System"]
+  INTUIT["Intuition / Subconscious Use"]
+
+  ENV --> PL
+  ENV --> PG
+  ENV --> ROOM
+  ENV --> MAP
+  ENV --> ADAPT
+
+  PL -->|"comprehensible input<br/>pattern exposure"| PG
+  PG -->|"variation<br/>pattern expansion"| ROOM
+  ROOM -->|"use<br/>recasting<br/>confidence signal"| ADAPT
+  ADAPT -->|"adjusts what appears next"| PL
+  ADAPT -->|"adjusts challenge / ZPD"| ROOM
+  ROOM -->|"pattern movement"| MAP
+  PG -->|"pattern connections"| MAP
+  PL -->|"recurring patterns"| MAP
+  MAP -->|"visible direction<br/>not scores"| PL
+  MAP -->|"visible direction<br/>not scores"| PG
+  MAP -->|"visible direction<br/>not scores"| ROOM
+  ROOM -->|"spontaneous use"| INTUIT
+  PG -->|"familiar variation"| INTUIT
+  PL -->|"repeated input"| INTUIT
 ```
 
 ---
